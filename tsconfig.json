@@ -99,8 +99,9 @@
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "*.ts", 
-    "./api/*.ts"
+    "*.ts",
+    "src/api/*.ts",
+    "src/server.ts"  
   ],
   "exclude": [
     "node_modules"
