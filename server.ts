@@ -5,7 +5,7 @@ import express from 'express'
 const app = express()
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Hello, Secure World!' })
+    res.json({ message: 'Home' })
 });
 
 app.use((req, res, next) => {
