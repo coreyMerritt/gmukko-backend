@@ -1,8 +1,11 @@
 import http from 'http';
 import express from 'express';
+import indexRoutes from './api/index.js';
 const app = express();
-app.get('/', (req, res) => {
-    res.json({ message: 'Hello, Secure World!' });
+const server = http.createServer(app);
+const port = 3080;
+server.listen(port, () => {
+    console.log(`Server is running on https://localhost:${port}`);
 });
 app.use((req, res, next) => {
     console.log(`Request received: 
@@ -14,8 +17,4 @@ app.use((req, res, next) => {
         Timestamp: ${new Date().toISOString()}`);
     next();
 });
-const server = http.createServer(app);
-const port = 3080;
-server.listen(port, () => {
-    console.log(`Server is running on https://localhost:${port}`);
-});
+app.use('/', indexRoutes);
