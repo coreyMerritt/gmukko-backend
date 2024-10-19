@@ -13,13 +13,13 @@ server.listen(port, () => {
 })
 
 app.use((req, res, next) => {
-    console.log(`Request received: 
-        Method: ${req.method}, 
-        URL: ${req.url}, 
-        Headers: ${JSON.stringify(req.headers, null, 2)}, 
-        IP: ${req.socket.remoteAddress}, 
-        User-Agent: ${req.headers['user-agent']}, 
-        Timestamp: ${new Date().toISOString()}`)
+    console.log(`\n\nRequest received:\n` +
+        `\tTimestamp: ${new Date().toISOString()}\n` +
+        `\tURL: ${req.url}\n` +
+        `\tMethod: ${req.method}\n` +
+        `\tIP: ${req.socket.remoteAddress}\n` +
+        `\tUser-Agent: ${req.headers['user-agent']}\n` +
+        `\tHeaders: ${JSON.stringify(req.headers, null, 2)}\n`)
     next()
 })
 

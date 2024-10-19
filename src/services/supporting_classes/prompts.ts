@@ -7,6 +7,8 @@ export enum Prompts {
         "type should be one of these values: 'Movie', 'Show', 'Stand-Up', 'Anime', 'Animation', 'Internet Video'. "  +
         "Because anime and animation can have some overlap, I first want you to ask yourself if the media is anime, it can only be animation if it is not anime. " + 
         "The other categories should be self explanatory. " +
+        "Be careful not to over-rely on the file name, cross check your results with known media for confidence" +
+        "Be careful not to include the year in the title" +
         "Give me your result in perfectly parsable JSON. " + 
         "Here's the full file name: " 
 }
