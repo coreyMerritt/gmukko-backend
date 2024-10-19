@@ -1,14 +1,10 @@
 export enum Prompts {
     ReturnMediaAsJson = 
-        "I'm going to give you a full file path to a piece of media, " +
-        "I want you to do your best to categorize the media in the following categories: type, title, releaseYear, seasonNumber*, episodeNumber*, filePath " + 
-        "Asterisks here represent data that may not always apply. If anything with an asterisk should be blank, return null for those values. " +
-        "filePath should just be an exact match to the file I give you. " + 
-        "type should be one of these values: 'Movie', 'Show', 'Stand-Up', 'Anime', 'Animation', 'Internet Video'. "  +
-        "Because anime and animation can have some overlap, I first want you to ask yourself if the media is anime, it can only be animation if it is not anime. " + 
-        "The other categories should be self explanatory. " +
-        "Be careful not to over-rely on the file name, cross check your results with known media for confidence" +
-        "Be careful not to include the year in the title" +
-        "Give me your result in perfectly parsable JSON. " + 
-        "Here's the full file name: " 
+        'Im going to give you an array of file paths that correlate to known media.\n' +
+        'Return a parsable JSON array of objects in the format that follows:\n' +
+        '[ { "filepath": string "type": string, "title": string, "releaseYear": number "seasonNumber": number|null, "episodeNumber": number|null }, { ... } ]\n' +
+        'do this once for every string, returning 1 parsable array with 1 object for each file path in the array youre given.\n' +
+        '"type" should be one of: "movie", "show", "stand-up", "anime", "animation", "internet". "type\n' +
+        'Return only fully-parsable JSON.\n' +
+        'Here are the file paths:'
 }

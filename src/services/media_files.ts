@@ -6,30 +6,26 @@ import MediaFile from './supporting_classes/media_file.js'
 import { Prompts } from './supporting_classes/prompts.js' 
 
 
-export class MediaFiles {
+export default class MediaFiles {
 
-    public static async getMediaFiles(directory: string, acceptableExtensions: string[]): Promise<MediaFile[] | undefined> {
-        var mediaFiles: MediaFile[] = []
-        var filePaths = await this.getMediaFilesRecursively(directory, acceptableExtensions)
+    public static async getMediaFiles(directory: string, acceptableExtensions: string[]): Promise<MediaFile[]> {
+        var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
         filePaths = await this.removeMediaShorts(filePaths, ['featurette', 'deleted-scenes'], 600)
         const ai = new AI()
+        const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filePaths)
+        var mediaFiles: MediaFile[] = []
 
-        for (const [i, filePath] of filePaths.entries()) {
-            const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filePath)
-
-            try {
-                const mediaFile: MediaFile = JSON.parse(aiResult)
-                mediaFiles.push(mediaFile)
-                console.log(`Path:\t\t${mediaFile.filePath}\nTitle:\t\t${mediaFile.title}\nRelease Year:\t${mediaFile.releaseYear}\nSeason #:\t${mediaFile.seasonNumber}\nEpisode #:\t${mediaFile.episodeNumber}\n`)
-            } catch (error) {
-                console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
-            }
+        try {
+            mediaFiles = JSON.parse(aiResult)
+            console.log(JSON.stringify(mediaFiles))
+        } catch (error) {
+            console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
         }
 
         return mediaFiles
     }
 
-    private static async getMediaFilesRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
+    private static async getMediaFilePathsRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
         const files = fs.readdirSync(directoryToCheck)
         var filesMatchingExtension: string[] = []
 
@@ -39,7 +35,7 @@ export class MediaFiles {
             const stats = fs.statSync(fullPath)
             
             if (stats.isDirectory()) {
-                const nestedFiles = await this.getMediaFilesRecursively(fullPath, extensionsToMatch)
+                const nestedFiles = await this.getMediaFilePathsRecursively(fullPath, extensionsToMatch)
                 filesMatchingExtension = filesMatchingExtension.concat(nestedFiles)
             } else {
                 const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
