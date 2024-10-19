@@ -14,13 +14,10 @@ export default class Database {
         const db = await this.createDatabaseIfNotExists('gmukko-backend')
         db ? this.db = db : undefined
         await this.createMediaTableIfNotExists()
-        console.debug("before getMediaFiles")
-        const mediaFiles = await MediaFiles.getMediaFiles('/mnt/z/media/videos/movies/(2001-2010)-shrek', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        console.debug("before loop")
-        console.debug(mediaFiles.length)
+        const mediaFiles = await MediaFiles.getMediaFiles('/mnt/z/media/videos/anime/angel-beats!', [ '.mkv', '.avi', '.mp4', '.mov' ])
         for (const [i, mediaFile] of mediaFiles.entries()) {
             console.debug(i)
-            console.debug(mediaFile.title)
+            console.debug(mediaFile)
         }
     }
 

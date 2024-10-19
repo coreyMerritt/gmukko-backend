@@ -10,19 +10,35 @@ export default class MediaFiles {
 
     public static async getMediaFiles(directory: string, acceptableExtensions: string[]): Promise<MediaFile[]> {
         var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-        filePaths = await this.removeMediaShorts(filePaths, ['featurette', 'deleted-scenes'], 600)
-        const ai = new AI()
-        const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filePaths)
-        var mediaFiles: MediaFile[] = []
+            filePaths = await this.removeMediaShorts(filePaths, ['featurette', 'deleted-scenes'], 600)
 
-        try {
-            mediaFiles = JSON.parse(aiResult)
-            console.log(JSON.stringify(mediaFiles))
-        } catch (error) {
-            console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
+        var workingArray: string[] = []
+        var aiResult: MediaFile[] = []
+        for (const [i, filePath] of filePaths.entries()) {
+            workingArray.push(filePath)
+
+            if ((i+1) % 5 === 0) {
+                const ai = new AI()
+                const tempAiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, workingArray)
+                try {
+                    console.log(tempAiResult)
+                    const tempAiResultAsJSON = JSON.parse(tempAiResult)
+                } catch (error) {
+                    console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
+                }
+                workingArray = []
+            } else if ((i+1) === filePaths.length) {
+                const ai = new AI()
+                const tempAiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, workingArray)
+                try {
+                    const tempAiResultAsJSON = JSON.parse(tempAiResult)
+                    console.log(tempAiResultAsJSON)
+                } catch (error) {
+                    console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
+                }
+            }
         }
-
-        return mediaFiles
+        return aiResult
     }
 
     private static async getMediaFilePathsRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
