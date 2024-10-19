@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai'
-import { Prompts } from './supporting-classes/prompts.js'
+import { Prompts } from './supporting_classes/prompts.js'
 
 export default class AI {
     
@@ -13,7 +13,7 @@ export default class AI {
         const result = await this.model.completions.create({
             model: 'gpt-3.5-turbo-instruct',
             prompt: prompt + data,
-            max_tokens: 100,
+            max_tokens: 200,
             temperature: 0,
             echo: false,
             presence_penalty: -2

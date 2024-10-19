@@ -1,25 +1,27 @@
 import fs from 'fs'
 import path from 'path'
-import express from 'express'
 import AI from './ai.js'
-import { Prompts } from './supporting-classes/prompts.js'
+import MediaFile from './supporting_classes/media_file.js'
+import { Prompts } from './supporting_classes/prompts.js' 
+
 
 export class Files {
-    private static directory = '/mnt/z/media/videos/movies'
-    private static acceptableExtensions = ['.mp4', '.avi', '.mkv', '.mov']
 
-    public static async placeholderName() {
-        const filePaths = await Files.getMatchingFilesRecursively(Files.directory, Files.acceptableExtensions)
+    public static async getMediaFiles(directory: string, acceptableExtensions: string[]): Promise<MediaFile[] | undefined> {
+        var mediaFiles: MediaFile[] = []
+        const filePaths = await this.getMatchingFilesRecursively(directory, acceptableExtensions)
         const ai = new AI()
         for (const [i, filePath] of filePaths.entries()) {
             const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filePath)
             try {
                 const fileObject = JSON.parse(aiResult)
-                return fileObject
+                mediaFiles.push(fileObject)
+                console.debug(`${fileObject.title} processed.`)
             } catch (error) {
                 console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
             }
         }
+        return mediaFiles
     }
 
     private static async getMatchingFilesRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {

@@ -2,14 +2,7 @@ import http from 'http'
 import express from 'express'
 import apiRoutes from './api/api.js'
 import filedataRoutes from './api/filedata.js'
-import AI from './services/ai.js'
-import { Prompts } from './services/supporting-classes/prompts.js'
-import { Files } from './services/files.js'
-
-test()
-async function test() {
-    Files.placeholderName()
-}
+import mediaRefreshRoutes from './api/media/refresh/index.js'
 
 const app = express()
 const server = http.createServer(app)
@@ -32,3 +25,4 @@ app.use((req, res, next) => {
 
 app.use('/', apiRoutes)
 app.use('/', filedataRoutes)
+app.use('/media/refresh', mediaRefreshRoutes)
