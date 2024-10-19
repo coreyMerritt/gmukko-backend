@@ -14,9 +14,9 @@ export class Files {
         for (const [i, filePath] of filePaths.entries()) {
             const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filePath)
             try {
-                const fileObject = JSON.parse(aiResult)
-                mediaFiles.push(fileObject)
-                console.debug(`${fileObject.title} processed.`)
+                const mediaFile: MediaFile = JSON.parse(aiResult)
+                mediaFiles.push(mediaFile)
+                console.log(`Path:\t\t${mediaFile.filePath}\nTitle:\t\t${mediaFile.title}\nRelease Year:\t${mediaFile.releaseYear}\nSeason #:\t${mediaFile.seasonNumber}\nEpisode #:\t${mediaFile.episodeNumber}\n`)
             } catch (error) {
                 console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
             }
