@@ -4,12 +4,11 @@ import apiRoutes from './api/api.js'
 import filedataRoutes from './api/filedata.js'
 import AI from './services/ai.js'
 import { Prompts } from './services/supporting-classes/prompts.js'
+import { Files } from './services/files.js'
 
 test()
 async function test() {
-    const jokeBot = new AI()
-    const result = JSON.parse(await jokeBot.evaluate(Prompts.ReturnMediaAsJson, "Z:\\media\\videos\\tv-shows\\black-mirror\\(2013)-season-2\\episode-2---white-bear.mp4"))
-    console.log(result.type)
+    Files.placeholderName()
 }
 
 const app = express()
