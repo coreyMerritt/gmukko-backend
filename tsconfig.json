@@ -101,7 +101,8 @@
   "include": [
     "*.ts",
     "src/api/*.ts",
-    "src/server.ts"  
+    "src/server.ts",
+    "services/*.ts"  
   ],
   "exclude": [
     "node_modules"

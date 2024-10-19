@@ -3,19 +3,34 @@ import path from 'path'
 import express from 'express'
 
 export class Files {
-    public static async getAllFilesRecursively(directoryToCheck: string, extensionsToMatch: string[]) {
-        const files = fs.readdirSync(directoryToCheck)
+    private static directory = '/mnt/z/media'
+    private static acceptableExtensions = ['.mp4', '.avi', '.mkv', '.mov']
+
+    private static async placeholderName() {
+        const filePaths = Files.getMatchingFilesRecursively(Files.directory, Files.acceptableExtensions)
         
-        files.forEach(file => {
-            const filePath = path.join(directoryToCheck, file)
-            const fileExtension = path.extname(file)
-            const stats = fs.statSync(filePath)
+    }
+
+    private static async getMatchingFilesRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
+        const files = fs.readdirSync(directoryToCheck)
+        var filesMatchingExtension: string[] = []
+
+        files.forEach(filePath => {
+            const fullPath = path.join(directoryToCheck, filePath)
+            const fileExtension = path.extname(filePath)
+            const stats = fs.statSync(fullPath)
             
             if (stats.isDirectory()) {
-                this.getAllFilesRecursively(directoryToCheck, extensionsToMatch)
+                this.getMatchingFilesRecursively(directoryToCheck, extensionsToMatch)
             } else {
-                // if (extensionsToMatch.some())
+                const isProperFileExtension = extensionsToMatch.some((extensionToMatch) => {
+                    extensionToMatch === fileExtension
+                })
+                if (isProperFileExtension) {
+                    filesMatchingExtension.push(fullPath)
+                }
             }
         })
+        return filesMatchingExtension
     }
 }
