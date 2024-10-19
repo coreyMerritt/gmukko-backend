@@ -13,7 +13,10 @@ export default class AI {
         const result = await this.model.completions.create({
             model: 'gpt-3.5-turbo-instruct',
             prompt: prompt + data,
-            max_tokens: 100
+            max_tokens: 100,
+            temperature: 0,
+            echo: false,
+            presence_penalty: -2
         })
 
         return result.choices[0].text

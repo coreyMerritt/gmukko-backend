@@ -5,15 +5,20 @@ import AI from './ai.js'
 import { Prompts } from './supporting-classes/prompts.js'
 
 export class Files {
-    private static directory = '/mnt/z/media/videos/tv-shows/black-mirror'
+    private static directory = '/mnt/z/media/videos/movies'
     private static acceptableExtensions = ['.mp4', '.avi', '.mkv', '.mov']
 
     public static async placeholderName() {
         const filePaths = await Files.getMatchingFilesRecursively(Files.directory, Files.acceptableExtensions)
+        const ai = new AI()
         for (const [i, filePath] of filePaths.entries()) {
-            const ai = new AI()
-            const fileObject = JSON.parse(await ai.evaluate(Prompts.ReturnMediaAsJson, filePath))
-            console.log(JSON.stringify(fileObject))
+            const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filePath)
+            try {
+                const fileObject = JSON.parse(aiResult)
+                return fileObject
+            } catch (error) {
+                console.error(`\nUnable to parse: ${aiResult}\n\n${error}`)
+            }
         }
     }
 
@@ -21,22 +26,22 @@ export class Files {
         const files = fs.readdirSync(directoryToCheck)
         var filesMatchingExtension: string[] = []
 
-        files.forEach(filePath => {
+        for (const filePath of files) {
             const fullPath = path.join(directoryToCheck, filePath)
             const fileExtension = path.extname(filePath)
             const stats = fs.statSync(fullPath)
             
             if (stats.isDirectory()) {
-                this.getMatchingFilesRecursively(directoryToCheck, extensionsToMatch)
+                const nestedFiles = await this.getMatchingFilesRecursively(fullPath, extensionsToMatch)
+                filesMatchingExtension = filesMatchingExtension.concat(nestedFiles)
             } else {
-                const isProperFileExtension = extensionsToMatch.some((extensionToMatch) => {
-                    extensionToMatch === fileExtension
-                })
+                const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
                 if (isProperFileExtension) {
-                    filesMatchingExtension.push(fullPath)
+                    filesMatchingExtension.push(fullPath);
                 }
             }
-        })
+        }
+
         return filesMatchingExtension
     }
 }
