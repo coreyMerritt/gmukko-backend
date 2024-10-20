@@ -1,6 +1,7 @@
 import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
 import MediaFileData from '../interfaces_and_enums/media_file_data.js'
 import MediaFileDataModel from '../database_models/media_file_data_model.js'
+import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import MediaFiles from './media_files.js'
 
 export default class Database {
@@ -16,8 +17,9 @@ export default class Database {
         const db = await this.createAndLoadDatabase(this.database)
         db ? this.db = db : undefined
         await this.createMediaTableIfNotExists()
-        const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/planet-earth/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/louie/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
         this.indexMediaFileData(mediaFiles)
+        console.log(`Done`)
     }
 
 
@@ -43,9 +45,7 @@ export default class Database {
 
 
     private static async createMediaTableIfNotExists() {
-        const tableName = `media_data`
-
-        if (!await this.tableExists(tableName)) {
+        if (!await this.tableExists(DatabaseTables.MediaData)) {
             MediaFileDataModel.init(
                 {
                     filePath: {
@@ -76,7 +76,7 @@ export default class Database {
                 },
                 {
                     sequelize: this.db,
-                    tableName: tableName
+                    tableName: `${DatabaseTables.MediaData}`
                 }
             )
             await MediaFileDataModel.sync()
@@ -101,21 +101,59 @@ export default class Database {
 
 
     public static async removeIndexedFilesFromPaths(filePaths: string[]) {
+        console.log("Removing already indexed files from list of files to index.")
         for (const [i, filePath] of filePaths.entries()) {
-            const [results] = await this.db.query(
-                `SELECT * FROM media_data WHERE filePath="\`${filePath}\`"`
-            )
+            console.log(`\tChecking index #: ${i}`)
+            console.log(`\tChecking file: ${filePath}`)
+            const [results] = await this.db.query(`
+                SELECT * 
+                FROM ${DatabaseTables.MediaData} 
+                WHERE filePath = :filePath
+            `,
+            {
+                replacements: { 
+                    filePath: filePath
+                }
+            })
             if (results.length > 0) {
-                filePaths.filter((thisPath) => {
+                console.log(`\t\tRemoving ${filePath} from list of files that need to be indexed.`)
+                filePaths = filePaths.filter((thisPath) => {
                     thisPath != filePath
                 })
-            } 
+            }  else {
+                console.log(`\t\tKeeping file ${filePath} to index.`)
+            }
         }
         return filePaths
     }
 
 
     private static indexMediaFileData(mediaFiles: MediaFileData[]) {
-
+        console.log("Starting indexing")
+        for (const [i, mediaFile] of mediaFiles.entries()) {
+            console.log(`\tIndexing File #: ${i}`)
+            console.log(`\tIndexing File: ${mediaFile}`)
+            try {
+                const result =  this.db.query(`
+                    INSERT INTO ${DatabaseTables.MediaData} (filePath, type, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                    VALUES (:filePath, :type, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+                `,
+                {
+                    replacements: {
+                        filePath: mediaFile.filePath,
+                        type: mediaFile.type,
+                        title: mediaFile.title,
+                        releaseYear: mediaFile.releaseYear,
+                        seasonNumber: mediaFile.seasonNumber,
+                        episodeNumber: mediaFile.episodeNumber,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    }
+                })
+                console.log(`\t\tSuccessfully indexed: ${mediaFile}`)
+            } catch (error) {
+                console.error(`\t\tUnable to index: ${mediaFile}\n${error}\n`)
+            }
+        }
     }
 }
