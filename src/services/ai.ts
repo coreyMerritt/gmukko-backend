@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai'
-import { Prompts } from './supporting_classes/prompts.js'
+import { Prompts } from '../interfaces_and_enums/prompts.js'
 
 export default class AI {
     

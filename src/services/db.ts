@@ -1,5 +1,6 @@
-import { DataTypes, Model, Sequelize, QueryTypes } from 'sequelize'
-import MediaData from './database_models/media_data.js'
+import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
+import MediaFileData from '../interfaces_and_enums/media_file_data.js'
+import MediaFileDataModel from '../database_models/media_file_data_model.js'
 import MediaFiles from './media_files.js'
 
 export default class Database {
@@ -16,7 +17,7 @@ export default class Database {
         db ? this.db = db : undefined
         await this.createMediaTableIfNotExists()
         const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/planet-earth/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        
+        this.indexMediaFileData(mediaFiles)
     }
 
 
@@ -45,7 +46,7 @@ export default class Database {
         const tableName = `media_data`
 
         if (!await this.tableExists(tableName)) {
-            MediaData.init(
+            MediaFileDataModel.init(
                 {
                     filePath: {
                         type: DataTypes.STRING,
@@ -78,7 +79,7 @@ export default class Database {
                     tableName: tableName
                 }
             )
-            await MediaData.sync()
+            await MediaFileDataModel.sync()
         }
     }
 
@@ -111,5 +112,10 @@ export default class Database {
             } 
         }
         return filePaths
+    }
+
+
+    private static indexMediaFileData(mediaFiles: MediaFileData[]) {
+
     }
 }

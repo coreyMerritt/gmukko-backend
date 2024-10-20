@@ -9,7 +9,7 @@ enum TypeOfMedia {
     Internet = 'internet'
 }
 
-export default class MediaData extends Model {
+export default class MediaFileDataModel extends Model {
     public filePath!: string
     public type!: TypeOfMedia
     public title!: string

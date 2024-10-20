@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import ffmpeg from 'fluent-ffmpeg'
 import AI from './ai.js'
-import MediaFileData from './supporting_classes/media_file_data.js'
-import { Prompts } from './supporting_classes/prompts.js' 
+import MediaFileData from '../interfaces_and_enums/media_file_data.js'
+import { Prompts } from '../interfaces_and_enums/prompts.js' 
 import Database from './db.js'
 import { getEnvironmentData } from 'worker_threads'
 
@@ -109,7 +109,7 @@ export default class MediaFiles {
     }
 
 
-    private static async generateMediaFileData(filePaths: string[]) {
+    public static async generateMediaFileData(filePaths: string[]) {
         var mediaFiles: MediaFileData[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
