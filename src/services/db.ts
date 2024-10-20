@@ -3,6 +3,7 @@ import MediaFileData from '../interfaces_and_enums/media_file_data.js'
 import MediaFileDataModel from '../database_models/media_file_data_model.js'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import MediaFiles from './media_files.js'
+import { table } from 'console'
 
 export default class Database {
     private static username = process.env.GMUKKO_BACKEND_USERNAME
@@ -14,122 +15,155 @@ export default class Database {
     private static db: Sequelize
 
     public static async refreshMediaDataTable() {
-        const db = await this.createAndLoadDatabase(this.database)
-        db ? this.db = db : undefined
-        await this.createMediaTableIfNotExists()
-        const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/louie/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        this.indexMediaFileData(mediaFiles)
-        console.log(`Done`)
+        console.log(`Attempting to refresh the ${DatabaseTables.MediaData} table...`)
+        try {
+            const db = await this.createAndLoadDatabase(this.database)
+            db ? this.db = db : undefined
+            await this.createMediaTableIfNotExists()
+            const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/louie/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
+            this.indexMediaFileData(mediaFiles)
+            console.log(`Successfully refreshed the ${DatabaseTables.MediaData} table.`)
+        } catch (error) {
+            console.log(`Failed to refresh the ${DatabaseTables.MediaData} table.`)
+        }
     }
 
 
     private static async createAndLoadDatabase(database: string): Promise<Sequelize | undefined> {
-        return this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
-        .then(() => {
-            if (this.username && this.password) {
-                return new Sequelize(database, this.username, this.password, {
-                    host: 'localhost',
-                    dialect: 'mysql',
-                    logging: false,
-                })
-            } else {
-                console.error("One or more database environment variables are not defined.")
+        console.log(`Checking if database is loaded...`)
+        if (!this.db) {
+            console.log(`\tAttempting to load to database...`)
+            try {
+                const creationResult = await this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
+                if (this.username && this.password) {
+                    const db = new Sequelize(database, this.username, this.password, {
+                        host: 'localhost',
+                        dialect: 'mysql',
+                        logging: false,
+                    })
+                    console.log(`\tSuccessfully loaded database.`)
+                    return db
+                } else {
+                    console.log(`\tFailed to load database because username or password were not defined`)
+                }
+            } catch (error) {
+                console.error(`\tFailed to load database.\n`, error)
             }
-            return undefined
-        })
-        .catch(error => {
-            console.error(`Error creating database: ${database}\n`, error)
-            return undefined
-        })
+        } else {
+            console.log(`Database is already loaded.`)
+        }
     }
 
 
     private static async createMediaTableIfNotExists() {
+        console.log(`Checking if ${DatabaseTables.MediaData} exists...`)
         if (!await this.tableExists(DatabaseTables.MediaData)) {
-            MediaFileDataModel.init(
-                {
-                    filePath: {
-                        type: DataTypes.STRING,
-                        allowNull: false,
-                        unique: true
+            console.log(`\tAttempting to create ${DatabaseTables}...`)
+            try {
+                MediaFileDataModel.init(
+                    {
+                        filePath: {
+                            type: DataTypes.STRING,
+                            allowNull: false,
+                            unique: true
+                        },
+                        type: {
+                            type: DataTypes.STRING,
+                            allowNull: false
+                        },
+                        title: {
+                            type: DataTypes.STRING,
+                            allowNull: false
+                        },
+                        releaseYear: {
+                            type: DataTypes.INTEGER,
+                            allowNull: false
+                        },
+                        seasonNumber: {
+                            type: DataTypes.INTEGER,
+                            allowNull: true
+                        },
+                        episodeNumber: {
+                            type: DataTypes.INTEGER,
+                            allowNull: true
+                        }
                     },
-                    type: {
-                        type: DataTypes.STRING,
-                        allowNull: false
-                    },
-                    title: {
-                        type: DataTypes.STRING,
-                        allowNull: false
-                    },
-                    releaseYear: {
-                        type: DataTypes.INTEGER,
-                        allowNull: false
-                    },
-                    seasonNumber: {
-                        type: DataTypes.INTEGER,
-                        allowNull: true
-                    },
-                    episodeNumber: {
-                        type: DataTypes.INTEGER,
-                        allowNull: true
+                    {
+                        sequelize: this.db,
+                        tableName: `${DatabaseTables.MediaData}`
                     }
-                },
-                {
-                    sequelize: this.db,
-                    tableName: `${DatabaseTables.MediaData}`
-                }
-            )
-            await MediaFileDataModel.sync()
+                )
+                await MediaFileDataModel.sync()
+                console.log(`\tSuccessfully created ${DatabaseTables.MediaData} table.`)
+            } catch (error) {
+                console.error(`\tFailed to create ${DatabaseTables.MediaData} table.\n`, error)
+            }
         }
     }
 
 
     private static async tableExists(tableName: string) {
-        const result = await this.db.query(
-            `SELECT * FROM information_schema.tables WHERE table_schema = :databaseName AND table_name = :tableName LIMIT 1;`,
-            {
-              replacements: {
-                databaseName: this.db.getDatabaseName(),
-                tableName: tableName,
-              },
-              type: QueryTypes.SELECT,
+        console.log(`Checking if table ${tableName} exists...`)
+        try {
+            const result = await this.db.query(
+                `SELECT * FROM information_schema.tables WHERE table_schema = :databaseName AND table_name = :tableName LIMIT 1;`,
+                {
+                  replacements: {
+                    databaseName: this.db.getDatabaseName(),
+                    tableName: tableName,
+                  },
+                  type: QueryTypes.SELECT,
+                }
+            )
+            if (result.length > 0) {
+                console.log(`\tTable ${tableName} does exist.`)
+                return true
+            } else {
+                console.log(`\tTable ${tableName} does not exist.`)
+                return false
             }
-        )
-          
-        return result.length > 0
+        } catch (error) {
+            console.error(`\tFailed to check if table ${tableName} exists.\n`, error)
+        }
     }
 
 
     public static async removeIndexedFilesFromPaths(filePaths: string[]) {
-        console.log("Removing already indexed files from list of files to index.")
-        for (const [i, filePath] of filePaths.entries()) {
-            console.log(`\tChecking index #: ${i}`)
-            console.log(`\tChecking file: ${filePath}`)
-            const [results] = await this.db.query(`
-                SELECT * 
-                FROM ${DatabaseTables.MediaData} 
-                WHERE filePath = :filePath
-            `,
-            {
-                replacements: { 
-                    filePath: filePath
-                }
-            })
-            if (results.length > 0) {
-                console.log(`\t\tRemoving ${filePath} from list of files that need to be indexed.`)
-                filePaths = filePaths.filter((thisPath) => {
-                    thisPath != filePath
+        console.log("Attempting to remove already indexed files from list of files to index.")
+        try {
+            for (const [i, filePath] of filePaths.entries()) {
+                console.log(`\tChecking index #: ${i}`)
+                console.log(`\tChecking file: ${filePath}`)
+                const [results] = await this.db.query(`
+                    SELECT * 
+                    FROM ${DatabaseTables.MediaData} 
+                    WHERE filePath = :filePath
+                `,
+                {
+                    replacements: { 
+                        filePath: filePath
+                    }
                 })
-            }  else {
-                console.log(`\t\tKeeping file ${filePath} to index.`)
+                if (results.length > 0) {
+                    console.log(`\tRemoving ${filePath} from list of files that need to be indexed.`)
+                    filePaths = filePaths.filter((thisPath) => {
+                        thisPath != filePath
+                    })
+                }  else {
+                    console.log(`\tKeeping file ${filePath} to index.`)
+                }
             }
+            console.log(`Succesfully removed already indexed files from list of files to index.`)
+            return filePaths
+        } catch (error) {
+            console.error(`Failed to remove already indexed files from list of files to index.\n`, error)
+            return []
         }
-        return filePaths
     }
 
 
     private static indexMediaFileData(mediaFiles: MediaFileData[]) {
-        console.log("Starting indexing")
+        console.log("Attempting to index files...")
         for (const [i, mediaFile] of mediaFiles.entries()) {
             console.log(`\tIndexing File #: ${i}`)
             console.log(`\tIndexing File: ${mediaFile}`)
@@ -152,8 +186,9 @@ export default class Database {
                 })
                 console.log(`\t\tSuccessfully indexed: ${mediaFile}`)
             } catch (error) {
-                console.error(`\t\tUnable to index: ${mediaFile}\n${error}\n`)
+                console.error(`\t\tFailed to index: ${mediaFile}\n${error}\n`)
             }
         }
+        console.log(`Finished indexing files.`)
     }
 }

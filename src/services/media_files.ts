@@ -5,24 +5,33 @@ import AI from './ai.js'
 import MediaFileData from '../interfaces_and_enums/media_file_data.js'
 import { Prompts } from '../interfaces_and_enums/prompts.js' 
 import Database from './db.js'
-import { getEnvironmentData } from 'worker_threads'
 
 
 export default class MediaFiles {
 
     public static async getMediaFileDataToIndex(directory: string, acceptableExtensions: string[]): Promise<MediaFileData[]> {
-        var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-        const filePathsMinusAlreadyIndexed = await Database.removeIndexedFilesFromPaths(filePaths)
-        var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filePathsMinusAlreadyIndexed)
-        return mediaFiles
+        console.log (`Attempting to retrieve media file data to index...`)
+        try {
+            var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
+            const filePathsMinusAlreadyIndexed = await Database.removeIndexedFilesFromPaths(filePaths)
+            var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filePathsMinusAlreadyIndexed)
+            console.log(`Successfully retrieved media file data to index.`)
+            return mediaFiles
+        } catch (error) {
+            console.error(`Failed to retrieve media file data to index.\n`, error)
+            return []
+        }
     }
 
 
     private static async getMediaFilePathsRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
+        console.log(`Attempting to get media file paths from filesystem...`)
         const files = fs.readdirSync(directoryToCheck)
         var filesMatchingExtension: string[] = []
 
-        for (const filePath of files) {
+        for (const [i, filePath] of files.entries()) {
+            console.log(`\tChecking file #: ${i}`)
+            console.log(`\tChecking file: ${filePath}`)
             const fullPath = path.join(directoryToCheck, filePath)
             const fileExtension = path.extname(filePath)
             const stats = fs.statSync(fullPath)
@@ -33,35 +42,46 @@ export default class MediaFiles {
             } else {
                 const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
                 if (isProperFileExtension) {
-                    filesMatchingExtension.push(fullPath);
+                    filesMatchingExtension.push(fullPath)
+                    console.log(`\t\tAdded file: ${fullPath}.`)
+                } else {
+                    console.log(`\t\tIgnored file: ${fullPath}.`)
                 }
             }
         }
         const filesMatchingExtensionMinusShorts = await this.removeMediaShorts(filesMatchingExtension, ['featurette', 'deleted-scenes'], 600)
+        console.log(`Succesfully retrieved ${filesMatchingExtensionMinusShorts.length} file paths.`)
         return filesMatchingExtensionMinusShorts
     }
 
 
     private static async removeMediaShorts(filePaths: string[], unacceptableFilePaths: string[], acceptableLengthInSeconds: number) {
+        // This callback structure is a mess. Plans to refactor this.
+        console.log(`Attempting to removing any shorts from current filePaths...`)
         const newFilePaths: string[] = []
 
         const promises = filePaths.map(filePath => {
             return new Promise<void>((resolve, reject) => {
                 ffmpeg.ffprobe(filePath, (error, metadata) => {
                     if (error) {
-                        console.error(`Error reading video file: ${filePath}`, error)
+                        console.error(`\tError reading video file: ${filePath}\n`, error)
                         return resolve()
-                    }
-
-                    const lengthInSeconds = metadata.format.duration
-                    if (lengthInSeconds && lengthInSeconds > acceptableLengthInSeconds) {
-                        var returnFilePath = true
-                        for (const [i, unacceptableFilePath] of unacceptableFilePaths.entries()) {
-                            if (filePath.includes(unacceptableFilePath)) {
-                                returnFilePath = false
+                    } else {
+                        const lengthInSeconds = metadata.format.duration
+                        if (lengthInSeconds && lengthInSeconds > acceptableLengthInSeconds) {
+                            var returnFilePath = true
+                            for (const [i, unacceptableFilePath] of unacceptableFilePaths.entries()) {
+                                if (filePath.includes(unacceptableFilePath)) {
+                                    returnFilePath = false
+                                }
+                            }
+                            if (returnFilePath) {
+                                console.log(`\tKeeping file: ${filePath}`)
+                                newFilePaths.push(filePath)
+                            } else {
+                                console.log(`\tRemoving file: ${filePath}`)
                             }
                         }
-                        returnFilePath ? newFilePaths.push(filePath) : undefined
                     }
                     resolve()
                 })
@@ -69,17 +89,28 @@ export default class MediaFiles {
         })
 
         await Promise.all(promises)
+        console.log(`Successfully removed any shorts from current filePaths...`)
         return newFilePaths
     }
 
 
     private static async parseFilesWithAi(filesToParse: string[]) {
-        const ai = new AI()
-        const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filesToParse)
-        const filteredResult = this.stringToJsonArray(aiResult)
-        const aiResultAsArrayOfObjects = await JSON.parse(filteredResult)
-
-        return aiResultAsArrayOfObjects
+        console.log(`Attempting to parse ${filesToParse.length} files with AI...`)
+        try {
+            const ai = new AI()
+            const aiResult = await ai.evaluate(Prompts.ReturnMediaAsJson, filesToParse)
+            if (aiResult) {
+                const filteredResult = this.stringToJsonArray(aiResult)
+                const aiResultAsArrayOfObjects = await JSON.parse(filteredResult)
+                console.log(`Successfully parsed a batch of files with AI.`)
+                return aiResultAsArrayOfObjects
+            } else {
+                console.error(`Failed. AI return a falsey result.\n`)
+                return []
+            }
+        } catch (error) {
+            console.error(`Failed to parse ${filesToParse.length} files with AI.\n`, error)
+        }
     }
 
 
@@ -110,6 +141,8 @@ export default class MediaFiles {
 
 
     public static async generateMediaFileData(filePaths: string[]) {
+        // This structure is to optimize token usage on OpenAI API calls.
+        console.log(`Attempting to parse ${filePaths.length} files with AI...`)
         var mediaFiles: MediaFileData[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
@@ -123,6 +156,7 @@ export default class MediaFiles {
                 mediaFiles = mediaFiles.concat(upToNineMediaFiles)
             }
         }
+        console.log(`Finished parsing ${filePaths.length} files with AI.`)
         return mediaFiles
     }
 }
