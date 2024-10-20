@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import ffmpeg from 'fluent-ffmpeg'
 import AI from './ai.js'
-import MediaFile from './supporting_classes/media_file.js'
+import MediaFileData from './supporting_classes/media_file_data.js'
 import { Prompts } from './supporting_classes/prompts.js' 
 import Database from './db.js'
 import { getEnvironmentData } from 'worker_threads'
@@ -10,10 +10,10 @@ import { getEnvironmentData } from 'worker_threads'
 
 export default class MediaFiles {
 
-    public static async getMediaFilesToIndex(directory: string, acceptableExtensions: string[]): Promise<MediaFile[]> {
+    public static async getMediaFileDataToIndex(directory: string, acceptableExtensions: string[]): Promise<MediaFileData[]> {
         var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-        filePaths = await Database.removeIndexedFiles(filePaths)
-        var mediaFiles: MediaFile[] = await this.generateMediaFiles(filePaths)
+        const filePathsMinusAlreadyIndexed = await Database.removeIndexedFilesFromPaths(filePaths)
+        var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filePathsMinusAlreadyIndexed)
         return mediaFiles
     }
 
@@ -109,8 +109,8 @@ export default class MediaFiles {
     }
 
 
-    private static async generateMediaFiles(filePaths: string[]) {
-        var mediaFiles: MediaFile[] = [] 
+    private static async generateMediaFileData(filePaths: string[]) {
+        var mediaFiles: MediaFileData[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)

@@ -7,14 +7,15 @@ export default class Database {
     private static password = process.env.GMUKKO_BACKEND_PASSWORD
     private static host = 'localhost'
     private static port = '3306'
+    private static database = 'gmukko-backend'
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
     private static db: Sequelize
 
     public static async refreshMediaDataTable() {
-        const db = await this.createAndLoadDatabase('gmukko-backend')
+        const db = await this.createAndLoadDatabase(this.database)
         db ? this.db = db : undefined
         await this.createMediaTableIfNotExists()
-        const mediaFiles = await MediaFiles.getMediaFilesToIndex('/mnt/z/media/videos/tv-shows/planet-earth/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/planet-earth/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
         
     }
 
@@ -98,7 +99,7 @@ export default class Database {
     }
 
 
-    public static async removeIndexedFiles(filePaths: string[]) {
+    public static async removeIndexedFilesFromPaths(filePaths: string[]) {
         for (const [i, filePath] of filePaths.entries()) {
             const [results] = await this.db.query(
                 `SELECT * FROM media_data WHERE filePath="\`${filePath}\`"`

@@ -7,7 +7,7 @@ enum MediaType {
     Internet = 'internet'
 }
 
-export default interface MediaFile {
+export default interface MediaFileData {
     filePath: string
     type: MediaType
     title: string
