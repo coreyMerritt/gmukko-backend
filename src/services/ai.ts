@@ -12,8 +12,8 @@ export default class AI {
     async evaluate(prompt: Prompts, data: string[]): Promise<string> {
         const result = await this.model.completions.create({
             model: 'gpt-3.5-turbo-instruct',
-            prompt: prompt + data,
-            max_tokens: 3600,
+            prompt: `${prompt} ${data.toString()}`,
+            max_tokens: 3300,
             temperature: 0,
             echo: false,
             presence_penalty: -2

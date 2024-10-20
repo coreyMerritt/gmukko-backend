@@ -10,18 +10,16 @@ export default class Database {
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
     private static db: Sequelize
 
-    public static async refreshMediaDatabase() {
-        const db = await this.createDatabaseIfNotExists('gmukko-backend')
+    public static async refreshMediaDataTable() {
+        const db = await this.createAndLoadDatabase('gmukko-backend')
         db ? this.db = db : undefined
         await this.createMediaTableIfNotExists()
-        const mediaFiles = await MediaFiles.getMediaFiles('/mnt/z/media/videos/anime/angel-beats!', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        for (const [i, mediaFile] of mediaFiles.entries()) {
-            console.debug(i)
-            console.debug(mediaFile)
-        }
+        const mediaFiles = await MediaFiles.getMediaFilesToIndex('/mnt/z/media/videos/tv-shows/planet-earth/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        
     }
 
-    private static async createDatabaseIfNotExists(database: string): Promise<Sequelize | undefined> {
+
+    private static async createAndLoadDatabase(database: string): Promise<Sequelize | undefined> {
         return this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
         .then(() => {
             if (this.username && this.password) {
@@ -40,6 +38,7 @@ export default class Database {
             return undefined
         })
     }
+
 
     private static async createMediaTableIfNotExists() {
         const tableName = `media_data`
@@ -82,6 +81,7 @@ export default class Database {
         }
     }
 
+
     private static async tableExists(tableName: string) {
         const result = await this.db.query(
             `SELECT * FROM information_schema.tables WHERE table_schema = :databaseName AND table_name = :tableName LIMIT 1;`,
@@ -95,5 +95,20 @@ export default class Database {
         )
           
         return result.length > 0
+    }
+
+
+    public static async removeIndexedFiles(filePaths: string[]) {
+        for (const [i, filePath] of filePaths.entries()) {
+            const [results] = await this.db.query(
+                `SELECT * FROM media_data WHERE filePath="\`${filePath}\`"`
+            )
+            if (results.length > 0) {
+                filePaths.filter((thisPath) => {
+                    thisPath != filePath
+                })
+            } 
+        }
+        return filePaths
     }
 }
