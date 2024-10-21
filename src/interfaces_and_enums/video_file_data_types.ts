@@ -1,3 +1,12 @@
+export enum MediaFileDataTypes {
+    Movies = "movies",
+    Shows = "shows",
+    Standup = "standup",
+    Anime = "anime",
+    Animation = "animation",
+    Internet = "internet"
+}
+
 export interface MediaFileData {
     filePath: string
     title: string
