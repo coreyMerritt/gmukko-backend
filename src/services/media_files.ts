@@ -101,7 +101,6 @@ export default class MediaFiles {
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt, filesToParse)
-            console.debug(`aiResult = ${aiResult}`)
             if (aiResult) {
                 const filteredResult = await this.stringToJsonArray(aiResult)
                 if (filteredResult) {
@@ -166,7 +165,6 @@ export default class MediaFiles {
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)
-            console.debug(`workingArray.length = ${workingArray.length}`)
             if (((i+1) % 10) === 0) {
                 const tenMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
                 console.log(`\tPushing ${tenMediaFiles.length} pieces of media file data.`)

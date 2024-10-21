@@ -197,9 +197,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${movieFileData}`)
+            console.log(`\t\tSuccessfully indexed: ${movieFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${movieFileData}\n${error}\n`)
+            console.error(`\t\tFailed to index: ${movieFileData.filePath}\n${error}\n`)
         }
     }
 
@@ -220,9 +220,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${showFileData}`)
+            console.log(`\t\tSuccessfully indexed: ${showFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${showFileData}\n${error}\n`)
+            console.error(`\t\tFailed to index: ${showFileData.filePath}\n${error}\n`)
         }
     }
 
@@ -242,9 +242,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${standupFileData}`)
+            console.log(`\t\tSuccessfully indexed: ${standupFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${standupFileData}\n${error}\n`)
+            console.error(`\t\tFailed to index: ${standupFileData.filePath}\n${error}\n`)
         }
     }
 
@@ -265,9 +265,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${animeFileData}`)
+            console.log(`\t\tSuccessfully indexed: ${animeFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${animeFileData}\n${error}\n`)
+            console.error(`\t\tFailed to index: ${animeFileData.filePath}\n${error}\n`)
         }
     }
 
@@ -288,9 +288,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${animationFileData}`)
+            console.log(`\t\tSuccessfully indexed: ${animationFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${animationFileData}\n${error}\n`)
+            console.error(`\t\tFailed to index: ${animationFileData.filePath}\n${error}\n`)
         }
     }
 
@@ -308,9 +308,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${internetFileData}`)
+            console.log(`\t\tSuccessfully indexed: ${internetFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${internetFileData}\n${error}\n`)
+            console.error(`\t\tFailed to index: ${internetFileData.filePath}\n${error}\n`)
         }
     }
 
@@ -334,7 +334,7 @@ export default class Database {
         }
     }
     
-    
+
     private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables) {
         try {
             switch (table) {
