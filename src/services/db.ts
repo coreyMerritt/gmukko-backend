@@ -1,9 +1,10 @@
 import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
-import MediaFileData from '../interfaces_and_enums/media_file_data.js'
-import MediaFileDataModel from '../database_models/media_file_data_model.js'
+import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel, MediaDataFileModel } from '../database_models/media_file_data_models.js'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import MediaFiles from './media_files.js'
-import { table } from 'console'
+import { AnimationFileData, AnimeFileData, InternetFileData, isAnimationFileData, isAnimeFileData, isInternetFileData, isMovieFileData, isShowFileData, 
+    isStandupFileData, MediaFileData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
+
 
 export default class Database {
     private static username = process.env.GMUKKO_BACKEND_USERNAME
@@ -14,17 +15,18 @@ export default class Database {
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
     private static db: Sequelize
 
-    public static async refreshMediaDataTable() {
-        console.log(`Attempting to refresh the ${DatabaseTables.MediaData} table...`)
+
+    public static async refreshTable(table: DatabaseTables, directoryToIndex: string, validFileTypes: string[]) {
+        console.log(`Attempting to refresh the ${table} table...`)
         try {
             const db = await this.createAndLoadDatabase(this.database)
             db ? this.db = db : undefined
-            await this.createMediaTableIfNotExists()
-            const mediaFiles = await MediaFiles.getMediaFileDataToIndex('/mnt/z/media/videos/tv-shows/louie/season-1', [ '.mkv', '.avi', '.mp4', '.mov' ])
-            this.indexMediaFileData(mediaFiles)
-            console.log(`Successfully refreshed the ${DatabaseTables.MediaData} table.`)
+            await this.createTableIfNotExists(table)
+            const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, table)
+            this.indexMediaFileData(mediaFiles, table)
+            console.log(`Successfully refreshed the ${table} table.`)
         } catch (error) {
-            console.log(`Failed to refresh the ${DatabaseTables.MediaData} table.`)
+            console.log(`Failed to refresh the ${table} table.`)
         }
     }
 
@@ -55,48 +57,13 @@ export default class Database {
     }
 
 
-    private static async createMediaTableIfNotExists() {
-        console.log(`Checking if ${DatabaseTables.MediaData} exists...`)
-        if (!await this.tableExists(DatabaseTables.MediaData)) {
-            console.log(`\tAttempting to create ${DatabaseTables}...`)
-            try {
-                MediaFileDataModel.init(
-                    {
-                        filePath: {
-                            type: DataTypes.STRING,
-                            allowNull: false,
-                            unique: true
-                        },
-                        type: {
-                            type: DataTypes.STRING,
-                            allowNull: false
-                        },
-                        title: {
-                            type: DataTypes.STRING,
-                            allowNull: false
-                        },
-                        releaseYear: {
-                            type: DataTypes.INTEGER,
-                            allowNull: false
-                        },
-                        seasonNumber: {
-                            type: DataTypes.INTEGER,
-                            allowNull: true
-                        },
-                        episodeNumber: {
-                            type: DataTypes.INTEGER,
-                            allowNull: true
-                        }
-                    },
-                    {
-                        sequelize: this.db,
-                        tableName: `${DatabaseTables.MediaData}`
-                    }
-                )
-                await MediaFileDataModel.sync()
-                console.log(`\tSuccessfully created ${DatabaseTables.MediaData} table.`)
-            } catch (error) {
-                console.error(`\tFailed to create ${DatabaseTables.MediaData} table.\n`, error)
+    private static async createTableIfNotExists(table: DatabaseTables) {
+        console.log(`Checking if ${table} exists...`)
+        if (!await this.tableExists(table)) {
+            console.log(`\tAttempting to create ${table}...`)
+            const MediaModel = this.determineModelByTable(table)
+            if (MediaModel) {
+                this.initAndSyncMediaModel(MediaModel, table)
             }
         }
     }
@@ -128,7 +95,7 @@ export default class Database {
     }
 
 
-    public static async removeIndexedFilesFromPaths(filePaths: string[]) {
+    public static async removeIndexedFilesFromPaths(filePaths: string[], table: DatabaseTables) {
         console.log("Attempting to remove already indexed files from list of files to index.")
         try {
             for (const [i, filePath] of filePaths.entries()) {
@@ -136,7 +103,7 @@ export default class Database {
                 console.log(`\tChecking file: ${filePath}`)
                 const [results] = await this.db.query(`
                     SELECT * 
-                    FROM ${DatabaseTables.MediaData} 
+                    FROM ${table} 
                     WHERE filePath = :filePath
                 `,
                 {
@@ -162,33 +129,304 @@ export default class Database {
     }
 
 
-    private static indexMediaFileData(mediaFiles: MediaFileData[]) {
+    private static indexMediaFileData(mediaFiles: MediaFileData[], table: DatabaseTables) {
         console.log("Attempting to index files...")
         for (const [i, mediaFile] of mediaFiles.entries()) {
             console.log(`\tIndexing File #: ${i}`)
-            console.log(`\tIndexing File: ${mediaFile}`)
-            try {
-                const result =  this.db.query(`
-                    INSERT INTO ${DatabaseTables.MediaData} (filePath, type, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
-                    VALUES (:filePath, :type, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
-                `,
-                {
-                    replacements: {
-                        filePath: mediaFile.filePath,
-                        type: mediaFile.type,
-                        title: mediaFile.title,
-                        releaseYear: mediaFile.releaseYear,
-                        seasonNumber: mediaFile.seasonNumber,
-                        episodeNumber: mediaFile.episodeNumber,
-                        createdAt: new Date(),
-                        updatedAt: new Date()
+            console.log(`\tIndexing File: ${JSON.stringify(mediaFile)}`)
+            switch (table) {
+                case (DatabaseTables.MovieFileData):
+                    if (isMovieFileData(mediaFile)) {
+                        this.insertMovieFileDataIntoTable(mediaFile)
+                    } else {
+                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
-                })
-                console.log(`\t\tSuccessfully indexed: ${mediaFile}`)
-            } catch (error) {
-                console.error(`\t\tFailed to index: ${mediaFile}\n${error}\n`)
+                    break
+                case (DatabaseTables.ShowFileData):
+                    if (isShowFileData(mediaFile)) {
+                        this.insertShowFileDataIntoTable(mediaFile)
+                    } else {
+                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                    }
+                    break
+                case (DatabaseTables.StandupFileData):
+                    if (isStandupFileData(mediaFile)) {
+                        this.insertStandupFileDataIntoTable(mediaFile)
+                    } else {
+                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                    }
+                    break
+                case (DatabaseTables.AnimeFileData):
+                    if (isAnimeFileData(mediaFile)) {
+                        this.insertAnimeFileDataIntoTable(mediaFile)
+                    } else {
+                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                    }
+                    break
+                case (DatabaseTables.AnimationFileData):
+                    if (isAnimationFileData(mediaFile)) {
+                        this.insertAnimationFileDataIntoTable(mediaFile)
+                    } else {
+                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                    }
+                    break
+                case (DatabaseTables.InternetFileData):
+                    if (isInternetFileData(mediaFile)) {
+                        this.insertInternetFileDataIntoTable(mediaFile)
+                    } else {
+                        console.error(`\t\tFile ${mediaFile} did not match with table type ${table}`)
+                    }
+                    break 
             }
         }
-        console.log(`Finished indexing files.`)
+    }
+
+
+
+    private static insertMovieFileDataIntoTable(movieFileData: MovieFileData) {
+        try {
+            const result =  this.db.query(`
+                INSERT INTO ${DatabaseTables.MovieFileData} (filePath, title, releaseYear, createdAt, updatedAt)
+                VALUES (:filePath, :title, :releaseYear, :createdAt, :updatedAt);
+            `,
+            {
+                replacements: {
+                    filePath: movieFileData.filePath,
+                    title: movieFileData.title,
+                    releaseYear: movieFileData.releaseYear,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            })
+            console.log(`\t\tSuccessfully indexed: ${movieFileData}`)
+        } catch (error) {
+            console.error(`\t\tFailed to index: ${movieFileData}\n${error}\n`)
+        }
+    }
+
+    private static insertShowFileDataIntoTable(showFileData: ShowFileData) {
+        try {
+            const result =  this.db.query(`
+                INSERT INTO ${DatabaseTables.ShowFileData} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+            `,
+            {
+                replacements: {
+                    filePath: showFileData.filePath,
+                    title: showFileData.title,
+                    releaseYear: showFileData.releaseYear,
+                    seasonNumber: showFileData.seasonNumber,
+                    episodeNumber: showFileData.episodeNumber,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            })
+            console.log(`\t\tSuccessfully indexed: ${showFileData}`)
+        } catch (error) {
+            console.error(`\t\tFailed to index: ${showFileData}\n${error}\n`)
+        }
+    }
+
+    private static insertStandupFileDataIntoTable(standupFileData: StandupFileData) {
+        try {
+            const result =  this.db.query(`
+                INSERT INTO ${DatabaseTables.StandupFileData} (filePath, title, artist, releaseYear, createdAt, updatedAt)
+                VALUES (:filePath, :title, :artist, :releaseYear, :createdAt, :updatedAt);
+            `,
+            {
+                replacements: {
+                    filePath: standupFileData.filePath,
+                    title: standupFileData.title,
+                    artist: standupFileData.artist,
+                    releaseYear: standupFileData.releaseYear,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            })
+            console.log(`\t\tSuccessfully indexed: ${standupFileData}`)
+        } catch (error) {
+            console.error(`\t\tFailed to index: ${standupFileData}\n${error}\n`)
+        }
+    }
+
+    private static insertAnimeFileDataIntoTable(animeFileData: AnimeFileData) {
+        try {
+            const result =  this.db.query(`
+                INSERT INTO ${DatabaseTables.AnimeFileData} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+            `,
+            {
+                replacements: {
+                    filePath: animeFileData.filePath,
+                    title: animeFileData.title,
+                    releaseYear: animeFileData.releaseYear,
+                    seasonNumber: animeFileData.seasonNumber,
+                    episodeNumber: animeFileData.episodeNumber, 
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            })
+            console.log(`\t\tSuccessfully indexed: ${animeFileData}`)
+        } catch (error) {
+            console.error(`\t\tFailed to index: ${animeFileData}\n${error}\n`)
+        }
+    }
+
+    private static insertAnimationFileDataIntoTable(animationFileData: AnimationFileData) {
+        try {
+            const result =  this.db.query(`
+                INSERT INTO ${DatabaseTables.AnimationFileData} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+            `,
+            {
+                replacements: {
+                    filePath: animationFileData.filePath,
+                    title: animationFileData.title,
+                    releaseYear: animationFileData.releaseYear,
+                    seasonNumber: animationFileData.seasonNumber,
+                    episodeNumber: animationFileData.episodeNumber, 
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            })
+            console.log(`\t\tSuccessfully indexed: ${animationFileData}`)
+        } catch (error) {
+            console.error(`\t\tFailed to index: ${animationFileData}\n${error}\n`)
+        }
+    }
+
+    private static insertInternetFileDataIntoTable(internetFileData: InternetFileData) {
+        try {
+            const result =  this.db.query(`
+                INSERT INTO ${DatabaseTables.InternetFileData} (filePath, title, createdAt, updatedAt)
+                VALUES (:filePath, :title, :createdAt, :updatedAt);
+            `,
+            {
+                replacements: {
+                    filePath: internetFileData.filePath,
+                    title: internetFileData.title,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            })
+            console.log(`\t\tSuccessfully indexed: ${internetFileData}`)
+        } catch (error) {
+            console.error(`\t\tFailed to index: ${internetFileData}\n${error}\n`)
+        }
+    }
+
+    private static determineModelByTable(table: DatabaseTables) {
+        switch (table) {
+            case DatabaseTables.MovieFileData:
+                return MovieFileDataModel
+            case DatabaseTables.ShowFileData:
+                return ShowFileDataModel
+            case DatabaseTables.StandupFileData:
+                return StandupFileDataModel
+            case DatabaseTables.AnimeFileData:
+                return AnimeFileDataModel
+            case DatabaseTables.AnimationFileData:
+                return AnimationFileDataModel
+            case DatabaseTables.InternetFileData:
+                return InternetFileDataModel
+            default:
+                return undefined
+        }
+    }
+    
+    private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables) {
+        try {
+            switch (table) {
+                case DatabaseTables.MovieFileData:
+                    MediaModel.init(
+                        {
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false},
+                            releaseYear: {type: DataTypes.INTEGER, allowNull: false}
+                        },
+                        {
+                            sequelize: this.db,
+                            tableName: `${table}`
+                        }
+                    )
+                    break
+                case DatabaseTables.ShowFileData:
+                    MediaModel.init(
+                        {
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false},
+                            releaseYear: {type: DataTypes.INTEGER, allowNull: false},
+                            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
+                            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
+                        },
+                        {
+                            sequelize: this.db,
+                            tableName: `${table}`
+                        }
+                    )
+                    break
+                case DatabaseTables.StandupFileData:
+                    MediaModel.init(
+                        {
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false},
+                            artist: {type: DataTypes.STRING, allowNull: false},
+                            releaseYear: {type: DataTypes.INTEGER, allowNull: false}
+                        },
+                        {
+                            sequelize: this.db,
+                            tableName: `${table}`
+                        }
+                    )
+                    break
+                case DatabaseTables.AnimeFileData:
+                    MediaModel.init(
+                        {
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false},
+                            releaseYear: {type: DataTypes.INTEGER, allowNull: false},
+                            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
+                            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
+                        },
+                        {
+                            sequelize: this.db,
+                            tableName: `${table}`
+                        }
+                    )
+                    break
+                case DatabaseTables.AnimationFileData:
+                    MediaModel.init(
+                        {
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false},
+                            releaseYear: {type: DataTypes.INTEGER, allowNull: false},
+                            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
+                            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
+                        },
+                        {
+                            sequelize: this.db,
+                            tableName: `${table}`
+                        }
+                    )
+                    break
+                case DatabaseTables.InternetFileData:
+                    MediaModel.init(
+                        {
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false}
+                        },
+                        {
+                            sequelize: this.db,
+                            tableName: `${table}`
+                        }
+                    )
+                    break
+            }
+            
+            await MediaModel.sync()
+            console.log(`\tSuccessfully created ${table} table.`)
+        } catch (error) {
+            console.error(`\tFailed to create ${table} table.\n`, error)
+        }
     }
 }
