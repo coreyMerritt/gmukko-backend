@@ -182,7 +182,6 @@ export default class Database {
     }
 
 
-
     private static insertMovieFileDataIntoTable(movieFileData: MovieFileData) {
         try {
             const result =  this.db.query(`
@@ -315,6 +314,7 @@ export default class Database {
         }
     }
 
+
     private static determineModelByTable(table: DatabaseTables) {
         switch (table) {
             case DatabaseTables.MovieFileData:
@@ -333,6 +333,7 @@ export default class Database {
                 return undefined
         }
     }
+    
     
     private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables) {
         try {
@@ -422,7 +423,7 @@ export default class Database {
                     )
                     break
             }
-            
+
             await MediaModel.sync()
             console.log(`\tSuccessfully created ${table} table.`)
         } catch (error) {
