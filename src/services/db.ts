@@ -341,9 +341,9 @@ export default class Database {
                 case DatabaseTables.MovieFileData:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allowNull: false}
+                            filePath: {type: DataTypes.STRING, allowNull: true, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: true},
+                            releaseYear: {type: DataTypes.INTEGER, allowNull: true}
                         },
                         {
                             sequelize: this.db,
@@ -354,9 +354,9 @@ export default class Database {
                 case DatabaseTables.ShowFileData:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allowNull: false},
+                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
+                            title: {type: DataTypes.STRING, allownull: true},
+                            releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
@@ -369,10 +369,10 @@ export default class Database {
                 case DatabaseTables.StandupFileData:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false},
-                            artist: {type: DataTypes.STRING, allowNull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allowNull: false}
+                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
+                            title: {type: DataTypes.STRING, allownull: true},
+                            artist: {type: DataTypes.STRING, allownull: true},
+                            releaseYear: {type: DataTypes.INTEGER, allownull: true}
                         },
                         {
                             sequelize: this.db,
@@ -383,9 +383,9 @@ export default class Database {
                 case DatabaseTables.AnimeFileData:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allowNull: false},
+                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
+                            title: {type: DataTypes.STRING, allownull: true},
+                            releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
@@ -398,9 +398,9 @@ export default class Database {
                 case DatabaseTables.AnimationFileData:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allowNull: false},
+                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
+                            title: {type: DataTypes.STRING, allownull: true},
+                            releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
@@ -413,8 +413,8 @@ export default class Database {
                 case DatabaseTables.InternetFileData:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false}
+                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
+                            title: {type: DataTypes.STRING, allownull: true}
                         },
                         {
                             sequelize: this.db,
