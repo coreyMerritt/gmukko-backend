@@ -32,8 +32,7 @@ export default class MediaFiles {
         var filesMatchingExtension: string[] = []
 
         for (const [i, filePath] of files.entries()) {
-            console.log(`\tChecking file #: ${i}`)
-            console.log(`\tChecking file: ${filePath}`)
+            console.log(`\tChecking file #${i}: ${filePath}`)
             const fullPath = path.join(directoryToCheck, filePath)
             const fileExtension = path.extname(filePath)
             const stats = fs.statSync(fullPath)
@@ -45,9 +44,9 @@ export default class MediaFiles {
                 const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
                 if (isProperFileExtension) {
                     filesMatchingExtension.push(fullPath)
-                    console.log(`\t\tAdded file: ${fullPath}.`)
+                    console.log(`\tAdded file: ${fullPath}.`)
                 } else {
-                    console.log(`\t\tIgnored file: ${fullPath}.`)
+                    console.log(`\Ignored file: ${fullPath}.`)
                 }
             }
         }
@@ -97,7 +96,6 @@ export default class MediaFiles {
 
 
     private static async parseFilesWithAi(filesToParse: string[], prompt: Prompts): Promise<MediaFileData[]> {
-        console.log(`Attempting to parse ${filesToParse.length} files with AI...`)
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt, filesToParse)
@@ -160,21 +158,23 @@ export default class MediaFiles {
 
     public static async generateMediaFileData(filePaths: string[], prompt: Prompts) {
         // This structure is to optimize token usage on OpenAI API calls.
-        console.log(`Attempting to generate data for ${filePaths.length} media files...`)
+        console.log(`Attempting to parse ${filePaths.length} file paths...`)
         var mediaFiles: MediaFileData[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)
             if (((i+1) % 10) === 0) {
+                console.log(`Attempting to parse files ${i-8}-${i+1} of ${filePaths.length}...`)
                 const tenMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
                 mediaFiles = mediaFiles.concat(tenMediaFiles)
                 workingArray = []
             } else if (i+1 === filePaths.length) {
+                console.log(`Attempting to parse files ${(Math.floor(i/10)*10)+1}-${i+1} of ${filePaths.length}...`)
                 const upToNineMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
                 mediaFiles = mediaFiles.concat(upToNineMediaFiles)
             }
         }
-        console.log(`Finished parsing ${filePaths.length} files with AI.`)
+        console.log(`Finished parsing ${filePaths.length} file paths.`)
         return mediaFiles
     }
 
