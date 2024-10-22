@@ -58,19 +58,18 @@ export default class Database {
 
 
     private static async createTableIfNotExists(table: DatabaseTables) {
-        console.log(`Checking if ${table} exists...`)
         if (!await this.tableExists(table)) {
             console.log(`\tAttempting to create ${table}...`)
             const MediaModel = this.determineModelByTable(table)
             if (MediaModel) {
-                this.initAndSyncMediaModel(MediaModel, table)
+                await this.initAndSyncMediaModel(MediaModel, table)
             }
         }
     }
 
 
     private static async tableExists(tableName: string) {
-        console.log(`Checking if table ${tableName} exists...`)
+        console.log(`Checking if ${tableName} exists...`)
         try {
             const result = await this.db.query(
                 `SELECT * FROM information_schema.tables WHERE table_schema = :databaseName AND table_name = :tableName LIMIT 1;`,
@@ -135,42 +134,42 @@ export default class Database {
             console.log(`\tIndexing File #: ${i}`)
             console.log(`\tIndexing File: ${JSON.stringify(mediaFile)}`)
             switch (table) {
-                case (DatabaseTables.MovieFileData):
+                case (DatabaseTables.Movies):
                     if (isMovieFileData(mediaFile)) {
                         this.insertMovieFileDataIntoTable(mediaFile)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
-                case (DatabaseTables.ShowFileData):
+                case (DatabaseTables.Shows):
                     if (isShowFileData(mediaFile)) {
                         this.insertShowFileDataIntoTable(mediaFile)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
-                case (DatabaseTables.StandupFileData):
+                case (DatabaseTables.Standup):
                     if (isStandupFileData(mediaFile)) {
                         this.insertStandupFileDataIntoTable(mediaFile)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
-                case (DatabaseTables.AnimeFileData):
+                case (DatabaseTables.Anime):
                     if (isAnimeFileData(mediaFile)) {
                         this.insertAnimeFileDataIntoTable(mediaFile)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
-                case (DatabaseTables.AnimationFileData):
+                case (DatabaseTables.Animation):
                     if (isAnimationFileData(mediaFile)) {
                         this.insertAnimationFileDataIntoTable(mediaFile)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
-                case (DatabaseTables.InternetFileData):
+                case (DatabaseTables.Internet):
                     if (isInternetFileData(mediaFile)) {
                         this.insertInternetFileDataIntoTable(mediaFile)
                     } else {
@@ -185,7 +184,7 @@ export default class Database {
     private static insertMovieFileDataIntoTable(movieFileData: MovieFileData) {
         try {
             const result =  this.db.query(`
-                INSERT INTO ${DatabaseTables.MovieFileData} (filePath, title, releaseYear, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Movies} (filePath, title, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :createdAt, :updatedAt);
             `,
             {
@@ -206,7 +205,7 @@ export default class Database {
     private static insertShowFileDataIntoTable(showFileData: ShowFileData) {
         try {
             const result =  this.db.query(`
-                INSERT INTO ${DatabaseTables.ShowFileData} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Shows} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
@@ -229,7 +228,7 @@ export default class Database {
     private static insertStandupFileDataIntoTable(standupFileData: StandupFileData) {
         try {
             const result =  this.db.query(`
-                INSERT INTO ${DatabaseTables.StandupFileData} (filePath, title, artist, releaseYear, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Standup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :artist, :releaseYear, :createdAt, :updatedAt);
             `,
             {
@@ -251,7 +250,7 @@ export default class Database {
     private static insertAnimeFileDataIntoTable(animeFileData: AnimeFileData) {
         try {
             const result =  this.db.query(`
-                INSERT INTO ${DatabaseTables.AnimeFileData} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Anime} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
@@ -274,7 +273,7 @@ export default class Database {
     private static insertAnimationFileDataIntoTable(animationFileData: AnimationFileData) {
         try {
             const result =  this.db.query(`
-                INSERT INTO ${DatabaseTables.AnimationFileData} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Animation} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
@@ -297,7 +296,7 @@ export default class Database {
     private static insertInternetFileDataIntoTable(internetFileData: InternetFileData) {
         try {
             const result =  this.db.query(`
-                INSERT INTO ${DatabaseTables.InternetFileData} (filePath, title, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Internet} (filePath, title, createdAt, updatedAt)
                 VALUES (:filePath, :title, :createdAt, :updatedAt);
             `,
             {
@@ -317,17 +316,17 @@ export default class Database {
 
     private static determineModelByTable(table: DatabaseTables) {
         switch (table) {
-            case DatabaseTables.MovieFileData:
+            case DatabaseTables.Movies:
                 return MovieFileDataModel
-            case DatabaseTables.ShowFileData:
+            case DatabaseTables.Shows:
                 return ShowFileDataModel
-            case DatabaseTables.StandupFileData:
+            case DatabaseTables.Standup:
                 return StandupFileDataModel
-            case DatabaseTables.AnimeFileData:
+            case DatabaseTables.Anime:
                 return AnimeFileDataModel
-            case DatabaseTables.AnimationFileData:
+            case DatabaseTables.Animation:
                 return AnimationFileDataModel
-            case DatabaseTables.InternetFileData:
+            case DatabaseTables.Internet:
                 return InternetFileDataModel
             default:
                 return undefined
@@ -338,11 +337,11 @@ export default class Database {
     private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables) {
         try {
             switch (table) {
-                case DatabaseTables.MovieFileData:
+                case DatabaseTables.Movies:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allowNull: true, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: true},
+                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
+                            title: {type: DataTypes.STRING, allowNull: false},
                             releaseYear: {type: DataTypes.INTEGER, allowNull: true}
                         },
                         {
@@ -351,11 +350,11 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.ShowFileData:
+                case DatabaseTables.Shows:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
-                            title: {type: DataTypes.STRING, allownull: true},
+                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
+                            title: {type: DataTypes.STRING, allownull: false},
                             releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
@@ -366,11 +365,11 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.StandupFileData:
+                case DatabaseTables.Standup:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
-                            title: {type: DataTypes.STRING, allownull: true},
+                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
+                            title: {type: DataTypes.STRING, allownull: false},
                             artist: {type: DataTypes.STRING, allownull: true},
                             releaseYear: {type: DataTypes.INTEGER, allownull: true}
                         },
@@ -380,11 +379,11 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.AnimeFileData:
+                case DatabaseTables.Anime:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
-                            title: {type: DataTypes.STRING, allownull: true},
+                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
+                            title: {type: DataTypes.STRING, allownull: false},
                             releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
@@ -395,11 +394,11 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.AnimationFileData:
+                case DatabaseTables.Animation:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
-                            title: {type: DataTypes.STRING, allownull: true},
+                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
+                            title: {type: DataTypes.STRING, allownull: false},
                             releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
@@ -410,11 +409,11 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.InternetFileData:
+                case DatabaseTables.Internet:
                     MediaModel.init(
                         {
-                            filePath: {type: DataTypes.STRING, allownull: true, unique: true},
-                            title: {type: DataTypes.STRING, allownull: true}
+                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
+                            title: {type: DataTypes.STRING, allownull: false}
                         },
                         {
                             sequelize: this.db,

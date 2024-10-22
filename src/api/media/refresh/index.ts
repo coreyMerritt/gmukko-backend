@@ -10,28 +10,28 @@ router.post('/:mediaType?', async (req, res) => {
         const tableToRefresh = req.params.mediaType.toLowerCase()
         switch(tableToRefresh) {
             case MediaFileDataTypes.Movies:
-                Database.refreshTable(DatabaseTables.MovieFileData, '/mnt/z/media/videos/movies', [ '.mkv', '.avi', '.mp4', '.mov' ])
-                res.status(200).send(`Refreshing ${DatabaseTables.MovieFileData}\n`)
+                Database.refreshTable(DatabaseTables.Movies, '/mnt/z/media/videos/movies', [ '.mkv', '.avi', '.mp4', '.mov' ])
+                res.status(200).send(`Refreshing ${DatabaseTables.Movies}\n`)
                 break
             case MediaFileDataTypes.Shows:
-                Database.refreshTable(DatabaseTables.ShowFileData, '/mnt/z/media/videos/shows', [ '.mkv', '.avi', '.mp4', '.mov' ])
-                res.status(200).send(`Refreshing ${DatabaseTables.ShowFileData}\n`)
+                Database.refreshTable(DatabaseTables.Shows, '/mnt/z/media/videos/shows', [ '.mkv', '.avi', '.mp4', '.mov' ])
+                res.status(200).send(`Refreshing ${DatabaseTables.Shows}\n`)
                 break
             case MediaFileDataTypes.Standup:
-                Database.refreshTable(DatabaseTables.StandupFileData, '/mnt/z/media/videos/standup', [ '.mkv', '.avi', '.mp4', '.mov' ])
-                res.status(200).send(`Refreshing ${DatabaseTables.StandupFileData}\n`)
+                Database.refreshTable(DatabaseTables.Standup, '/mnt/z/media/videos/standup', [ '.mkv', '.avi', '.mp4', '.mov' ])
+                res.status(200).send(`Refreshing ${DatabaseTables.Standup}\n`)
                 break
             case MediaFileDataTypes.Anime:
-                Database.refreshTable(DatabaseTables.AnimeFileData, '/mnt/z/media/videos/anime', [ '.mkv', '.avi', '.mp4', '.mov' ])
-                res.status(200).send(`Refreshing ${DatabaseTables.AnimeFileData}\n`)
+                Database.refreshTable(DatabaseTables.Anime, '/mnt/z/media/videos/anime', [ '.mkv', '.avi', '.mp4', '.mov' ])
+                res.status(200).send(`Refreshing ${DatabaseTables.Anime}\n`)
                 break
             case MediaFileDataTypes.Animation:
-                Database.refreshTable(DatabaseTables.AnimationFileData, '/mnt/z/media/videos/animation', [ '.mkv', '.avi', '.mp4', '.mov' ])
-                res.status(200).send(`Refreshing ${DatabaseTables.AnimationFileData}\n`)
+                Database.refreshTable(DatabaseTables.Animation, '/mnt/z/media/videos/animation', [ '.mkv', '.avi', '.mp4', '.mov' ])
+                res.status(200).send(`Refreshing ${DatabaseTables.Animation}\n`)
                 break
             case MediaFileDataTypes.Internet:
-                Database.refreshTable(DatabaseTables.InternetFileData, '/mnt/z/media/videos/internet', [ '.mkv', '.avi', '.mp4', '.mov' ])
-                res.status(200).send(`Refreshing ${DatabaseTables.InternetFileData}\n`)
+                Database.refreshTable(DatabaseTables.Internet, '/mnt/z/media/videos/internet', [ '.mkv', '.avi', '.mp4', '.mov' ])
+                res.status(200).send(`Refreshing ${DatabaseTables.Internet}\n`)
                 break
             default:
                 res.status(400).send(`Bad params.\n`)
@@ -39,12 +39,12 @@ router.post('/:mediaType?', async (req, res) => {
         }
     } else {
         res.status(200).send(`Refreshing all tables.\n`)
-        await Database.refreshTable(DatabaseTables.MovieFileData, '/mnt/z/media/videos/movies', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        await Database.refreshTable(DatabaseTables.ShowFileData, '/mnt/z/media/videos/shows', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        await Database.refreshTable(DatabaseTables.StandupFileData, '/mnt/z/media/videos/standup', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        await Database.refreshTable(DatabaseTables.AnimeFileData, '/mnt/z/media/videos/anime', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        await Database.refreshTable(DatabaseTables.AnimationFileData, '/mnt/z/media/videos/animation', [ '.mkv', '.avi', '.mp4', '.mov' ])
-        await Database.refreshTable(DatabaseTables.InternetFileData, '/mnt/z/media/videos/internet', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        await Database.refreshTable(DatabaseTables.Movies, '/mnt/z/media/videos/movies', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        await Database.refreshTable(DatabaseTables.Shows, '/mnt/z/media/videos/shows', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        await Database.refreshTable(DatabaseTables.Standup, '/mnt/z/media/videos/standup', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        await Database.refreshTable(DatabaseTables.Anime, '/mnt/z/media/videos/anime', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        await Database.refreshTable(DatabaseTables.Animation, '/mnt/z/media/videos/animation', [ '.mkv', '.avi', '.mp4', '.mov' ])
+        await Database.refreshTable(DatabaseTables.Internet, '/mnt/z/media/videos/internet', [ '.mkv', '.avi', '.mp4', '.mov' ])
     }
 })
 

@@ -183,22 +183,22 @@ export default class MediaFiles {
 
     private static determinePromptByTable(table: DatabaseTables): Prompts {
         switch (table) {
-            case DatabaseTables.MovieFileData:
+            case DatabaseTables.Movies:
                 return Prompts.ReturnMovieAsJson
                 break
-            case DatabaseTables.ShowFileData:
+            case DatabaseTables.Shows:
                 return Prompts.ReturnShowAsJson
                 break
-            case DatabaseTables.StandupFileData:
+            case DatabaseTables.Standup:
                 return Prompts.ReturnStandupAsJson
                 break
-            case DatabaseTables.AnimeFileData:
+            case DatabaseTables.Anime:
                 return Prompts.ReturnAnimeAsJson
                 break
-            case DatabaseTables.AnimationFileData:
+            case DatabaseTables.Animation:
                 return Prompts.ReturnAnimationAsJson
                 break
-            case DatabaseTables.InternetFileData:
+            case DatabaseTables.Internet:
                 return Prompts.ReturnInternetAsJson
                 break
         }
