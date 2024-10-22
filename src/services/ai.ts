@@ -23,14 +23,14 @@ export default class AI {
                 presence_penalty: -2
             })
             if (result.choices[0].message.content) {
-                console.log(`\tSuccessfully recieved a response from the OpenAI API.`)
+                console.log(`Successfully recieved a response from the OpenAI API.`)
                 return result.choices[0].message.content
             } else {
-                console.error(`\tOpenAI API returned null.`)
+                console.error(`OpenAI API returned null.`)
                 return undefined
             }
         } catch (error) {
-            console.error(`\tFailed to recieve a response from the OpenAI API.\n`, error)
+            console.error(`Failed to recieve a response from the OpenAI API.\n`, error)
             return undefined
         }
     }

@@ -167,12 +167,10 @@ export default class MediaFiles {
             workingArray.push(filePath)
             if (((i+1) % 10) === 0) {
                 const tenMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
-                console.log(`\tPushing ${tenMediaFiles.length} pieces of media file data.`)
                 mediaFiles = mediaFiles.concat(tenMediaFiles)
                 workingArray = []
             } else if (i+1 === filePaths.length) {
                 const upToNineMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
-                console.log(`\tPushing a final ${upToNineMediaFiles.length} peices of media file data.`)
                 mediaFiles = mediaFiles.concat(upToNineMediaFiles)
             }
         }
