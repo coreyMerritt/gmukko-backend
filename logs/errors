@@ -1,8 +1,0 @@
-[2024/10/23 13:03:38.0585]
-Error: Failed to check if table standup exists.
-SequelizeDatabaseError: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''standup'' at line 1
-
-[2024/10/23 13:06:47.0952]
-Error: Failed to check if table movies exists.
-SequelizeDatabaseError: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''movies'' at line 1
-
