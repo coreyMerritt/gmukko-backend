@@ -101,7 +101,7 @@
   "include": [
     "*.ts",
     "src/api/*.ts",
-    "src/server.ts",
+    "src/start.ts",
     "services/*.ts"  
   ],
   "exclude": [

@@ -13,7 +13,7 @@ export default class GmukkoLogger {
 
     static async incomingRequest(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) {
         console.log(`\nRequest received:\n` +
-            `\t[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `\t[${GmukkoTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +
             `\tMethod: ${req.method}\n` +
             `\tIP: ${req.socket.remoteAddress}\n` +
@@ -21,7 +21,7 @@ export default class GmukkoLogger {
             `\tHeaders: ${JSON.stringify(req.headers, null, 2)}\n`
         )
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.IncomingRequest}`, 
-            `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +
             `\tMethod: ${req.method}\n` +
             `\tIP: ${req.socket.remoteAddress}\n` +
@@ -34,7 +34,7 @@ export default class GmukkoLogger {
     static async info(info: string) {
         console.log(info)
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Default}`, 
-            `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
     }
@@ -44,23 +44,23 @@ export default class GmukkoLogger {
         if (error) {
             console.error(`${info}\n${error}`)
             fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Default}`, 
-                `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+                `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )
             fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Errors}`, 
-                `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+                `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )   
         } else {
             console.error(`${info}`)
             fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Default}`, 
-                `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+                `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )
             fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Errors}`, 
-                `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+                `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )
         }
@@ -69,7 +69,7 @@ export default class GmukkoLogger {
 
     static async debug(tag: string, info: string) {
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Debug}`, 
-            `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Tag: ${tag}\n` +
             `${info}\n\n`
         )
@@ -79,7 +79,7 @@ export default class GmukkoLogger {
     static async invalidJsonArray(prompt: Prompts, data: string[], response: string) {
         this.error(`Invalid Json Array.`)
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.InvalidJsonArray}`, 
-            `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Prompt: ${prompt}\n` +
             `Data: ${data.toString()}\n` +
             `Response: ${response}\n\n`
@@ -92,7 +92,7 @@ export default class GmukkoLogger {
         const logPath = this.determineLogPath(expectedMediaType)
         const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${logPath}}`, 
-            `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Filepath: ${filePath}\n` +
             `Object: ${JSON.stringify(object)}\n\n`
         )

@@ -14,7 +14,6 @@ export class MovieFileDataModel extends MediaDataFileModel {
 export class ShowFileDataModel extends MediaDataFileModel {
     public filePath!: string
     public title!: string
-    public releaseYear!: number
     public seasonNumber!: number
     public episodeNumber!: number
 }
@@ -29,7 +28,6 @@ export class StandupFileDataModel extends MediaDataFileModel {
 export class AnimeFileDataModel extends MediaDataFileModel {
     public filePath!: string
     public title!: string
-    public releaseYear!: number
     public seasonNumber!: number
     public episodeNumber!: number
 }
@@ -37,7 +35,6 @@ export class AnimeFileDataModel extends MediaDataFileModel {
 export class AnimationFileDataModel extends MediaDataFileModel {
     public filePath!: string
     public title!: string
-    public releaseYear!: number
     public seasonNumber!: number
     public episodeNumber!: number
 }

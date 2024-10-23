@@ -21,7 +21,6 @@ export interface MovieFileData extends MediaFileData {
 export interface ShowFileData extends MediaFileData {
     filePath: string
     title: string
-    releaseYear: number
     seasonNumber: number
     episodeNumber: number
 }
@@ -36,7 +35,6 @@ export interface StandupFileData extends MediaFileData {
 export interface AnimeFileData extends MediaFileData {
     filePath: string
     title: string
-    releaseYear: number
     seasonNumber: number
     episodeNumber: number
 }
@@ -44,7 +42,6 @@ export interface AnimeFileData extends MediaFileData {
 export interface AnimationFileData extends MediaFileData {
     filePath: string
     title: string
-    releaseYear: number
     seasonNumber: number
     episodeNumber: number
 }

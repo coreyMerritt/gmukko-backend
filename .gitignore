@@ -1,4 +1,5 @@
-node_modules/
+backups/
 dist/
-zzz_old/
 logs/
+node_modules/
+zzz_old/

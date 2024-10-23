@@ -5,6 +5,10 @@ import MediaFiles from './media_files.js'
 import { AnimationFileData, AnimeFileData, InternetFileData, MediaFileData, MediaFileDataTypes, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
 import GmukkoLogger from './gmukko_logger.js'
 import Validators from './validators.js'
+import { BackupPaths } from '../interfaces_and_enums/backup_directories.js'
+import { promisify } from 'util'
+import { exec } from 'child_process'
+import GmukkoTime from './gmukko_time.js'
 
 
 export default class Database {
@@ -14,6 +18,17 @@ export default class Database {
     private static port = '3306'
     private static databaseName = 'gmukko-backend'
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
+
+
+    public static async backupDatabase() {
+        const execAsync = promisify(exec)
+        try {
+            await execAsync(`mysqldump -u ${this.username} -p${this.password} ${this.databaseName} > "./${BackupPaths.DefaultDirectory}/${this.databaseName} - ${GmukkoTime.getCurrentDateTime(true)}".sql`)
+            return 200
+        } catch (error) {
+            return 500
+        }
+    }
 
 
     public static async refreshTable(table: DatabaseTables, directoryToIndex: string, validFileTypes: string[]) {
@@ -83,82 +98,49 @@ export default class Database {
     }
 
 
-    public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, table: DatabaseTables) {
-        GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
-        try {
-            for (const [i, filePath] of filePaths.entries()) {
-                GmukkoLogger.info(`Checking file #${i}: ${filePath}`)
-                const [results] = await db.query(`
-                    SELECT * 
-                    FROM ${table} 
-                    WHERE filePath = :filePath
-                `,
-                {
-                    replacements: { 
-                        filePath: filePath
-                    }
-                })
-                if (results.length > 0) {
-                    GmukkoLogger.info(`Removing ${filePath} from list of files that need to be indexed.`)
-                    filePaths = filePaths.filter((thisPath) => {
-                        thisPath != filePath
-                    })
-                }  else {
-                    GmukkoLogger.info(`Keeping file ${filePath} to index.`)
-                }
-            }
-            GmukkoLogger.info(`Succesfully removed already indexed files from list of files to index.`)
-            return filePaths
-        } catch (error) {
-            GmukkoLogger.error(`Failed to remove already indexed files from list of files to index.`, error)
-            return []
-        }
-    }
-
-
     private static async indexMediaFileData(mediaFiles: MediaFileData[], db: Sequelize, table: DatabaseTables) {
         GmukkoLogger.info("Attempting to index files.")
         for (const [i, mediaFile] of mediaFiles.entries()) {
             GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(mediaFile)}`)
             switch (table) {
-                case (DatabaseTables.Movies):
+                case (DatabaseTables.StagingMovies):
                     if (Validators.isMovieFileData(mediaFile)) {
-                        await this.insertMovieFileDataIntoTable(mediaFile, db)
+                        await this.insertStagingMovieFileDataIntoTable(mediaFile, db)
                     } else {
                         GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Movies)
                     }
                     break
-                case (DatabaseTables.Shows):
+                case (DatabaseTables.StagingShows):
                     if (Validators.isShowFileData(mediaFile)) {
-                        await this.insertShowFileDataIntoTable(mediaFile, db)
+                        await this.insertStagingShowFileDataIntoTable(mediaFile, db)
                     } else {
                         GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Shows)
                     }
                     break
-                case (DatabaseTables.Standup):
+                case (DatabaseTables.StagingStandup):
                     if (Validators.isStandupFileData(mediaFile)) {
-                        await this.insertStandupFileDataIntoTable(mediaFile, db)
+                        await this.insertStagingStandupFileDataIntoTable(mediaFile, db)
                     } else {
                         GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Standup)
                     }
                     break
-                case (DatabaseTables.Anime):
+                case (DatabaseTables.StagingAnime):
                     if (Validators.isAnimeFileData(mediaFile)) {
-                        await this.insertAnimeFileDataIntoTable(mediaFile, db)
+                        await this.insertStagingAnimeFileDataIntoTable(mediaFile, db)
                     } else {
                         GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Anime)
                     }
                     break
-                case (DatabaseTables.Animation):
+                case (DatabaseTables.StagingAnimation):
                     if (Validators.isAnimationFileData(mediaFile)) {
-                        await this.insertAnimationFileDataIntoTable(mediaFile, db)
+                        await this.insertStagingAnimationFileDataIntoTable(mediaFile, db)
                     } else {
                         GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Animation)
                     }
                     break
-                case (DatabaseTables.Internet):
+                case (DatabaseTables.StagingInternet):
                     if (Validators.isInternetFileData(mediaFile)) {
-                        await this.insertInternetFileDataIntoTable(mediaFile, db)
+                        await this.insertStagingInternetFileDataIntoTable(mediaFile, db)
                     } else {
                         GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Internet)
                     }
@@ -174,10 +156,10 @@ export default class Database {
     }
 
 
-    private static async insertMovieFileDataIntoTable(movieFileData: MovieFileData, db: Sequelize) {
+    private static async insertStagingMovieFileDataIntoTable(movieFileData: MovieFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.Movies} (filePath, title, releaseYear, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.StagingMovies} (filePath, title, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :createdAt, :updatedAt);
             `,
             {
@@ -195,17 +177,16 @@ export default class Database {
         }
     }
 
-    private static async insertShowFileDataIntoTable(showFileData: ShowFileData, db: Sequelize) {
+    private static async insertStagingShowFileDataIntoTable(showFileData: ShowFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.Shows} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
-                VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+                INSERT INTO ${DatabaseTables.StagingShows} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
+                VALUES (:filePath, :title, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
                 replacements: {
                     filePath: showFileData.filePath,
                     title: showFileData.title,
-                    releaseYear: showFileData.releaseYear,
                     seasonNumber: showFileData.seasonNumber,
                     episodeNumber: showFileData.episodeNumber,
                     createdAt: new Date(),
@@ -218,10 +199,10 @@ export default class Database {
         }
     }
 
-    private static async insertStandupFileDataIntoTable(standupFileData: StandupFileData, db: Sequelize) {
+    private static async insertStagingStandupFileDataIntoTable(standupFileData: StandupFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.Standup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.StagingStandup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :artist, :releaseYear, :createdAt, :updatedAt);
             `,
             {
@@ -240,17 +221,16 @@ export default class Database {
         }
     }
 
-    private static async insertAnimeFileDataIntoTable(animeFileData: AnimeFileData, db: Sequelize) {
+    private static async insertStagingAnimeFileDataIntoTable(animeFileData: AnimeFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.Anime} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
-                VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+                INSERT INTO ${DatabaseTables.StagingAnime} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
+                VALUES (:filePath, :title, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
                 replacements: {
                     filePath: animeFileData.filePath,
                     title: animeFileData.title,
-                    releaseYear: animeFileData.releaseYear,
                     seasonNumber: animeFileData.seasonNumber,
                     episodeNumber: animeFileData.episodeNumber, 
                     createdAt: new Date(),
@@ -263,17 +243,16 @@ export default class Database {
         }
     }
 
-    private static async insertAnimationFileDataIntoTable(animationFileData: AnimationFileData, db: Sequelize) {
+    private static async insertStagingAnimationFileDataIntoTable(animationFileData: AnimationFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.Animation} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
-                VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
+                INSERT INTO ${DatabaseTables.StagingAnimation} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
+                VALUES (:filePath, :title, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
                 replacements: {
                     filePath: animationFileData.filePath,
                     title: animationFileData.title,
-                    releaseYear: animationFileData.releaseYear,
                     seasonNumber: animationFileData.seasonNumber,
                     episodeNumber: animationFileData.episodeNumber, 
                     createdAt: new Date(),
@@ -286,10 +265,10 @@ export default class Database {
         }
     }
 
-    private static async insertInternetFileDataIntoTable(internetFileData: InternetFileData, db: Sequelize) {
+    private static async insertStagingInternetFileDataIntoTable(internetFileData: InternetFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.Internet} (filePath, title, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.StagingInternet} (filePath, title, createdAt, updatedAt)
                 VALUES (:filePath, :title, :createdAt, :updatedAt);
             `,
             {
@@ -309,17 +288,17 @@ export default class Database {
 
     private static determineModelByTable(table: DatabaseTables) {
         switch (table) {
-            case DatabaseTables.Movies:
+            case DatabaseTables.StagingMovies:
                 return MovieFileDataModel
-            case DatabaseTables.Shows:
+            case DatabaseTables.StagingShows:
                 return ShowFileDataModel
-            case DatabaseTables.Standup:
+            case DatabaseTables.StagingStandup:
                 return StandupFileDataModel
-            case DatabaseTables.Anime:
+            case DatabaseTables.StagingAnime:
                 return AnimeFileDataModel
-            case DatabaseTables.Animation:
+            case DatabaseTables.StagingAnimation:
                 return AnimationFileDataModel
-            case DatabaseTables.Internet:
+            case DatabaseTables.StagingInternet:
                 return InternetFileDataModel
             default:
                 return undefined
@@ -330,7 +309,7 @@ export default class Database {
     private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables, db: Sequelize) {
         try {
             switch (table) {
-                case DatabaseTables.Movies:
+                case DatabaseTables.StagingMovies:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
@@ -343,7 +322,7 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.Shows:
+                case DatabaseTables.StagingShows:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -358,7 +337,7 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.Standup:
+                case DatabaseTables.StagingStandup:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -372,7 +351,7 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.Anime:
+                case DatabaseTables.StagingAnime:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -387,7 +366,7 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.Animation:
+                case DatabaseTables.StagingAnimation:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -402,7 +381,7 @@ export default class Database {
                         }
                     )
                     break
-                case DatabaseTables.Internet:
+                case DatabaseTables.StagingInternet:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
