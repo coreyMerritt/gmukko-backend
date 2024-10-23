@@ -77,7 +77,7 @@ export default class GmukkoLogger {
 
 
     static async invalidJsonArray(prompt: Prompts, data: string[], response: string) {
-        console.error("Invalid Json Array.")
+        this.error(`Invalid Json Array.`)
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.InvalidJsonArray}`, 
             `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
             `Prompt: ${prompt}\n` +
@@ -88,7 +88,7 @@ export default class GmukkoLogger {
 
 
     static async invalidMediaData(object: any, expectedMediaType?: MediaFileDataTypes) {
-        console.error("Invalid Media Data.")
+        this.error(`Invalid Media Data.`)
         const logPath = this.determineLogPath(expectedMediaType)
         const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${logPath}}`, 
