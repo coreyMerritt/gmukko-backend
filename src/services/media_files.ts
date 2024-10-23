@@ -137,39 +137,25 @@ export default class MediaFiles {
     }
 
 
-    private static async stringToJsonArrayString(someString: string): Promise<string|undefined> {
-        return new Promise((resolve) => {
+    public static async stringToJsonArrayString(someString: string): Promise<string|undefined> {
+        const jsonArrayRegex = /\[(\s*{[\s\S]*?}\s*,?\s*)+\]/g
+        var match
 
-            const timeout = setTimeout(() => {
-                resolve(undefined)
-            }, 3000)
-    
-            someString = someString.replace(/ /g, "")
-            someString = someString.replace(/\s+/g, "")
-    
-            var posOpen = 0
-            var locationOfOpenBracket = someString.indexOf('[', posOpen)
-            var nextChar = ""
-            while (nextChar !== "{") {
-                locationOfOpenBracket = someString.indexOf('[', posOpen)
-                nextChar = someString.charAt(locationOfOpenBracket + 1)
-                posOpen = locationOfOpenBracket + 1
+        while ((match = jsonArrayRegex.exec(someString)) !== null) {
+            const potentialArray = match[0]
+
+            try {
+                const parsedArray = JSON.parse(potentialArray)
+
+                if (Array.isArray(parsedArray) && parsedArray.some(item => typeof item === 'object')) {
+                    return potentialArray
+                }
+            } catch (error) {
+                continue
             }
-    
-            var posClose = 0
-            var previousChar = ""
-            var locationOfCloseBracket = someString.indexOf(']', posClose)
-            while (previousChar !== "}") {
-                locationOfCloseBracket = someString.indexOf(']', posClose)
-                previousChar = someString.charAt(locationOfCloseBracket - 1)
-                posClose = locationOfCloseBracket + 1
-            }
-    
-            const result = someString.substring(locationOfOpenBracket, locationOfCloseBracket + 1)
-    
-            clearTimeout(timeout)
-            resolve(result)
-        })
+        }
+
+        return undefined
     }
 
 

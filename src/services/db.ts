@@ -74,17 +74,11 @@ export default class Database {
                   type: QueryTypes.SELECT,
                 }
             )
-
-            if (result.length > 0) {
-                GmukkoLogger.info(`Table ${table} does exist.`)
-                return true
-            } else {
-                GmukkoLogger.info(`Table ${table} does not exist.`)
-                return false
-            }
-            
+            GmukkoLogger.info(`${table} does exist.`)
+            return true
         } catch (error) {
-            GmukkoLogger.error(`Failed to check if table ${table} exists.`, error)
+            GmukkoLogger.info(`${table} does not exist.`)
+            return false
         }
     }
 
@@ -93,7 +87,7 @@ export default class Database {
         GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
         try {
             for (const [i, filePath] of filePaths.entries()) {
-                GmukkoLogger.info(`\tChecking file #${i}: ${filePath}`)
+                GmukkoLogger.info(`Checking file #${i}: ${filePath}`)
                 const [results] = await db.query(`
                     SELECT * 
                     FROM ${table} 

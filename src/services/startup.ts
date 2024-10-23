@@ -8,6 +8,5 @@ export default class Startup {
         } catch (error) {
             // Not a genuine error
         }
-
     }
 }

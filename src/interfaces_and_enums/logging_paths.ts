@@ -3,6 +3,7 @@ export enum LoggingPaths {
     IncomingRequest = 'requests',
     Default = 'general',
     Errors = 'errors',
+    Debug = 'debug',
     InvalidJsonArray = 'invalid_json_arrays',
     InvalidMediaData = 'invalid_media_data',
     InvalidMovieData = 'invalid_movie_data',

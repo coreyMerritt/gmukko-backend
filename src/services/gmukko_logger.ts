@@ -67,6 +67,15 @@ export default class GmukkoLogger {
     }
 
 
+    static async debug(tag: string, info: string) {
+        fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Debug}`, 
+            `[${GmukkoTime.getCustomFormatDateTime()}]\n` +
+            `Tag: ${tag}\n` +
+            `${info}\n\n`
+        )
+    }
+
+
     static async invalidJsonArray(prompt: Prompts, data: string[], response: string) {
         console.error("Invalid Json Array.")
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.InvalidJsonArray}`, 
