@@ -2,30 +2,32 @@ import fs from 'fs'
 import path from 'path'
 import ffmpeg from 'fluent-ffmpeg'
 import AI from './ai.js'
-import { Prompts } from '../interfaces_and_enums/prompts.js' 
-import Database from './db.js'
+import { Prompts } from '../interfaces_and_enums/prompts.js'
 import { DatabaseTables, getStagingTableDestination } from '../interfaces_and_enums/database_tables.js'
 import { MediaFileData } from '../interfaces_and_enums/video_file_data_types.js'
-import { json, Sequelize } from 'sequelize'
+import { Sequelize } from 'sequelize'
 import GmukkoLogger from './gmukko_logger.js'
 import Validators from './validators.js'
 
 
 export default class MediaFiles {
 
-    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaFileData[]> {
+    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaFileData[]|undefined> {
         GmukkoLogger.info(`Attempting to retrieve media file data to index.`)
+        
+        const prompt = this.determinePromptByTable(table)
+        const productionTable = getStagingTableDestination(table)
+
         try {
             var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-            const productionTable = getStagingTableDestination(table)
-            const filePathsMinusAlreadyIndexed = await this.removeIndexedFilesFromPaths(filePaths, db, productionTable)
-            const prompt = this.determinePromptByTable(table)
-            var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filePathsMinusAlreadyIndexed, prompt)
+            const filePathsMinusIndexed = await this.removeIndexedFilesFromPaths(filePaths, db, productionTable)
+            const filesPathsMinusIndexedAndShorts = await this.removeMediaShorts(filePathsMinusIndexed, ['featurette', 'deleted-scenes'], 600)
+            var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filesPathsMinusIndexedAndShorts, prompt)
             GmukkoLogger.info(`Successfully retrieved media file data to index.`)
             return mediaFiles
         } catch (error) {
             GmukkoLogger.error(`Failed to retrieve media file data to index.`, error)
-            return []
+            return undefined
         }
     }
 
@@ -55,14 +57,14 @@ export default class MediaFiles {
             }
         }
 
-        const filesMatchingExtensionMinusShorts = await this.removeMediaShorts(filesMatchingExtension, ['featurette', 'deleted-scenes'], 600)
-        GmukkoLogger.info(`Succesfully retrieved ${filesMatchingExtensionMinusShorts.length} file paths from ${directoryToCheck}.`)
-        return filesMatchingExtensionMinusShorts
+        GmukkoLogger.info(`Succesfully retrieved ${filesMatchingExtension.length} file paths from ${directoryToCheck}.`)
+        return filesMatchingExtension
     }
 
 
     public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, table: DatabaseTables) {
         GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
+        var filePathsToKeep: string[] = []
         try {
             for (const [i, filePath] of filePaths.entries()) {
                 GmukkoLogger.info(`Checking file #${i}: ${filePath}`)
@@ -77,16 +79,14 @@ export default class MediaFiles {
                     }
                 })
                 if (results.length > 0) {
-                    GmukkoLogger.info(`Removing ${filePath} from list of files that need to be indexed.`)
-                    filePaths = filePaths.filter((thisPath) => {
-                        thisPath != filePath
-                    })
+                    GmukkoLogger.info(`Tossing ${filePath} from list of files that need to be indexed.`)
                 }  else {
                     GmukkoLogger.info(`Keeping file ${filePath} to index.`)
+                    filePathsToKeep.push(filePath)
                 }
             }
             GmukkoLogger.info(`Succesfully removed already indexed files from list of files to index.`)
-            return filePaths
+            return filePathsToKeep
         } catch (error) {
             GmukkoLogger.error(`Failed to remove already indexed files from list of files to index.`, error)
             return []
@@ -201,6 +201,8 @@ export default class MediaFiles {
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)
+            GmukkoLogger.debug(`i+1 = ${i+1}`)
+            GmukkoLogger.debug(`filePaths.length = ${filePath.length}`)
             if (((i+1) % 30) === 0) {
                 GmukkoLogger.info(`Attempting to parse files ${i-28}-${i+1} of ${filePaths.length}.`)
                 const tenMediaFiles = await this.parseFilePathsToMediaData(workingArray, prompt)

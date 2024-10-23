@@ -39,9 +39,12 @@ export default class Database {
             if (!tableExists) {
                 await this.createTable(table, db)
             }
+            
             const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, db, table)
-            await this.indexMediaFileData(mediaFiles, db, table)
-            GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
+            if (mediaFiles) {
+                await this.indexMediaFileData(mediaFiles, db, table)
+                GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
+            }
         } catch (error) {
             GmukkoLogger.info(`Failed to refresh the ${table} table.`)
         }

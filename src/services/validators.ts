@@ -16,7 +16,6 @@ export default class Validators {
     public static isShowFileData(object: any): object is ShowFileData {
         return 'filePath' in object &&
             'title' in object &&
-            'releaseYear' in object &&
             'seasonNumber' in object &&
             'episodeNumber' in object
     }
@@ -24,14 +23,12 @@ export default class Validators {
     public static isStandupFileData(object: any): object is StandupFileData {
         return 'filePath' in object &&
             'title' in object &&
-            'artist' in object &&
-            'releaseYear' in object
+            'artist' in object
     }
     
     public static isAnimeFileData(object: any): object is AnimeFileData {
         return 'filePath' in object &&
             'title' in object &&
-            'releaseYear' in object &&
             'seasonNumber' in object &&
             'episodeNumber' in object
     }
@@ -39,7 +36,6 @@ export default class Validators {
     public static isAnimationFileData(object: any): object is AnimationFileData {
         return 'filePath' in object &&
             'title' in object &&
-            'releaseYear' in object &&
             'seasonNumber' in object &&
             'episodeNumber' in object
     }

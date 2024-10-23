@@ -1,6 +1,6 @@
 import http from 'http'
 import express from 'express'
-import mediaRefreshRoutes from './api/db/index/initial/index.js'
+import initialIndexRoutes from './api/db/index/initial/index.js'
 import dbBackupRoutes from './api/db/backup/index.js'
 import Startup from './services/startup.js'
 import GmukkoLogger from './services/gmukko_logger.js'
@@ -19,5 +19,5 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use(`/media/refresh`, mediaRefreshRoutes)
+app.use(`/db/index/initial`, initialIndexRoutes)
 app.use(`/db/backup`, dbBackupRoutes)

@@ -67,10 +67,9 @@ export default class GmukkoLogger {
     }
 
 
-    static async debug(tag: string, info: string) {
+    static async debug(info: string) {
         fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Debug}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
-            `Tag: ${tag}\n` +
             `${info}\n\n`
         )
     }
