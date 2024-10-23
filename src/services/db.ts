@@ -2,9 +2,9 @@ import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
 import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel, MediaDataFileModel } from '../database_models/media_file_data_models.js'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import MediaFiles from './media_files.js'
-import { AnimationFileData, AnimeFileData, InternetFileData, isAnimationFileData, isAnimeFileData, isInternetFileData, isMovieFileData, isShowFileData, 
-    isStandupFileData, MediaFileData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
-import sequelize from 'sequelize'
+import { AnimationFileData, AnimeFileData, InternetFileData, MediaFileData, MediaFileDataTypes, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import GmukkoLogger from './gmukko_logger.js'
+import Validators from './validators.js'
 
 
 export default class Database {
@@ -17,7 +17,7 @@ export default class Database {
 
 
     public static async refreshTable(table: DatabaseTables, directoryToIndex: string, validFileTypes: string[]) {
-        console.log(`Attempting to refresh the ${table} table...`)
+        GmukkoLogger.info(`Attempting to refresh the ${table} table.`)
         try {
             const db = await this.createAndLoadDatabase(this.databaseName)
             const tableExists = await this.tableExists(db, table)
@@ -26,15 +26,15 @@ export default class Database {
             }
             const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, db, table)
             await this.indexMediaFileData(mediaFiles, db, table)
-            console.log(`Successfully refreshed the ${table} table.`)
+            GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
         } catch (error) {
-            console.log(`Failed to refresh the ${table} table.`)
+            GmukkoLogger.info(`Failed to refresh the ${table} table.`)
         }
     }
 
 
     private static async createAndLoadDatabase(database: string): Promise<Sequelize> {
-        console.log(`Attempting to load to database...`)
+        GmukkoLogger.info(`Attempting to load to database.`)
         try {
             const creationResult = await this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
             if (this.username && this.password) {
@@ -43,21 +43,21 @@ export default class Database {
                     dialect: 'mysql',
                     logging: false,
                 })
-                console.log(`Successfully loaded database.`)
+                GmukkoLogger.info(`Successfully loaded database.`)
                 return db
             } else {
-                console.log(`Failed to load database because username or password were not defined`)
+                GmukkoLogger.error(`Failed to load database because username or password were not defined.`)
                 process.exit(1)
             }
         } catch (error) {
-            console.error(`Failed to load database.\n`, error)
+            GmukkoLogger.error(`Failed to load database.`, error)
             process.exit(1)
         }
     }
 
 
     private static async createTable(table: DatabaseTables, db: Sequelize) {
-        console.log(`\tAttempting to create ${table}...`)
+        GmukkoLogger.info(`Attempting to create ${table}.`)
         const MediaModel = this.determineModelByTable(table)
          if (MediaModel) {
             await this.initAndSyncMediaModel(MediaModel, table, db)
@@ -66,35 +66,34 @@ export default class Database {
 
 
     private static async tableExists(db: Sequelize, table: string) {
-        console.log(`Checking if ${table} exists...`)
+        GmukkoLogger.info(`Checking if ${table} exists.`)
         try {
             const result = await db.query(
-                `SELECT * FROM :tableName;`,
+                `SELECT * FROM ${table};`,
                 {
-                  replacements: {
-                    tableName: table,
-                  },
                   type: QueryTypes.SELECT,
                 }
             )
+
             if (result.length > 0) {
-                console.log(`\tTable ${table} does exist.`)
+                GmukkoLogger.info(`Table ${table} does exist.`)
                 return true
             } else {
-                console.log(`\tTable ${table} does not exist.`)
+                GmukkoLogger.info(`Table ${table} does not exist.`)
                 return false
             }
+            
         } catch (error) {
-            console.error(`\tFailed to check if table ${table} exists.\n`, error)
+            GmukkoLogger.error(`Failed to check if table ${table} exists.`, error)
         }
     }
 
 
     public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, table: DatabaseTables) {
-        console.log("Attempting to remove already indexed files from list of files to index.")
+        GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
         try {
             for (const [i, filePath] of filePaths.entries()) {
-                console.log(`\tChecking file #${i}: ${filePath}`)
+                GmukkoLogger.info(`\tChecking file #${i}: ${filePath}`)
                 const [results] = await db.query(`
                     SELECT * 
                     FROM ${table} 
@@ -106,70 +105,76 @@ export default class Database {
                     }
                 })
                 if (results.length > 0) {
-                    console.log(`\tRemoving ${filePath} from list of files that need to be indexed.`)
+                    GmukkoLogger.info(`Removing ${filePath} from list of files that need to be indexed.`)
                     filePaths = filePaths.filter((thisPath) => {
                         thisPath != filePath
                     })
                 }  else {
-                    console.log(`\tKeeping file ${filePath} to index.`)
+                    GmukkoLogger.info(`Keeping file ${filePath} to index.`)
                 }
             }
-            console.log(`Succesfully removed already indexed files from list of files to index.`)
+            GmukkoLogger.info(`Succesfully removed already indexed files from list of files to index.`)
             return filePaths
         } catch (error) {
-            console.error(`Failed to remove already indexed files from list of files to index.\n`, error)
+            GmukkoLogger.error(`Failed to remove already indexed files from list of files to index.`, error)
             return []
         }
     }
 
 
     private static async indexMediaFileData(mediaFiles: MediaFileData[], db: Sequelize, table: DatabaseTables) {
-        console.log("Attempting to index files...")
+        GmukkoLogger.info("Attempting to index files.")
         for (const [i, mediaFile] of mediaFiles.entries()) {
-            console.log(`\tIndexing File #${i}: ${JSON.stringify(mediaFile)}`)
+            GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(mediaFile)}`)
             switch (table) {
                 case (DatabaseTables.Movies):
-                    if (isMovieFileData(mediaFile)) {
+                    if (Validators.isMovieFileData(mediaFile)) {
                         await this.insertMovieFileDataIntoTable(mediaFile, db)
                     } else {
-                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Movies)
                     }
                     break
                 case (DatabaseTables.Shows):
-                    if (isShowFileData(mediaFile)) {
+                    if (Validators.isShowFileData(mediaFile)) {
                         await this.insertShowFileDataIntoTable(mediaFile, db)
                     } else {
-                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Shows)
                     }
                     break
                 case (DatabaseTables.Standup):
-                    if (isStandupFileData(mediaFile)) {
+                    if (Validators.isStandupFileData(mediaFile)) {
                         await this.insertStandupFileDataIntoTable(mediaFile, db)
                     } else {
-                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Standup)
                     }
                     break
                 case (DatabaseTables.Anime):
-                    if (isAnimeFileData(mediaFile)) {
+                    if (Validators.isAnimeFileData(mediaFile)) {
                         await this.insertAnimeFileDataIntoTable(mediaFile, db)
                     } else {
-                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Anime)
                     }
                     break
                 case (DatabaseTables.Animation):
-                    if (isAnimationFileData(mediaFile)) {
+                    if (Validators.isAnimationFileData(mediaFile)) {
                         await this.insertAnimationFileDataIntoTable(mediaFile, db)
                     } else {
-                        console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
+                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Animation)
                     }
                     break
                 case (DatabaseTables.Internet):
-                    if (isInternetFileData(mediaFile)) {
+                    if (Validators.isInternetFileData(mediaFile)) {
                         await this.insertInternetFileDataIntoTable(mediaFile, db)
                     } else {
-                        console.error(`\t\tFile ${mediaFile} did not match with table type ${table}`)
+                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Internet)
                     }
-                    break 
+                    break
+                default:
+                    if (Validators.isMovieFileData(mediaFile)) {
+                        GmukkoLogger.error(`Data is valid media data, but is not structured for the ${table} table.`)
+                    } else {
+                        GmukkoLogger.invalidMediaData(mediaFile)
+                    }
             }
         }
     }
@@ -190,9 +195,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${movieFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${movieFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${movieFileData.filePath}\n${error}\n`)
+            GmukkoLogger.error(`Failed to index: ${movieFileData.filePath}`, error)
         }
     }
 
@@ -213,9 +218,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${showFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${showFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${showFileData.filePath}\n${error}\n`)
+            GmukkoLogger.error(`Failed to index: ${showFileData.filePath}`, error)
         }
     }
 
@@ -235,9 +240,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${standupFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${standupFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${standupFileData.filePath}\n${error}\n`)
+            GmukkoLogger.error(`Failed to index: ${standupFileData.filePath}`, error)
         }
     }
 
@@ -258,9 +263,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${animeFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${animeFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${animeFileData.filePath}\n${error}\n`)
+            GmukkoLogger.error(`Failed to index: ${animeFileData.filePath}`, error)
         }
     }
 
@@ -281,9 +286,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${animationFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${animationFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${animationFileData.filePath}\n${error}\n`)
+            GmukkoLogger.error(`Failed to index: ${animationFileData.filePath}`, error)
         }
     }
 
@@ -301,9 +306,9 @@ export default class Database {
                     updatedAt: new Date()
                 }
             })
-            console.log(`\t\tSuccessfully indexed: ${internetFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${internetFileData.filePath}`)
         } catch (error) {
-            console.error(`\t\tFailed to index: ${internetFileData.filePath}\n${error}\n`)
+            GmukkoLogger.error(`Failed to index: ${internetFileData.filePath}`, error)
         }
     }
 
@@ -418,9 +423,9 @@ export default class Database {
             }
 
             await MediaModel.sync()
-            console.log(`\tSuccessfully created ${table} table.`)
+            GmukkoLogger.info(`Successfully created ${table} table.`)
         } catch (error) {
-            console.error(`\tFailed to create ${table} table.\n`, error)
+            GmukkoLogger.error(`Failed to create ${table} table.`, error)
         }
     }
 }

@@ -6,34 +6,36 @@ import { Prompts } from '../interfaces_and_enums/prompts.js'
 import Database from './db.js'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import { MediaFileData } from '../interfaces_and_enums/video_file_data_types.js'
-import { Sequelize } from 'sequelize'
+import { json, Sequelize } from 'sequelize'
+import GmukkoLogger from './gmukko_logger.js'
+import Validators from './validators.js'
 
 
 export default class MediaFiles {
 
     public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaFileData[]> {
-        console.log (`Attempting to retrieve media file data to index...`)
+        GmukkoLogger.info(`Attempting to retrieve media file data to index.`)
         try {
             var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
             const filePathsMinusAlreadyIndexed = await Database.removeIndexedFilesFromPaths(filePaths, db, table)
             const prompt = this.determinePromptByTable(table)
             var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filePathsMinusAlreadyIndexed, prompt)
-            console.log(`Successfully retrieved media file data to index.`)
+            GmukkoLogger.info(`Successfully retrieved media file data to index.`)
             return mediaFiles
         } catch (error) {
-            console.error(`Failed to retrieve media file data to index.\n`, error)
+            GmukkoLogger.error(`Failed to retrieve media file data to index.`, error)
             return []
         }
     }
 
 
     private static async getMediaFilePathsRecursively(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
-        console.log(`Attempting to get media file paths from filesystem...`)
+        GmukkoLogger.info(`Attempting to get media file paths from filesystem.`)
         const files = fs.readdirSync(directoryToCheck)
         var filesMatchingExtension: string[] = []
 
         for (const [i, filePath] of files.entries()) {
-            console.log(`\tChecking file #${i}: ${filePath}`)
+            GmukkoLogger.info(`Checking file #${i}: ${filePath}`)
             const fullPath = path.join(directoryToCheck, filePath)
             const fileExtension = path.extname(filePath)
             const stats = fs.statSync(fullPath)
@@ -45,28 +47,28 @@ export default class MediaFiles {
                 const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
                 if (isProperFileExtension) {
                     filesMatchingExtension.push(fullPath)
-                    console.log(`\tAdded file: ${fullPath}.`)
+                    GmukkoLogger.info(`Added file: ${fullPath} to initial indexing.`)
                 } else {
-                    console.log(`\Ignored file: ${fullPath}.`)
+                    GmukkoLogger.info(`Ignored file: ${fullPath} from initial indexing.`)
                 }
             }
         }
         const filesMatchingExtensionMinusShorts = await this.removeMediaShorts(filesMatchingExtension, ['featurette', 'deleted-scenes'], 600)
-        console.log(`Succesfully retrieved ${filesMatchingExtensionMinusShorts.length} file path from ${directoryToCheck}.`)
+        GmukkoLogger.info(`Succesfully retrieved ${filesMatchingExtensionMinusShorts.length} file paths from ${directoryToCheck}.`)
         return filesMatchingExtensionMinusShorts
     }
 
 
     private static async removeMediaShorts(filePaths: string[], unacceptableFilePaths: string[], acceptableLengthInSeconds: number) {
         // This callback structure is a mess. Plans to refactor this.
-        console.log(`Attempting to removing any shorts from current filePaths...`)
+        GmukkoLogger.info(`Attempting to removing any shorts from current filePaths.`)
         const newFilePaths: string[] = []
 
         const promises = filePaths.map(filePath => {
             return new Promise<void>((resolve, reject) => {
                 ffmpeg.ffprobe(filePath, (error, metadata) => {
                     if (error) {
-                        console.error(`\tError reading video file: ${filePath}\n`, error)
+                        GmukkoLogger.error(`Error reading video file: ${filePath}`, error)
                         return resolve()
                     } else {
                         const lengthInSeconds = metadata.format.duration
@@ -78,10 +80,10 @@ export default class MediaFiles {
                                 }
                             }
                             if (returnFilePath) {
-                                console.log(`\tKeeping file: ${filePath}`)
+                                GmukkoLogger.info(`Keeping file: ${filePath}`)
                                 newFilePaths.push(filePath)
                             } else {
-                                console.log(`\tRemoving file: ${filePath}`)
+                                GmukkoLogger.info(`Removing file: ${filePath}`)
                             }
                         }
                     }
@@ -91,37 +93,51 @@ export default class MediaFiles {
         })
 
         await Promise.all(promises)
-        console.log(`Successfully removed ${filePaths.length - newFilePaths.length} shorts from list of file paths.`)
+        GmukkoLogger.info(`Successfully removed ${filePaths.length - newFilePaths.length} shorts from list of file paths.`)
         return newFilePaths
     }
 
 
-    private static async parseFilesToMediaFiles(filesToParse: string[], prompt: Prompts): Promise<MediaFileData[]> {
+    private static async parseFilePathsToMediaData(filesToParse: string[], prompt: Prompts): Promise<MediaFileData[]|undefined> {
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt, filesToParse)
             if (aiResult) {
-                const filteredResult = await this.stringToJsonArray(aiResult)
-                if (filteredResult) {
-                    const aiResultAsArrayOfObjects = await JSON.parse(filteredResult)
-                    console.log(`Successfully parsed a batch of files with AI.`)
-                    return aiResultAsArrayOfObjects
+                const jsonArray = await this.stringToJsonArray(aiResult, prompt, filesToParse)
+                if (jsonArray) {
+                    if (Validators.isMediaDataArray(jsonArray)) {
+                        return jsonArray
+                    } else {
+                        GmukkoLogger.invalidMediaData(jsonArray)
+                        return undefined
+                    }
                 } else {
-                    console.error(`Unable to parse the JSON result.`)
+                    GmukkoLogger.error(`Unable to parse the result as a JSON array.`)
                     return []
                 }
             } else {
-                console.error(`Failed. AI returned an empty result.\n`)
+                GmukkoLogger.error(`Failed to parse filePaths. AI returned an empty result.`)
                 return []
             }
         } catch (error) {
-            console.error(`Failed to parse ${filesToParse.length} files with AI.\n`, error)
+            GmukkoLogger.error(`Failed to parse ${filesToParse.length} files.`, error)
             return []
         }
     }
 
 
-    private static stringToJsonArray(someString: string): Promise<string|undefined> {
+    private static async stringToJsonArray(someString: string, prompt: Prompts, data: string[]): Promise<object[]|undefined> {
+        const jsonArrayAsString = await this.stringToJsonArrayString(someString)
+        if (jsonArrayAsString) {
+            return JSON.parse(jsonArrayAsString)
+        } else {
+            GmukkoLogger.invalidJsonArray(prompt, data, someString)
+            return undefined
+        }
+    }
+
+
+    private static async stringToJsonArrayString(someString: string): Promise<string|undefined> {
         return new Promise((resolve) => {
 
             const timeout = setTimeout(() => {
@@ -131,7 +147,7 @@ export default class MediaFiles {
             someString = someString.replace(/ /g, "")
             someString = someString.replace(/\s+/g, "")
     
-            var posOpen = 0;
+            var posOpen = 0
             var locationOfOpenBracket = someString.indexOf('[', posOpen)
             var nextChar = ""
             while (nextChar !== "{") {
@@ -153,29 +169,33 @@ export default class MediaFiles {
     
             clearTimeout(timeout)
             resolve(result)
-        });
+        })
     }
 
 
     public static async generateMediaFileData(filePaths: string[], prompt: Prompts) {
         // This structure is to optimize token usage on OpenAI API calls.
-        console.log(`Attempting to parse ${filePaths.length} file paths...`)
+        GmukkoLogger.info(`Attempting to parse ${filePaths.length} file paths.`)
         var mediaFiles: MediaFileData[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)
             if (((i+1) % 30) === 0) {
-                console.log(`Attempting to parse files ${i-28}-${i+1} of ${filePaths.length}...`)
-                const tenMediaFiles = await this.parseFilesToMediaFiles(workingArray, prompt)
-                mediaFiles = mediaFiles.concat(tenMediaFiles)
+                GmukkoLogger.info(`Attempting to parse files ${i-28}-${i+1} of ${filePaths.length}.`)
+                const tenMediaFiles = await this.parseFilePathsToMediaData(workingArray, prompt)
+                if (tenMediaFiles) {
+                    mediaFiles = mediaFiles.concat(tenMediaFiles)
+                }
                 workingArray = []
             } else if (i+1 === filePaths.length) {
-                console.log(`Attempting to parse files ${(Math.floor(i/30)*30)+1}-${i+1} of ${filePaths.length}...`)
-                const upToNineMediaFiles = await this.parseFilesToMediaFiles(workingArray, prompt)
-                mediaFiles = mediaFiles.concat(upToNineMediaFiles)
+                GmukkoLogger.info(`Attempting to parse files ${(Math.floor(i/30)*30)+1}-${i+1} of ${filePaths.length}.`)
+                const upToNineMediaFiles = await this.parseFilePathsToMediaData(workingArray, prompt)
+                if (upToNineMediaFiles) {
+                    mediaFiles = mediaFiles.concat(upToNineMediaFiles)
+                }
             }
         }
-        console.log(`Finished parsing ${filePaths.length} file paths.`)
+        GmukkoLogger.info(`Finished parsing ${filePaths.length} file paths.`)
         return mediaFiles
     }
 
