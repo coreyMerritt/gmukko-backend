@@ -18,7 +18,7 @@ export default class AI {
                     { role: `system`, content: prompt},
                     { role: 'user', content: data.toString()}
                 ],
-                max_tokens: 3300,
+                max_tokens: 3500,
                 temperature: 0,
                 presence_penalty: -2
             })

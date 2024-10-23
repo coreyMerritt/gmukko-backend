@@ -4,6 +4,7 @@ import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import MediaFiles from './media_files.js'
 import { AnimationFileData, AnimeFileData, InternetFileData, isAnimationFileData, isAnimeFileData, isInternetFileData, isMovieFileData, isShowFileData, 
     isStandupFileData, MediaFileData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import sequelize from 'sequelize'
 
 
 export default class Database {
@@ -11,19 +12,20 @@ export default class Database {
     private static password = process.env.GMUKKO_BACKEND_PASSWORD
     private static host = 'localhost'
     private static port = '3306'
-    private static database = 'gmukko-backend'
+    private static databaseName = 'gmukko-backend'
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
-    private static db: Sequelize
 
 
     public static async refreshTable(table: DatabaseTables, directoryToIndex: string, validFileTypes: string[]) {
         console.log(`Attempting to refresh the ${table} table...`)
         try {
-            const db = await this.createAndLoadDatabase(this.database)
-            db ? this.db = db : undefined
-            await this.createTableIfNotExists(table)
-            const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, table)
-            this.indexMediaFileData(mediaFiles, table)
+            const db = await this.createAndLoadDatabase(this.databaseName)
+            const tableExists = await this.tableExists(db, table)
+            if (!tableExists) {
+                await this.createTable(table, db)
+            }
+            const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, db, table)
+            await this.indexMediaFileData(mediaFiles, db, table)
             console.log(`Successfully refreshed the ${table} table.`)
         } catch (error) {
             console.log(`Failed to refresh the ${table} table.`)
@@ -31,71 +33,69 @@ export default class Database {
     }
 
 
-    private static async createAndLoadDatabase(database: string): Promise<Sequelize | undefined> {
-        if (!this.db) {
-            console.log(`Attempting to load to database...`)
-            try {
-                const creationResult = await this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
-                if (this.username && this.password) {
-                    const db = new Sequelize(database, this.username, this.password, {
-                        host: 'localhost',
-                        dialect: 'mysql',
-                        logging: false,
-                    })
-                    console.log(`Successfully loaded database.`)
-                    return db
-                } else {
-                    console.log(`Failed to load database because username or password were not defined`)
-                }
-            } catch (error) {
-                console.error(`Failed to load database.\n`, error)
-            }
-        }
-    }
-
-
-    private static async createTableIfNotExists(table: DatabaseTables) {
-        if (!await this.tableExists(table)) {
-            console.log(`\tAttempting to create ${table}...`)
-            const MediaModel = this.determineModelByTable(table)
-            if (MediaModel) {
-                await this.initAndSyncMediaModel(MediaModel, table)
-            }
-        }
-    }
-
-
-    private static async tableExists(tableName: string) {
-        console.log(`Checking if ${tableName} exists...`)
+    private static async createAndLoadDatabase(database: string): Promise<Sequelize> {
+        console.log(`Attempting to load to database...`)
         try {
-            const result = await this.db.query(
+            const creationResult = await this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
+            if (this.username && this.password) {
+                const db = new Sequelize(database, this.username, this.password, {
+                    host: 'localhost',
+                    dialect: 'mysql',
+                    logging: false,
+                })
+                console.log(`Successfully loaded database.`)
+                return db
+            } else {
+                console.log(`Failed to load database because username or password were not defined`)
+                process.exit(1)
+            }
+        } catch (error) {
+            console.error(`Failed to load database.\n`, error)
+            process.exit(1)
+        }
+    }
+
+
+    private static async createTable(table: DatabaseTables, db: Sequelize) {
+        console.log(`\tAttempting to create ${table}...`)
+        const MediaModel = this.determineModelByTable(table)
+         if (MediaModel) {
+            await this.initAndSyncMediaModel(MediaModel, table, db)
+        }
+    }
+
+
+    private static async tableExists(db: Sequelize, table: string) {
+        console.log(`Checking if ${table} exists...`)
+        try {
+            const result = await db.query(
                 `SELECT * FROM :tableName;`,
                 {
                   replacements: {
-                    tableName: tableName,
+                    tableName: table,
                   },
                   type: QueryTypes.SELECT,
                 }
             )
             if (result.length > 0) {
-                console.log(`\tTable ${tableName} does exist.`)
+                console.log(`\tTable ${table} does exist.`)
                 return true
             } else {
-                console.log(`\tTable ${tableName} does not exist.`)
+                console.log(`\tTable ${table} does not exist.`)
                 return false
             }
         } catch (error) {
-            console.error(`\tFailed to check if table ${tableName} exists.\n`, error)
+            console.error(`\tFailed to check if table ${table} exists.\n`, error)
         }
     }
 
 
-    public static async removeIndexedFilesFromPaths(filePaths: string[], table: DatabaseTables) {
+    public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, table: DatabaseTables) {
         console.log("Attempting to remove already indexed files from list of files to index.")
         try {
             for (const [i, filePath] of filePaths.entries()) {
                 console.log(`\tChecking file #${i}: ${filePath}`)
-                const [results] = await this.db.query(`
+                const [results] = await db.query(`
                     SELECT * 
                     FROM ${table} 
                     WHERE filePath = :filePath
@@ -123,49 +123,49 @@ export default class Database {
     }
 
 
-    private static async indexMediaFileData(mediaFiles: MediaFileData[], table: DatabaseTables) {
+    private static async indexMediaFileData(mediaFiles: MediaFileData[], db: Sequelize, table: DatabaseTables) {
         console.log("Attempting to index files...")
         for (const [i, mediaFile] of mediaFiles.entries()) {
             console.log(`\tIndexing File #${i}: ${JSON.stringify(mediaFile)}`)
             switch (table) {
                 case (DatabaseTables.Movies):
                     if (isMovieFileData(mediaFile)) {
-                        await this.insertMovieFileDataIntoTable(mediaFile)
+                        await this.insertMovieFileDataIntoTable(mediaFile, db)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
                 case (DatabaseTables.Shows):
                     if (isShowFileData(mediaFile)) {
-                        await this.insertShowFileDataIntoTable(mediaFile)
+                        await this.insertShowFileDataIntoTable(mediaFile, db)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
                 case (DatabaseTables.Standup):
                     if (isStandupFileData(mediaFile)) {
-                        await this.insertStandupFileDataIntoTable(mediaFile)
+                        await this.insertStandupFileDataIntoTable(mediaFile, db)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
                 case (DatabaseTables.Anime):
                     if (isAnimeFileData(mediaFile)) {
-                        await this.insertAnimeFileDataIntoTable(mediaFile)
+                        await this.insertAnimeFileDataIntoTable(mediaFile, db)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
                 case (DatabaseTables.Animation):
                     if (isAnimationFileData(mediaFile)) {
-                        await this.insertAnimationFileDataIntoTable(mediaFile)
+                        await this.insertAnimationFileDataIntoTable(mediaFile, db)
                     } else {
                         console.error(`\t\tFile ${mediaFile.filePath} did not match with table type ${table}`)
                     }
                     break
                 case (DatabaseTables.Internet):
                     if (isInternetFileData(mediaFile)) {
-                        await this.insertInternetFileDataIntoTable(mediaFile)
+                        await this.insertInternetFileDataIntoTable(mediaFile, db)
                     } else {
                         console.error(`\t\tFile ${mediaFile} did not match with table type ${table}`)
                     }
@@ -175,9 +175,9 @@ export default class Database {
     }
 
 
-    private static async insertMovieFileDataIntoTable(movieFileData: MovieFileData) {
+    private static async insertMovieFileDataIntoTable(movieFileData: MovieFileData, db: Sequelize) {
         try {
-            const result = await this.db.query(`
+            const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Movies} (filePath, title, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :createdAt, :updatedAt);
             `,
@@ -196,9 +196,9 @@ export default class Database {
         }
     }
 
-    private static async insertShowFileDataIntoTable(showFileData: ShowFileData) {
+    private static async insertShowFileDataIntoTable(showFileData: ShowFileData, db: Sequelize) {
         try {
-            const result = await this.db.query(`
+            const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Shows} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
@@ -219,9 +219,9 @@ export default class Database {
         }
     }
 
-    private static async insertStandupFileDataIntoTable(standupFileData: StandupFileData) {
+    private static async insertStandupFileDataIntoTable(standupFileData: StandupFileData, db: Sequelize) {
         try {
-            const result = await this.db.query(`
+            const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Standup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :artist, :releaseYear, :createdAt, :updatedAt);
             `,
@@ -241,9 +241,9 @@ export default class Database {
         }
     }
 
-    private static async insertAnimeFileDataIntoTable(animeFileData: AnimeFileData) {
+    private static async insertAnimeFileDataIntoTable(animeFileData: AnimeFileData, db: Sequelize) {
         try {
-            const result = await this.db.query(`
+            const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Anime} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
@@ -264,9 +264,9 @@ export default class Database {
         }
     }
 
-    private static async insertAnimationFileDataIntoTable(animationFileData: AnimationFileData) {
+    private static async insertAnimationFileDataIntoTable(animationFileData: AnimationFileData, db: Sequelize) {
         try {
-            const result = await this.db.query(`
+            const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Animation} (filePath, title, releaseYear, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
@@ -287,9 +287,9 @@ export default class Database {
         }
     }
 
-    private static async insertInternetFileDataIntoTable(internetFileData: InternetFileData) {
+    private static async insertInternetFileDataIntoTable(internetFileData: InternetFileData, db: Sequelize) {
         try {
-            const result = await this.db.query(`
+            const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Internet} (filePath, title, createdAt, updatedAt)
                 VALUES (:filePath, :title, :createdAt, :updatedAt);
             `,
@@ -328,7 +328,7 @@ export default class Database {
     }
     
 
-    private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables) {
+    private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables, db: Sequelize) {
         try {
             switch (table) {
                 case DatabaseTables.Movies:
@@ -339,7 +339,7 @@ export default class Database {
                             releaseYear: {type: DataTypes.INTEGER, allowNull: true}
                         },
                         {
-                            sequelize: this.db,
+                            sequelize: db,
                             tableName: `${table}`
                         }
                     )
@@ -354,7 +354,7 @@ export default class Database {
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
                         {
-                            sequelize: this.db,
+                            sequelize: db,
                             tableName: `${table}`
                         }
                     )
@@ -368,7 +368,7 @@ export default class Database {
                             releaseYear: {type: DataTypes.INTEGER, allownull: true}
                         },
                         {
-                            sequelize: this.db,
+                            sequelize: db,
                             tableName: `${table}`
                         }
                     )
@@ -383,7 +383,7 @@ export default class Database {
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
                         {
-                            sequelize: this.db,
+                            sequelize: db,
                             tableName: `${table}`
                         }
                     )
@@ -398,7 +398,7 @@ export default class Database {
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
                         {
-                            sequelize: this.db,
+                            sequelize: db,
                             tableName: `${table}`
                         }
                     )
@@ -410,7 +410,7 @@ export default class Database {
                             title: {type: DataTypes.STRING, allownull: false}
                         },
                         {
-                            sequelize: this.db,
+                            sequelize: db,
                             tableName: `${table}`
                         }
                     )

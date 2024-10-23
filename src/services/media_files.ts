@@ -6,15 +6,16 @@ import { Prompts } from '../interfaces_and_enums/prompts.js'
 import Database from './db.js'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import { MediaFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import { Sequelize } from 'sequelize'
 
 
 export default class MediaFiles {
 
-    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], table: DatabaseTables): Promise<MediaFileData[]> {
+    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaFileData[]> {
         console.log (`Attempting to retrieve media file data to index...`)
         try {
             var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-            const filePathsMinusAlreadyIndexed = await Database.removeIndexedFilesFromPaths(filePaths, table)
+            const filePathsMinusAlreadyIndexed = await Database.removeIndexedFilesFromPaths(filePaths, db, table)
             const prompt = this.determinePromptByTable(table)
             var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filePathsMinusAlreadyIndexed, prompt)
             console.log(`Successfully retrieved media file data to index.`)
@@ -95,7 +96,7 @@ export default class MediaFiles {
     }
 
 
-    private static async parseFilesWithAi(filesToParse: string[], prompt: Prompts): Promise<MediaFileData[]> {
+    private static async parseFilesToMediaFiles(filesToParse: string[], prompt: Prompts): Promise<MediaFileData[]> {
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt, filesToParse)
@@ -163,14 +164,14 @@ export default class MediaFiles {
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)
-            if (((i+1) % 10) === 0) {
-                console.log(`Attempting to parse files ${i-8}-${i+1} of ${filePaths.length}...`)
-                const tenMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
+            if (((i+1) % 30) === 0) {
+                console.log(`Attempting to parse files ${i-28}-${i+1} of ${filePaths.length}...`)
+                const tenMediaFiles = await this.parseFilesToMediaFiles(workingArray, prompt)
                 mediaFiles = mediaFiles.concat(tenMediaFiles)
                 workingArray = []
             } else if (i+1 === filePaths.length) {
-                console.log(`Attempting to parse files ${(Math.floor(i/10)*10)+1}-${i+1} of ${filePaths.length}...`)
-                const upToNineMediaFiles = await this.parseFilesWithAi(workingArray, prompt)
+                console.log(`Attempting to parse files ${(Math.floor(i/30)*30)+1}-${i+1} of ${filePaths.length}...`)
+                const upToNineMediaFiles = await this.parseFilesToMediaFiles(workingArray, prompt)
                 mediaFiles = mediaFiles.concat(upToNineMediaFiles)
             }
         }
