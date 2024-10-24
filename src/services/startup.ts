@@ -5,8 +5,15 @@ import cron from 'node-cron'
 
 
 export class Startup {
+
     public static async execute() {
-        for (const path in (BackupPaths && CorePaths && LogPaths && StagingPaths)) {
+        var directoriesToCreate: string[] = []
+        directoriesToCreate.push(...(Object.values(BackupPaths)))
+        directoriesToCreate.push(...(Object.values(CorePaths)))
+        directoriesToCreate.push(...(Object.values(LogPaths)))
+        directoriesToCreate.push(...(Object.values(StagingPaths)))
+
+        for (const [, path] of directoriesToCreate.entries()) {
             try {
                 await fs.mkdir(path)
             } catch (error) {

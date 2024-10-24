@@ -19,7 +19,7 @@ export class Database {
     public static async backup(): Promise<number> {
         const execAsync = promisify(exec)
         try {
-            for (const databaseName in DatabaseNames) {
+            for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
                 await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupPaths.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             }
             return 200
