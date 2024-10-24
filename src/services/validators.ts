@@ -1,9 +1,9 @@
-import { AnimationFileData, AnimeFileData, InternetFileData, MediaData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/index.js'
+import { AnimationFileData, AnimeFileData, InternetFileData, VideoData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/index.js'
 
 
 export class Validators {
 
-    public static isSomeMediaData(object: object): object is MediaData {
+    public static isSomeVideoData(object: object): object is VideoData {
         return 'filePath' in object &&
             'title' in object
     }
@@ -47,9 +47,9 @@ export class Validators {
             'title' in object
     }
 
-    public static isMediaDataArray(objectArray: object[]): objectArray is MediaData[] {
+    public static isVideoDataArray(objectArray: object[]): objectArray is VideoData[] {
         for (const [i, object] of objectArray.entries()) {
-            if (!Validators.isSomeMediaData(object)) {
+            if (!Validators.isSomeVideoData(object)) {
                 return false
             }
         }

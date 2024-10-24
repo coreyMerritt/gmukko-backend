@@ -1,4 +1,4 @@
-export enum MediaDataTypes {
+export enum VideoDataTypes {
     Movies = "movies",
     Shows = "shows",
     Standup = "standup",
@@ -7,46 +7,46 @@ export enum MediaDataTypes {
     Internet = "internet"
 }
 
-export interface MediaData {
+export interface VideoData {
     filePath: string
     title: string
 }
 
-export interface MovieFileData extends MediaData {
+export interface MovieFileData extends VideoData {
     filePath: string
     title: string
     releaseYear: number
 }
 
-export interface ShowFileData extends MediaData {
+export interface ShowFileData extends VideoData {
     filePath: string
     title: string
     seasonNumber: number
     episodeNumber: number
 }
 
-export interface StandupFileData extends MediaData {
+export interface StandupFileData extends VideoData {
     filePath: string
     title: string
     artist: string
     releaseYear: number
 }
 
-export interface AnimeFileData extends MediaData {
+export interface AnimeFileData extends VideoData {
     filePath: string
     title: string
     seasonNumber: number
     episodeNumber: number
 }
 
-export interface AnimationFileData extends MediaData {
+export interface AnimationFileData extends VideoData {
     filePath: string
     title: string
     seasonNumber: number
     episodeNumber: number
 }
 
-export interface InternetFileData extends MediaData {
+export interface InternetFileData extends VideoData {
     filePath: string
     title: string
 }

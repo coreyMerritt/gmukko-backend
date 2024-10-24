@@ -5,7 +5,7 @@ export enum LoggingPaths {
     Errors = `${LogsDirectory}/errors`,
     Debug = `${LogsDirectory}/debug`,
     InvalidJsonArray = `${LogsDirectory}/invalid_json_arrays`,
-    InvalidMediaData = `${LogsDirectory}/invalid_media_data`,
+    InvalidVideoData = `${LogsDirectory}/invalid_video_data`,
     InvalidMovieData = `${LogsDirectory}/invalid_movie_data`,
     InvalidShowData = `${LogsDirectory}/invalid_show_data`,
     InvalidStandupData = `${LogsDirectory}/invalid_standup_data`,

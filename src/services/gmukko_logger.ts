@@ -1,5 +1,5 @@
 import { GmukkoTime } from './index.js'
-import { MediaDataTypes, Prompts } from '../interfaces_and_enums/index.js'
+import { VideoDataTypes, Prompts } from '../interfaces_and_enums/index.js'
 import { LoggingPaths } from '../interfaces_and_enums/paths/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
@@ -83,9 +83,9 @@ export class GmukkoLogger {
     }
 
 
-    static async invalidMediaData(object: any, expectedMediaType?: MediaDataTypes) {
-        this.error(`Invalid Media Data.`)
-        const logPath = this.determineLogPath(expectedMediaType)
+    static async invalidVideoData(object: any, expectedVideoType?: VideoDataTypes) {
+        this.error(`Invalid Video Data.`)
+        const logPath = this.determineLogPath(expectedVideoType)
         const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
         fs.appendFile(`${logPath}}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
@@ -94,22 +94,22 @@ export class GmukkoLogger {
         )
     }
 
-    private static determineLogPath(expectedMediaType: MediaDataTypes | undefined) {
-        switch (expectedMediaType) {
-            case MediaDataTypes.Movies:
+    private static determineLogPath(expectedVideoType: VideoDataTypes | undefined) {
+        switch (expectedVideoType) {
+            case VideoDataTypes.Movies:
                 return LoggingPaths.InvalidMovieData
-            case MediaDataTypes.Shows:
+            case VideoDataTypes.Shows:
                 return LoggingPaths.InvalidShowData
-            case MediaDataTypes.Standup:
+            case VideoDataTypes.Standup:
                 return LoggingPaths.InvalidStandupData
-            case MediaDataTypes.Anime:
+            case VideoDataTypes.Anime:
                 return LoggingPaths.InvalidAnimeData
-            case MediaDataTypes.Animation:
+            case VideoDataTypes.Animation:
                 return LoggingPaths.InvalidAnimationData
-            case MediaDataTypes.Internet:
+            case VideoDataTypes.Internet:
                 return LoggingPaths.InvalidInternetData
             default:
-                return LoggingPaths.InvalidMediaData
+                return LoggingPaths.InvalidVideoData
         }
     }
 }

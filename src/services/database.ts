@@ -1,5 +1,5 @@
-import { GmukkoLogger, GmukkoTime, MediaFiles, Validators } from './index.js'
-import { AnimationFileData, AnimeFileData, DatabaseTables, InternetFileData, MediaData, MediaDataTypes, MovieFileData, StandupFileData, ShowFileData, DatabaseNames 
+import { GmukkoLogger, GmukkoTime, VideoFiles, Validators } from './index.js'
+import { AnimationFileData, AnimeFileData, DatabaseTables, InternetFileData, VideoData, VideoDataTypes, MovieFileData, StandupFileData, ShowFileData, DatabaseNames 
 } from '../interfaces_and_enums/index.js'
 import { BackupPaths } from '../interfaces_and_enums/paths/index.js'
 import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel } from '../database_models/index.js'
@@ -38,9 +38,9 @@ export class Database {
                 await this.createTable(table, dataBase)
             }
 
-            const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, dataBase, table)
-            if (mediaFiles) {
-                await this.indexMediaData(mediaFiles, dataBase, table)
+            const videoFiles = await VideoFiles.getFileDataToIndex(directoryToIndex, validFileTypes, dataBase, table)
+            if (videoFiles) {
+                await this.indexVideoData(videoFiles, dataBase, table)
                 GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
             }
         } catch (error) {
@@ -74,9 +74,9 @@ export class Database {
 
     private static async createTable(table: DatabaseTables, db: Sequelize) {
         GmukkoLogger.info(`Attempting to create ${table}.`)
-        const MediaModel = this.determineModelByTable(table)
-         if (MediaModel) {
-            await this.initAndSyncMediaModel(MediaModel, table, db)
+        const VideoModel = this.determineModelByTable(table)
+         if (VideoModel) {
+            await this.initAndSyncVideoModel(VideoModel, table, db)
         }
     }
 
@@ -99,63 +99,63 @@ export class Database {
     }
 
 
-    private static async indexMediaData(mediaFiles: MediaData[], db: Sequelize, table: DatabaseTables) {
+    private static async indexVideoData(videoFiles: VideoData[], db: Sequelize, table: DatabaseTables) {
         GmukkoLogger.info("Attempting to index files.")
-        for (const [i, mediaFile] of mediaFiles.entries()) {
-            if (!this.filePathInTable(mediaFile.filePath, db, table)) {
-                GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(mediaFile)}`)
+        for (const [i, videoFile] of videoFiles.entries()) {
+            if (!this.filePathInTable(videoFile.filePath, db, table)) {
+                GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(videoFile)}`)
                 switch (table) {
                     case (DatabaseTables.Movies):
-                        if (Validators.isMovieFileData(mediaFile)) {
-                            await this.insertStagingMovieFileDataIntoTable(mediaFile, db)
+                        if (Validators.isMovieFileData(videoFile)) {
+                            await this.insertStagingMovieFileDataIntoTable(videoFile, db)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Movies)
+                            GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Movies)
                         }
                         break
                     case (DatabaseTables.Shows):
-                        if (Validators.isShowFileData(mediaFile)) {
-                            await this.insertStagingShowFileDataIntoTable(mediaFile, db)
+                        if (Validators.isShowFileData(videoFile)) {
+                            await this.insertStagingShowFileDataIntoTable(videoFile, db)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Shows)
+                            GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Shows)
                         }
                         break
                     case (DatabaseTables.Standup):
-                        if (Validators.isStandupFileData(mediaFile)) {
-                            await this.insertStagingStandupFileDataIntoTable(mediaFile, db)
+                        if (Validators.isStandupFileData(videoFile)) {
+                            await this.insertStagingStandupFileDataIntoTable(videoFile, db)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Standup)
+                            GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Standup)
                         }
                         break
                     case (DatabaseTables.Anime):
-                        if (Validators.isAnimeFileData(mediaFile)) {
-                            await this.insertStagingAnimeFileDataIntoTable(mediaFile, db)
+                        if (Validators.isAnimeFileData(videoFile)) {
+                            await this.insertStagingAnimeFileDataIntoTable(videoFile, db)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Anime)
+                            GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Anime)
                         }
                         break
                     case (DatabaseTables.Animation):
-                        if (Validators.isAnimationFileData(mediaFile)) {
-                            await this.insertStagingAnimationFileDataIntoTable(mediaFile, db)
+                        if (Validators.isAnimationFileData(videoFile)) {
+                            await this.insertStagingAnimationFileDataIntoTable(videoFile, db)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Animation)
+                            GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Animation)
                         }
                         break
                     case (DatabaseTables.Internet):
-                        if (Validators.isInternetFileData(mediaFile)) {
-                            await this.insertStagingInternetFileDataIntoTable(mediaFile, db)
+                        if (Validators.isInternetFileData(videoFile)) {
+                            await this.insertStagingInternetFileDataIntoTable(videoFile, db)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Internet)
+                            GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Internet)
                         }
                         break
                     default:
-                        if (Validators.isMovieFileData(mediaFile)) {
-                            GmukkoLogger.error(`Data is valid media data, but is not structured for the ${table} table.`)
+                        if (Validators.isMovieFileData(videoFile)) {
+                            GmukkoLogger.error(`Data is valid video data, but is not structured for the ${table} table.`)
                         } else {
-                            GmukkoLogger.invalidMediaData(mediaFile)
+                            GmukkoLogger.invalidVideoData(videoFile)
                         }
                 }
             } else {
-                GmukkoLogger.info(`File #${i}: ${mediaFile.filePath} is already indexed.`)
+                GmukkoLogger.info(`File #${i}: ${videoFile.filePath} is already indexed.`)
             }
         }
     }
@@ -328,11 +328,11 @@ export class Database {
     }
     
 
-    private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables, db: Sequelize) {
+    private static async initAndSyncVideoModel(VideoModel: any, table: DatabaseTables, db: Sequelize) {
         try {
             switch (table) {
                 case DatabaseTables.Movies:
-                    await MediaModel.init(
+                    await VideoModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
                             title: {type: DataTypes.STRING, allowNull: false},
@@ -345,7 +345,7 @@ export class Database {
                     )
                     break
                 case DatabaseTables.Shows:
-                    await MediaModel.init(
+                    await VideoModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
@@ -359,7 +359,7 @@ export class Database {
                     )
                     break
                 case DatabaseTables.Standup:
-                    await MediaModel.init(
+                    await VideoModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
@@ -373,7 +373,7 @@ export class Database {
                     )
                     break
                 case DatabaseTables.Anime:
-                    await MediaModel.init(
+                    await VideoModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
@@ -387,7 +387,7 @@ export class Database {
                     )
                     break
                 case DatabaseTables.Animation:
-                    await MediaModel.init(
+                    await VideoModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
@@ -401,7 +401,7 @@ export class Database {
                     )
                     break
                 case DatabaseTables.Internet:
-                    await MediaModel.init(
+                    await VideoModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false}
@@ -414,7 +414,7 @@ export class Database {
                     break
             }
 
-            await MediaModel.sync()
+            await VideoModel.sync()
             GmukkoLogger.info(`Successfully created ${table} table.`)
         } catch (error) {
             GmukkoLogger.error(`Failed to create ${table} table.`, error)
