@@ -6,30 +6,30 @@ export class VideoDataModel extends Model {
     public title!: string
 }
 
-export class MovieFileDataModel extends VideoDataModel {
+export class MovieDataModel extends VideoDataModel {
     public releaseYear!: number
 }
 
-export class ShowFileDataModel extends VideoDataModel {
+export class ShowDataModel extends VideoDataModel {
     public seasonNumber!: number
     public episodeNumber!: number
 }
 
-export class StandupFileDataModel extends VideoDataModel {
+export class StandupDataModel extends VideoDataModel {
     public artist!: string
     public releaseYear!: number
 }
 
-export class AnimeFileDataModel extends VideoDataModel {
+export class AnimeDataModel extends VideoDataModel {
     public seasonNumber!: number
     public episodeNumber!: number
 }
 
-export class AnimationFileDataModel extends VideoDataModel {
+export class AnimationDataModel extends VideoDataModel {
     public seasonNumber!: number
     public episodeNumber!: number
 }
 
-export class InternetFileDataModel extends VideoDataModel {
+export class InternetDataModel extends VideoDataModel {
 
 }

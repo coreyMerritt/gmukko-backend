@@ -1,8 +1,8 @@
 import { GmukkoLogger, GmukkoTime, VideoFiles, Validators } from './index.js'
-import { AnimationFileData, AnimeFileData, DatabaseTables, InternetFileData, VideoData, VideoDataTypes, MovieFileData, StandupFileData, ShowFileData, DatabaseNames 
+import { AnimationData, AnimeData, DatabaseTables, InternetData, VideoData, VideoDataTypes, MovieData, StandupData, ShowData, DatabaseNames 
 } from '../interfaces_and_enums/index.js'
 import { BackupPaths } from '../interfaces_and_enums/paths/index.js'
-import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel } from '../database_models/index.js'
+import { MovieDataModel, ShowDataModel, StandupDataModel, AnimeDataModel, AnimationDataModel, InternetDataModel } from '../database_models/index.js'
 import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
 import { exec } from 'child_process'
@@ -38,7 +38,7 @@ export class Database {
                 await this.createTable(table, dataBase)
             }
 
-            const videoFiles = await VideoFiles.getFileDataToIndex(directoryToIndex, validFileTypes, dataBase, table)
+            const videoFiles = await VideoFiles.getDataToIndex(directoryToIndex, validFileTypes, dataBase, table)
             if (videoFiles) {
                 await this.indexVideoData(videoFiles, dataBase, table)
                 GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
@@ -106,49 +106,49 @@ export class Database {
                 GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(videoFile)}`)
                 switch (table) {
                     case (DatabaseTables.Movies):
-                        if (Validators.isMovieFileData(videoFile)) {
-                            await this.insertStagingMovieFileDataIntoTable(videoFile, db)
+                        if (Validators.isMovieData(videoFile)) {
+                            await this.insertMovieDataIntoTable(videoFile, db)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Movies)
                         }
                         break
                     case (DatabaseTables.Shows):
-                        if (Validators.isShowFileData(videoFile)) {
-                            await this.insertStagingShowFileDataIntoTable(videoFile, db)
+                        if (Validators.isShowData(videoFile)) {
+                            await this.insertShowDataIntoTable(videoFile, db)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Shows)
                         }
                         break
                     case (DatabaseTables.Standup):
-                        if (Validators.isStandupFileData(videoFile)) {
-                            await this.insertStagingStandupFileDataIntoTable(videoFile, db)
+                        if (Validators.isStandupData(videoFile)) {
+                            await this.insertStandupDataIntoTable(videoFile, db)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Standup)
                         }
                         break
                     case (DatabaseTables.Anime):
-                        if (Validators.isAnimeFileData(videoFile)) {
-                            await this.insertStagingAnimeFileDataIntoTable(videoFile, db)
+                        if (Validators.isAnimeData(videoFile)) {
+                            await this.insertAnimeDataIntoTable(videoFile, db)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Anime)
                         }
                         break
                     case (DatabaseTables.Animation):
-                        if (Validators.isAnimationFileData(videoFile)) {
-                            await this.insertStagingAnimationFileDataIntoTable(videoFile, db)
+                        if (Validators.isAnimationData(videoFile)) {
+                            await this.insertAnimationDataIntoTable(videoFile, db)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Animation)
                         }
                         break
                     case (DatabaseTables.Internet):
-                        if (Validators.isInternetFileData(videoFile)) {
-                            await this.insertStagingInternetFileDataIntoTable(videoFile, db)
+                        if (Validators.isInternetData(videoFile)) {
+                            await this.insertInternetDataIntoTable(videoFile, db)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile, VideoDataTypes.Internet)
                         }
                         break
                     default:
-                        if (Validators.isMovieFileData(videoFile)) {
+                        if (Validators.isMovieData(videoFile)) {
                             GmukkoLogger.error(`Data is valid video data, but is not structured for the ${table} table.`)
                         } else {
                             GmukkoLogger.invalidVideoData(videoFile)
@@ -178,7 +178,7 @@ export class Database {
     }
 
 
-    private static async insertStagingMovieFileDataIntoTable(movieFileData: MovieFileData, db: Sequelize) {
+    private static async insertMovieDataIntoTable(movieData: MovieData, db: Sequelize) {
         try {
             const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Movies} (filePath, title, releaseYear, createdAt, updatedAt)
@@ -186,20 +186,20 @@ export class Database {
             `,
             {
                 replacements: {
-                    filePath: movieFileData.filePath,
-                    title: movieFileData.title,
-                    releaseYear: movieFileData.releaseYear,
+                    filePath: movieData.filePath,
+                    title: movieData.title,
+                    releaseYear: movieData.releaseYear,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
             })
-            GmukkoLogger.info(`Successfully indexed: ${movieFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${movieData.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${movieFileData.filePath}`, error)
+            GmukkoLogger.error(`Failed to index: ${movieData.filePath}`, error)
         }
     }
 
-    private static async insertStagingShowFileDataIntoTable(showFileData: ShowFileData, db: Sequelize) {
+    private static async insertShowDataIntoTable(showData: ShowData, db: Sequelize) {
         try {
             const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Shows} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
@@ -207,21 +207,21 @@ export class Database {
             `,
             {
                 replacements: {
-                    filePath: showFileData.filePath,
-                    title: showFileData.title,
-                    seasonNumber: showFileData.seasonNumber,
-                    episodeNumber: showFileData.episodeNumber,
+                    filePath: showData.filePath,
+                    title: showData.title,
+                    seasonNumber: showData.seasonNumber,
+                    episodeNumber: showData.episodeNumber,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
             })
-            GmukkoLogger.info(`Successfully indexed: ${showFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${showData.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${showFileData.filePath}`, error)
+            GmukkoLogger.error(`Failed to index: ${showData.filePath}`, error)
         }
     }
 
-    private static async insertStagingStandupFileDataIntoTable(standupFileData: StandupFileData, db: Sequelize) {
+    private static async insertStandupDataIntoTable(standupData: StandupData, db: Sequelize) {
         try {
             const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Standup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
@@ -229,21 +229,21 @@ export class Database {
             `,
             {
                 replacements: {
-                    filePath: standupFileData.filePath,
-                    title: standupFileData.title,
-                    artist: standupFileData.artist,
-                    releaseYear: standupFileData.releaseYear,
+                    filePath: standupData.filePath,
+                    title: standupData.title,
+                    artist: standupData.artist,
+                    releaseYear: standupData.releaseYear,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
             })
-            GmukkoLogger.info(`Successfully indexed: ${standupFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${standupData.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${standupFileData.filePath}`, error)
+            GmukkoLogger.error(`Failed to index: ${standupData.filePath}`, error)
         }
     }
 
-    private static async insertStagingAnimeFileDataIntoTable(animeFileData: AnimeFileData, db: Sequelize) {
+    private static async insertAnimeDataIntoTable(animeData: AnimeData, db: Sequelize) {
         try {
             const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Anime} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
@@ -251,21 +251,21 @@ export class Database {
             `,
             {
                 replacements: {
-                    filePath: animeFileData.filePath,
-                    title: animeFileData.title,
-                    seasonNumber: animeFileData.seasonNumber,
-                    episodeNumber: animeFileData.episodeNumber, 
+                    filePath: animeData.filePath,
+                    title: animeData.title,
+                    seasonNumber: animeData.seasonNumber,
+                    episodeNumber: animeData.episodeNumber, 
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
             })
-            GmukkoLogger.info(`Successfully indexed: ${animeFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${animeData.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${animeFileData.filePath}`, error)
+            GmukkoLogger.error(`Failed to index: ${animeData.filePath}`, error)
         }
     }
 
-    private static async insertStagingAnimationFileDataIntoTable(animationFileData: AnimationFileData, db: Sequelize) {
+    private static async insertAnimationDataIntoTable(animationData: AnimationData, db: Sequelize) {
         try {
             const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Animation} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
@@ -273,21 +273,21 @@ export class Database {
             `,
             {
                 replacements: {
-                    filePath: animationFileData.filePath,
-                    title: animationFileData.title,
-                    seasonNumber: animationFileData.seasonNumber,
-                    episodeNumber: animationFileData.episodeNumber, 
+                    filePath: animationData.filePath,
+                    title: animationData.title,
+                    seasonNumber: animationData.seasonNumber,
+                    episodeNumber: animationData.episodeNumber, 
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
             })
-            GmukkoLogger.info(`Successfully indexed: ${animationFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${animationData.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${animationFileData.filePath}`, error)
+            GmukkoLogger.error(`Failed to index: ${animationData.filePath}`, error)
         }
     }
 
-    private static async insertStagingInternetFileDataIntoTable(internetFileData: InternetFileData, db: Sequelize) {
+    private static async insertInternetDataIntoTable(internetData: InternetData, db: Sequelize) {
         try {
             const result = await db.query(`
                 INSERT INTO ${DatabaseTables.Internet} (filePath, title, createdAt, updatedAt)
@@ -295,15 +295,15 @@ export class Database {
             `,
             {
                 replacements: {
-                    filePath: internetFileData.filePath,
-                    title: internetFileData.title,
+                    filePath: internetData.filePath,
+                    title: internetData.title,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
             })
-            GmukkoLogger.info(`Successfully indexed: ${internetFileData.filePath}`)
+            GmukkoLogger.info(`Successfully indexed: ${internetData.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${internetFileData.filePath}`, error)
+            GmukkoLogger.error(`Failed to index: ${internetData.filePath}`, error)
         }
     }
 
@@ -311,17 +311,17 @@ export class Database {
     private static determineModelByTable(table: DatabaseTables) {
         switch (table) {
             case DatabaseTables.Movies:
-                return MovieFileDataModel
+                return MovieDataModel
             case DatabaseTables.Shows:
-                return ShowFileDataModel
+                return ShowDataModel
             case DatabaseTables.Standup:
-                return StandupFileDataModel
+                return StandupDataModel
             case DatabaseTables.Anime:
-                return AnimeFileDataModel
+                return AnimeDataModel
             case DatabaseTables.Animation:
-                return AnimationFileDataModel
+                return AnimationDataModel
             case DatabaseTables.Internet:
-                return InternetFileDataModel
+                return InternetDataModel
             default:
                 return undefined
         }

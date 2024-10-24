@@ -10,7 +10,7 @@ import { Sequelize } from 'sequelize'
 
 export class VideoFiles {
 
-    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<VideoData[]|undefined> {
+    public static async getDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<VideoData[]|undefined> {
         GmukkoLogger.info(`Attempting to retrieve video file data to index.`)
         
         const prompt = this.determinePromptByTable(table)

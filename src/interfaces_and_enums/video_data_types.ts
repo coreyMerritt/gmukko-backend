@@ -12,41 +12,41 @@ export interface VideoData {
     title: string
 }
 
-export interface MovieFileData extends VideoData {
+export interface MovieData extends VideoData {
     filePath: string
     title: string
     releaseYear: number
 }
 
-export interface ShowFileData extends VideoData {
+export interface ShowData extends VideoData {
     filePath: string
     title: string
     seasonNumber: number
     episodeNumber: number
 }
 
-export interface StandupFileData extends VideoData {
+export interface StandupData extends VideoData {
     filePath: string
     title: string
     artist: string
     releaseYear: number
 }
 
-export interface AnimeFileData extends VideoData {
+export interface AnimeData extends VideoData {
     filePath: string
     title: string
     seasonNumber: number
     episodeNumber: number
 }
 
-export interface AnimationFileData extends VideoData {
+export interface AnimationData extends VideoData {
     filePath: string
     title: string
     seasonNumber: number
     episodeNumber: number
 }
 
-export interface InternetFileData extends VideoData {
+export interface InternetData extends VideoData {
     filePath: string
     title: string
 }

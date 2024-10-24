@@ -1,5 +1,4 @@
 export enum CorePaths {
-    Root = `/mnt/z/gmukko_staging`,
-    Video = `${Root}/video`,
-    Videos = `${Video}/videos`,
+    Staging = `/mnt/z/gmukko_staging`,
+    Videos = `${Staging}/videos`,
 }
