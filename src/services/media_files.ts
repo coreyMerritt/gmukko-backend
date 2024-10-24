@@ -4,15 +4,16 @@ import ffmpeg from 'fluent-ffmpeg'
 import AI from './ai.js'
 import { Prompts } from '../interfaces_and_enums/prompts.js'
 import { DatabaseTables, getStagingTableDestination } from '../interfaces_and_enums/database_tables.js'
-import { MediaFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import { MediaData } from '../interfaces_and_enums/video_file_data_types.js'
 import { Sequelize } from 'sequelize'
 import GmukkoLogger from './gmukko_logger.js'
 import Validators from './validators.js'
+import Database from './db.js'
 
 
 export default class MediaFiles {
 
-    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaFileData[]|undefined> {
+    public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaData[]|undefined> {
         GmukkoLogger.info(`Attempting to retrieve media file data to index.`)
         
         const prompt = this.determinePromptByTable(table)
@@ -20,11 +21,15 @@ export default class MediaFiles {
 
         try {
             var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-            const filePathsMinusIndexed = await this.removeIndexedFilesFromPaths(filePaths, db, productionTable)
-            const filesPathsMinusIndexedAndShorts = await this.removeMediaShorts(filePathsMinusIndexed, ['featurette', 'deleted-scenes'], 600)
-            var mediaFiles: MediaFileData[] = await this.generateMediaFileData(filesPathsMinusIndexedAndShorts, prompt)
-            GmukkoLogger.info(`Successfully retrieved media file data to index.`)
-            return mediaFiles
+            const filePathsMinusIndexed = await this.removeIndexedFilesFromPaths(filePaths, db, [productionTable, table])
+            if (filePathsMinusIndexed) {
+                const filesPathsMinusIndexedAndShorts = await this.removeMediaShorts(filePathsMinusIndexed, ['featurette', 'deleted-scenes'], 600)
+                var mediaFiles: MediaData[] = await this.generateMediaData(filesPathsMinusIndexedAndShorts, prompt)
+                GmukkoLogger.info(`Successfully retrieved media file data to index.`)
+                return mediaFiles
+            } else {
+                return undefined
+            }
         } catch (error) {
             GmukkoLogger.error(`Failed to retrieve media file data to index.`, error)
             return undefined
@@ -62,39 +67,32 @@ export default class MediaFiles {
     }
 
 
-    public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, table: DatabaseTables) {
+    public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, tables: DatabaseTables[]) {
         GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
-        var filePathsToKeep: string[] = []
-        try {
-            for (const [i, filePath] of filePaths.entries()) {
-                GmukkoLogger.info(`Checking file #${i}: ${filePath}`)
-                const [results] = await db.query(`
-                    SELECT * 
-                    FROM ${table} 
-                    WHERE filePath = :filePath
-                `,
-                {
-                    replacements: { 
-                        filePath: filePath
+        var filePathsToToss: string[] = []
+        for (const [i, table] of tables.entries()) {
+            try {
+                for (const [i, filePath] of filePaths.entries()) {
+                    if (!await Database.filePathInTable(filePath, db, table)) {
+                        GmukkoLogger.info(`Keeping file ${filePath} to index.`)
+                    }  else {
+                        GmukkoLogger.info(`Tossing ${filePath} from list of files that need to be indexed.`)
+                        filePathsToToss.push(filePath)
                     }
-                })
-                if (results.length > 0) {
-                    GmukkoLogger.info(`Tossing ${filePath} from list of files that need to be indexed.`)
-                }  else {
-                    GmukkoLogger.info(`Keeping file ${filePath} to index.`)
-                    filePathsToKeep.push(filePath)
                 }
+                GmukkoLogger.info(`Succesfully removed files already indexed in ${table}.`)
+            } catch (error) {
+                GmukkoLogger.error(`Failed to remove files already indexed in ${table}.`, error)
+                return undefined
             }
-            GmukkoLogger.info(`Succesfully removed already indexed files from list of files to index.`)
-            return filePathsToKeep
-        } catch (error) {
-            GmukkoLogger.error(`Failed to remove already indexed files from list of files to index.`, error)
-            return []
         }
+
+        const filteredFilePaths = filePaths.filter(filePath => !filePathsToToss.includes(filePath))
+        return filteredFilePaths
     }
 
 
-    private static async removeMediaShorts(filePaths: string[], unacceptableFilePaths: string[], acceptableLengthInSeconds: number) {
+    private static async removeMediaShorts(filePaths: string[], unacceptableFilePaths: string[], minimumLengthInSeconds: number) {
         // This callback structure is a mess. Plans to refactor this.
         GmukkoLogger.info(`Attempting to removing any shorts from current filePaths.`)
         const newFilePaths: string[] = []
@@ -107,7 +105,7 @@ export default class MediaFiles {
                         return resolve()
                     } else {
                         const lengthInSeconds = metadata.format.duration
-                        if (lengthInSeconds && lengthInSeconds > acceptableLengthInSeconds) {
+                        if (lengthInSeconds && lengthInSeconds > minimumLengthInSeconds) {
                             var returnFilePath = true
                             for (const [i, unacceptableFilePath] of unacceptableFilePaths.entries()) {
                                 if (filePath.includes(unacceptableFilePath)) {
@@ -118,7 +116,7 @@ export default class MediaFiles {
                                 GmukkoLogger.info(`Keeping file: ${filePath}`)
                                 newFilePaths.push(filePath)
                             } else {
-                                GmukkoLogger.info(`Removing file: ${filePath}`)
+                                GmukkoLogger.info(`Tossing file: ${filePath}`)
                             }
                         }
                     }
@@ -128,12 +126,13 @@ export default class MediaFiles {
         })
 
         await Promise.all(promises)
+        GmukkoLogger.debug(`filePaths.length = ${filePaths.length}, newFilePaths.length = ${newFilePaths.length}`)
         GmukkoLogger.info(`Successfully removed ${filePaths.length - newFilePaths.length} shorts from list of file paths.`)
         return newFilePaths
     }
 
 
-    private static async parseFilePathsToMediaData(filesToParse: string[], prompt: Prompts): Promise<MediaFileData[]|undefined> {
+    private static async parseFilePathsToMediaData(filesToParse: string[], prompt: Prompts): Promise<MediaData[]|undefined> {
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt, filesToParse)
@@ -194,15 +193,13 @@ export default class MediaFiles {
     }
 
 
-    public static async generateMediaFileData(filePaths: string[], prompt: Prompts) {
+    public static async generateMediaData(filePaths: string[], prompt: Prompts) {
         // This structure is to optimize token usage on OpenAI API calls.
         GmukkoLogger.info(`Attempting to parse ${filePaths.length} file paths.`)
-        var mediaFiles: MediaFileData[] = [] 
+        var mediaFiles: MediaData[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
             workingArray.push(filePath)
-            GmukkoLogger.debug(`i+1 = ${i+1}`)
-            GmukkoLogger.debug(`filePaths.length = ${filePath.length}`)
             if (((i+1) % 30) === 0) {
                 GmukkoLogger.info(`Attempting to parse files ${i-28}-${i+1} of ${filePaths.length}.`)
                 const tenMediaFiles = await this.parseFilePathsToMediaData(workingArray, prompt)

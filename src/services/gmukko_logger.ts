@@ -6,7 +6,7 @@ import express from 'express'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
-import { MediaFileDataTypes } from '../interfaces_and_enums/video_file_data_types.js'
+import { MediaDataTypes } from '../interfaces_and_enums/video_file_data_types.js'
 
 export default class GmukkoLogger {
 
@@ -86,7 +86,7 @@ export default class GmukkoLogger {
     }
 
 
-    static async invalidMediaData(object: any, expectedMediaType?: MediaFileDataTypes) {
+    static async invalidMediaData(object: any, expectedMediaType?: MediaDataTypes) {
         this.error(`Invalid Media Data.`)
         const logPath = this.determineLogPath(expectedMediaType)
         const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
@@ -97,19 +97,19 @@ export default class GmukkoLogger {
         )
     }
 
-    private static determineLogPath(expectedMediaType: MediaFileDataTypes | undefined) {
+    private static determineLogPath(expectedMediaType: MediaDataTypes | undefined) {
         switch (expectedMediaType) {
-            case MediaFileDataTypes.Movies:
+            case MediaDataTypes.Movies:
                 return LoggingPaths.InvalidMovieData
-            case MediaFileDataTypes.Shows:
+            case MediaDataTypes.Shows:
                 return LoggingPaths.InvalidShowData
-            case MediaFileDataTypes.Standup:
+            case MediaDataTypes.Standup:
                 return LoggingPaths.InvalidStandupData
-            case MediaFileDataTypes.Anime:
+            case MediaDataTypes.Anime:
                 return LoggingPaths.InvalidAnimeData
-            case MediaFileDataTypes.Animation:
+            case MediaDataTypes.Animation:
                 return LoggingPaths.InvalidAnimationData
-            case MediaFileDataTypes.Internet:
+            case MediaDataTypes.Internet:
                 return LoggingPaths.InvalidInternetData
             default:
                 return LoggingPaths.InvalidMediaData

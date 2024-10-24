@@ -1,8 +1,8 @@
-import { AnimationFileData, AnimeFileData, InternetFileData, MediaFileData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import { AnimationFileData, AnimeFileData, InternetFileData, MediaData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
 
 export default class Validators {
 
-    public static isSomeMediaFileData(object: object): object is MediaFileData {
+    public static isSomeMediaData(object: object): object is MediaData {
         return 'filePath' in object &&
             'title' in object
     }
@@ -23,7 +23,8 @@ export default class Validators {
     public static isStandupFileData(object: any): object is StandupFileData {
         return 'filePath' in object &&
             'title' in object &&
-            'artist' in object
+            'artist' in object &&
+            'releaseYear' in object
     }
     
     public static isAnimeFileData(object: any): object is AnimeFileData {
@@ -45,9 +46,9 @@ export default class Validators {
             'title' in object
     }
 
-    public static isMediaDataArray(objectArray: object[]): objectArray is MediaFileData[] {
+    public static isMediaDataArray(objectArray: object[]): objectArray is MediaData[] {
         for (const [i, object] of objectArray.entries()) {
-            if (!Validators.isSomeMediaFileData(object)) {
+            if (!Validators.isSomeMediaData(object)) {
                 return false
             }
         }

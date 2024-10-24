@@ -2,7 +2,7 @@ import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
 import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel, MediaDataFileModel } from '../database_models/media_file_data_models.js'
 import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
 import MediaFiles from './media_files.js'
-import { AnimationFileData, AnimeFileData, InternetFileData, MediaFileData, MediaFileDataTypes, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import { AnimationFileData, AnimeFileData, InternetFileData, MediaData, MediaDataTypes, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
 import GmukkoLogger from './gmukko_logger.js'
 import Validators from './validators.js'
 import { BackupPaths } from '../interfaces_and_enums/backup_directories.js'
@@ -39,10 +39,10 @@ export default class Database {
             if (!tableExists) {
                 await this.createTable(table, db)
             }
-            
+
             const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, db, table)
             if (mediaFiles) {
-                await this.indexMediaFileData(mediaFiles, db, table)
+                await this.indexMediaData(mediaFiles, db, table)
                 GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
             }
         } catch (error) {
@@ -101,60 +101,81 @@ export default class Database {
     }
 
 
-    private static async indexMediaFileData(mediaFiles: MediaFileData[], db: Sequelize, table: DatabaseTables) {
+    private static async indexMediaData(mediaFiles: MediaData[], db: Sequelize, table: DatabaseTables) {
         GmukkoLogger.info("Attempting to index files.")
         for (const [i, mediaFile] of mediaFiles.entries()) {
-            GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(mediaFile)}`)
-            switch (table) {
-                case (DatabaseTables.StagingMovies):
-                    if (Validators.isMovieFileData(mediaFile)) {
-                        await this.insertStagingMovieFileDataIntoTable(mediaFile, db)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Movies)
-                    }
-                    break
-                case (DatabaseTables.StagingShows):
-                    if (Validators.isShowFileData(mediaFile)) {
-                        await this.insertStagingShowFileDataIntoTable(mediaFile, db)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Shows)
-                    }
-                    break
-                case (DatabaseTables.StagingStandup):
-                    if (Validators.isStandupFileData(mediaFile)) {
-                        await this.insertStagingStandupFileDataIntoTable(mediaFile, db)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Standup)
-                    }
-                    break
-                case (DatabaseTables.StagingAnime):
-                    if (Validators.isAnimeFileData(mediaFile)) {
-                        await this.insertStagingAnimeFileDataIntoTable(mediaFile, db)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Anime)
-                    }
-                    break
-                case (DatabaseTables.StagingAnimation):
-                    if (Validators.isAnimationFileData(mediaFile)) {
-                        await this.insertStagingAnimationFileDataIntoTable(mediaFile, db)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Animation)
-                    }
-                    break
-                case (DatabaseTables.StagingInternet):
-                    if (Validators.isInternetFileData(mediaFile)) {
-                        await this.insertStagingInternetFileDataIntoTable(mediaFile, db)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile, MediaFileDataTypes.Internet)
-                    }
-                    break
-                default:
-                    if (Validators.isMovieFileData(mediaFile)) {
-                        GmukkoLogger.error(`Data is valid media data, but is not structured for the ${table} table.`)
-                    } else {
-                        GmukkoLogger.invalidMediaData(mediaFile)
-                    }
+            if (!this.filePathInTable(mediaFile.filePath, db, table)) {
+                GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(mediaFile)}`)
+                switch (table) {
+                    case (DatabaseTables.StagingMovies):
+                        if (Validators.isMovieFileData(mediaFile)) {
+                            await this.insertStagingMovieFileDataIntoTable(mediaFile, db)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Movies)
+                        }
+                        break
+                    case (DatabaseTables.StagingShows):
+                        if (Validators.isShowFileData(mediaFile)) {
+                            await this.insertStagingShowFileDataIntoTable(mediaFile, db)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Shows)
+                        }
+                        break
+                    case (DatabaseTables.StagingStandup):
+                        if (Validators.isStandupFileData(mediaFile)) {
+                            await this.insertStagingStandupFileDataIntoTable(mediaFile, db)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Standup)
+                        }
+                        break
+                    case (DatabaseTables.StagingAnime):
+                        if (Validators.isAnimeFileData(mediaFile)) {
+                            await this.insertStagingAnimeFileDataIntoTable(mediaFile, db)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Anime)
+                        }
+                        break
+                    case (DatabaseTables.StagingAnimation):
+                        if (Validators.isAnimationFileData(mediaFile)) {
+                            await this.insertStagingAnimationFileDataIntoTable(mediaFile, db)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Animation)
+                        }
+                        break
+                    case (DatabaseTables.StagingInternet):
+                        if (Validators.isInternetFileData(mediaFile)) {
+                            await this.insertStagingInternetFileDataIntoTable(mediaFile, db)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Internet)
+                        }
+                        break
+                    default:
+                        if (Validators.isMovieFileData(mediaFile)) {
+                            GmukkoLogger.error(`Data is valid media data, but is not structured for the ${table} table.`)
+                        } else {
+                            GmukkoLogger.invalidMediaData(mediaFile)
+                        }
+                }
+            } else {
+                GmukkoLogger.info(`File #${i}: ${mediaFile.filePath} is already indexed.`)
             }
+        }
+    }
+
+
+    public static async filePathInTable(filePath: string, db: Sequelize, table: DatabaseTables) {
+        try {
+            const result = await db.query(`
+                SELECT *
+                FROM ${table};
+            `)
+            if (result.length > 0) {
+                return true
+            } else {
+                return false
+            }
+        } catch (error) {
+            GmukkoLogger.error(`Failed to query table: ${table}`, error)
         }
     }
 
@@ -330,7 +351,6 @@ export default class Database {
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
@@ -359,7 +379,6 @@ export default class Database {
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
@@ -374,7 +393,6 @@ export default class Database {
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                             title: {type: DataTypes.STRING, allownull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allownull: true},
                             seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                             episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                         },
