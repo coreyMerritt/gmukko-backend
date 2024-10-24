@@ -13,7 +13,6 @@ export class Database {
     private static password = process.env.GMUKKO_BACKEND_PASSWORD
     private static host = 'localhost'
     private static port = '3306'
-    private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
 
 
     public static async backup(): Promise<number> {
@@ -49,12 +48,13 @@ export class Database {
     }
 
 
-    private static async createAndLoadDatabase(database: string): Promise<Sequelize> {
+    private static async createAndLoadDatabase(databaseName: DatabaseNames): Promise<Sequelize> {
         GmukkoLogger.info(`Attempting to load to database.`)
         try {
-            const creationResult = await this.sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`)
             if (this.username && this.password) {
-                const db = new Sequelize(database, this.username, this.password, {
+                const sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
+                await sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\`;`, { logging: false })
+                const db = new Sequelize(databaseName, this.username, this.password, {
                     host: 'localhost',
                     dialect: 'mysql',
                     logging: false,
