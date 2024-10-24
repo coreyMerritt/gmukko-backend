@@ -1,6 +1,6 @@
 import { GmukkoTime } from './index.js'
 import { VideoDataTypes, Prompts } from '../interfaces_and_enums/index.js'
-import { LoggingPaths } from '../interfaces_and_enums/paths/index.js'
+import { LogFiles } from '../interfaces_and_enums/paths/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
@@ -17,7 +17,7 @@ export class GmukkoLogger {
             `\tUser-Agent: ${req.headers['user-agent']}\n` +
             `\tHeaders: ${JSON.stringify(req.headers, null, 2)}\n`
         )
-        fs.appendFile(`${LoggingPaths.IncomingRequest}`, 
+        fs.appendFile(`${LogFiles.IncomingRequest}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +
             `\tMethod: ${req.method}\n` +
@@ -30,7 +30,7 @@ export class GmukkoLogger {
 
     static async info(info: string) {
         console.log(info)
-        fs.appendFile(`${LoggingPaths.Default}`, 
+        fs.appendFile(`${LogFiles.Default}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -40,23 +40,23 @@ export class GmukkoLogger {
     static async error(info: string, error?: unknown) {
         if (error) {
             console.error(`${info}\n${error}`)
-            fs.appendFile(`${LoggingPaths.Default}`, 
+            fs.appendFile(`${LogFiles.Default}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )
-            fs.appendFile(`${LoggingPaths.Errors}`, 
+            fs.appendFile(`${LogFiles.Errors}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )   
         } else {
             console.error(`${info}`)
-            fs.appendFile(`${LoggingPaths.Default}`, 
+            fs.appendFile(`${LogFiles.Default}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )
-            fs.appendFile(`${LoggingPaths.Errors}`, 
+            fs.appendFile(`${LogFiles.Errors}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )
@@ -65,7 +65,7 @@ export class GmukkoLogger {
 
 
     static async debug(info: string) {
-        fs.appendFile(`${LoggingPaths.Debug}`, 
+        fs.appendFile(`${LogFiles.Debug}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `${info}\n\n`
         )
@@ -74,7 +74,7 @@ export class GmukkoLogger {
 
     static async invalidJsonArray(prompt: Prompts, data: string[], response: string) {
         this.error(`Invalid Json Array.`)
-        fs.appendFile(`${LoggingPaths.InvalidJsonArray}`, 
+        fs.appendFile(`${LogFiles.InvalidJsonArray}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Prompt: ${prompt}\n` +
             `Data: ${data.toString()}\n` +
@@ -97,19 +97,19 @@ export class GmukkoLogger {
     private static determineLogPath(expectedVideoType: VideoDataTypes | undefined) {
         switch (expectedVideoType) {
             case VideoDataTypes.Movies:
-                return LoggingPaths.InvalidMovieData
+                return LogFiles.InvalidMovieData
             case VideoDataTypes.Shows:
-                return LoggingPaths.InvalidShowData
+                return LogFiles.InvalidShowData
             case VideoDataTypes.Standup:
-                return LoggingPaths.InvalidStandupData
+                return LogFiles.InvalidStandupData
             case VideoDataTypes.Anime:
-                return LoggingPaths.InvalidAnimeData
+                return LogFiles.InvalidAnimeData
             case VideoDataTypes.Animation:
-                return LoggingPaths.InvalidAnimationData
+                return LogFiles.InvalidAnimationData
             case VideoDataTypes.Internet:
-                return LoggingPaths.InvalidInternetData
+                return LogFiles.InvalidInternetData
             default:
-                return LoggingPaths.InvalidVideoData
+                return LogFiles.InvalidVideoData
         }
     }
 }
