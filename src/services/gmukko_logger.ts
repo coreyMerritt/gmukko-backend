@@ -1,5 +1,6 @@
 import { GmukkoTime } from './index.js'
-import { LoggingPaths, MediaDataTypes, Prompts } from '../interfaces_and_enums/index.js'
+import { MediaDataTypes, Prompts } from '../interfaces_and_enums/index.js'
+import { LoggingPaths } from '../interfaces_and_enums/paths/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
@@ -16,7 +17,7 @@ export class GmukkoLogger {
             `\tUser-Agent: ${req.headers['user-agent']}\n` +
             `\tHeaders: ${JSON.stringify(req.headers, null, 2)}\n`
         )
-        fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.IncomingRequest}`, 
+        fs.appendFile(`${LoggingPaths.IncomingRequest}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +
             `\tMethod: ${req.method}\n` +
@@ -29,7 +30,7 @@ export class GmukkoLogger {
 
     static async info(info: string) {
         console.log(info)
-        fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Default}`, 
+        fs.appendFile(`${LoggingPaths.Default}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -39,23 +40,23 @@ export class GmukkoLogger {
     static async error(info: string, error?: unknown) {
         if (error) {
             console.error(`${info}\n${error}`)
-            fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Default}`, 
+            fs.appendFile(`${LoggingPaths.Default}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )
-            fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Errors}`, 
+            fs.appendFile(`${LoggingPaths.Errors}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )   
         } else {
             console.error(`${info}`)
-            fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Default}`, 
+            fs.appendFile(`${LoggingPaths.Default}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )
-            fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Errors}`, 
+            fs.appendFile(`${LoggingPaths.Errors}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )
@@ -64,7 +65,7 @@ export class GmukkoLogger {
 
 
     static async debug(info: string) {
-        fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.Debug}`, 
+        fs.appendFile(`${LoggingPaths.Debug}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `${info}\n\n`
         )
@@ -73,7 +74,7 @@ export class GmukkoLogger {
 
     static async invalidJsonArray(prompt: Prompts, data: string[], response: string) {
         this.error(`Invalid Json Array.`)
-        fs.appendFile(`${LoggingPaths.LogsDirectory}/${LoggingPaths.InvalidJsonArray}`, 
+        fs.appendFile(`${LoggingPaths.InvalidJsonArray}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Prompt: ${prompt}\n` +
             `Data: ${data.toString()}\n` +
@@ -86,7 +87,7 @@ export class GmukkoLogger {
         this.error(`Invalid Media Data.`)
         const logPath = this.determineLogPath(expectedMediaType)
         const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
-        fs.appendFile(`${LoggingPaths.LogsDirectory}/${logPath}}`, 
+        fs.appendFile(`${logPath}}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Filepath: ${filePath}\n` +
             `Object: ${JSON.stringify(object)}\n\n`

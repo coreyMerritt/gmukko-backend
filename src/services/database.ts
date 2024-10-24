@@ -1,6 +1,7 @@
 import { GmukkoLogger, GmukkoTime, MediaFiles, Validators } from './index.js'
-import { AnimationFileData, AnimeFileData, BackupPaths, DatabaseTables, InternetFileData, MediaData, MediaDataTypes, MovieFileData, StandupFileData, ShowFileData, DatabaseNames 
+import { AnimationFileData, AnimeFileData, DatabaseTables, InternetFileData, MediaData, MediaDataTypes, MovieFileData, StandupFileData, ShowFileData, DatabaseNames 
 } from '../interfaces_and_enums/index.js'
+import { BackupPaths } from '../interfaces_and_enums/paths/index.js'
 import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel } from '../database_models/index.js'
 import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
@@ -19,7 +20,7 @@ export class Database {
         const execAsync = promisify(exec)
         try {
             for (const databaseName in DatabaseNames) {
-                await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupPaths.DefaultDirectory}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
+                await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupPaths.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             }
             return 200
         } catch (error) {
