@@ -1,5 +1,5 @@
 import { Database, GmukkoLogger, Validators } from './index.js'
-import { DatabaseTables, getStagingTableDestination, MediaData, Prompts } from '../interfaces_and_enums/index.js'
+import { DatabaseTables, MediaData, Prompts } from '../interfaces_and_enums/index.js'
 import fs from 'fs'
 import path from 'path'
 import ffmpeg from 'fluent-ffmpeg'
@@ -14,11 +14,10 @@ export class MediaFiles {
         GmukkoLogger.info(`Attempting to retrieve media file data to index.`)
         
         const prompt = this.determinePromptByTable(table)
-        const productionTable = getStagingTableDestination(table)
 
         try {
             var filePaths = await this.getMediaFilePathsRecursively(directory, acceptableExtensions)
-            const filePathsMinusIndexed = await this.removeIndexedFilesFromPaths(filePaths, db, [productionTable, table])
+            const filePathsMinusIndexed = await this.removeIndexedFilesFromPaths(filePaths, db, table)
             if (filePathsMinusIndexed) {
                 const filesPathsMinusIndexedAndShorts = await this.removeMediaShorts(filePathsMinusIndexed, ['featurette', 'deleted-scenes'], 600)
                 var mediaFiles: MediaData[] = await this.generateMediaData(filesPathsMinusIndexedAndShorts, prompt)
@@ -64,28 +63,25 @@ export class MediaFiles {
     }
 
 
-    public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, tables: DatabaseTables[]) {
+    public static async removeIndexedFilesFromPaths(filePaths: string[], db: Sequelize, table: DatabaseTables) {
         GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
         var filePathsToToss: string[] = []
-        for (const [i, table] of tables.entries()) {
-            try {
-                for (const [i, filePath] of filePaths.entries()) {
-                    if (!await Database.filePathInTable(filePath, db, table)) {
-                        GmukkoLogger.info(`Keeping file ${filePath} to index.`)
-                    }  else {
-                        GmukkoLogger.info(`Tossing ${filePath} from list of files that need to be indexed.`)
-                        filePathsToToss.push(filePath)
-                    }
+        try {
+            for (const [i, filePath] of filePaths.entries()) {
+                if (!await Database.filePathInTable(filePath, db, table)) {
+                    GmukkoLogger.info(`Keeping file ${filePath} to index.`)
+                }  else {
+                    GmukkoLogger.info(`Tossing ${filePath} from list of files that need to be indexed.`)
+                    filePathsToToss.push(filePath)
                 }
-                GmukkoLogger.info(`Succesfully removed files already indexed in ${table}.`)
-            } catch (error) {
-                GmukkoLogger.error(`Failed to remove files already indexed in ${table}.`, error)
-                return undefined
             }
+            GmukkoLogger.info(`Succesfully removed files already indexed in ${table}.`)
+            const filteredFilePaths = filePaths.filter(filePath => !filePathsToToss.includes(filePath))
+            return filteredFilePaths
+        } catch (error) {
+            GmukkoLogger.error(`Failed to remove files already indexed in ${table}.`, error)
+            return undefined
         }
-
-        const filteredFilePaths = filePaths.filter(filePath => !filePathsToToss.includes(filePath))
-        return filteredFilePaths
     }
 
 
@@ -219,17 +215,17 @@ export class MediaFiles {
 
     private static determinePromptByTable(table: DatabaseTables): Prompts {
         switch (table) {
-            case DatabaseTables.StagingMovies:
+            case DatabaseTables.Movies:
                 return Prompts.ReturnMovieAsJson
-            case DatabaseTables.StagingShows:
+            case DatabaseTables.Shows:
                 return Prompts.ReturnShowAsJson
-            case DatabaseTables.StagingStandup:
+            case DatabaseTables.Standup:
                 return Prompts.ReturnStandupAsJson
-            case DatabaseTables.StagingAnime:
+            case DatabaseTables.Anime:
                 return Prompts.ReturnAnimeAsJson
-            case DatabaseTables.StagingAnimation:
+            case DatabaseTables.Animation:
                 return Prompts.ReturnAnimationAsJson
-            case DatabaseTables.StagingInternet:
+            case DatabaseTables.Internet:
                 return Prompts.ReturnInternetAsJson
             default:
                 return Prompts.ReturnInternetAsJson

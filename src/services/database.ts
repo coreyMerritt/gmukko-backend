@@ -104,42 +104,42 @@ export class Database {
             if (!this.filePathInTable(mediaFile.filePath, db, table)) {
                 GmukkoLogger.info(`Indexing File #${i}: ${JSON.stringify(mediaFile)}`)
                 switch (table) {
-                    case (DatabaseTables.StagingMovies):
+                    case (DatabaseTables.Movies):
                         if (Validators.isMovieFileData(mediaFile)) {
                             await this.insertStagingMovieFileDataIntoTable(mediaFile, db)
                         } else {
                             GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Movies)
                         }
                         break
-                    case (DatabaseTables.StagingShows):
+                    case (DatabaseTables.Shows):
                         if (Validators.isShowFileData(mediaFile)) {
                             await this.insertStagingShowFileDataIntoTable(mediaFile, db)
                         } else {
                             GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Shows)
                         }
                         break
-                    case (DatabaseTables.StagingStandup):
+                    case (DatabaseTables.Standup):
                         if (Validators.isStandupFileData(mediaFile)) {
                             await this.insertStagingStandupFileDataIntoTable(mediaFile, db)
                         } else {
                             GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Standup)
                         }
                         break
-                    case (DatabaseTables.StagingAnime):
+                    case (DatabaseTables.Anime):
                         if (Validators.isAnimeFileData(mediaFile)) {
                             await this.insertStagingAnimeFileDataIntoTable(mediaFile, db)
                         } else {
                             GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Anime)
                         }
                         break
-                    case (DatabaseTables.StagingAnimation):
+                    case (DatabaseTables.Animation):
                         if (Validators.isAnimationFileData(mediaFile)) {
                             await this.insertStagingAnimationFileDataIntoTable(mediaFile, db)
                         } else {
                             GmukkoLogger.invalidMediaData(mediaFile, MediaDataTypes.Animation)
                         }
                         break
-                    case (DatabaseTables.StagingInternet):
+                    case (DatabaseTables.Internet):
                         if (Validators.isInternetFileData(mediaFile)) {
                             await this.insertStagingInternetFileDataIntoTable(mediaFile, db)
                         } else {
@@ -180,7 +180,7 @@ export class Database {
     private static async insertStagingMovieFileDataIntoTable(movieFileData: MovieFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.StagingMovies} (filePath, title, releaseYear, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Movies} (filePath, title, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :releaseYear, :createdAt, :updatedAt);
             `,
             {
@@ -201,7 +201,7 @@ export class Database {
     private static async insertStagingShowFileDataIntoTable(showFileData: ShowFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.StagingShows} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Shows} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
@@ -223,7 +223,7 @@ export class Database {
     private static async insertStagingStandupFileDataIntoTable(standupFileData: StandupFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.StagingStandup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Standup} (filePath, title, artist, releaseYear, createdAt, updatedAt)
                 VALUES (:filePath, :title, :artist, :releaseYear, :createdAt, :updatedAt);
             `,
             {
@@ -245,7 +245,7 @@ export class Database {
     private static async insertStagingAnimeFileDataIntoTable(animeFileData: AnimeFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.StagingAnime} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Anime} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
@@ -267,7 +267,7 @@ export class Database {
     private static async insertStagingAnimationFileDataIntoTable(animationFileData: AnimationFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.StagingAnimation} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Animation} (filePath, title, seasonNumber, episodeNumber, createdAt, updatedAt)
                 VALUES (:filePath, :title, :seasonNumber, :episodeNumber, :createdAt, :updatedAt);
             `,
             {
@@ -289,7 +289,7 @@ export class Database {
     private static async insertStagingInternetFileDataIntoTable(internetFileData: InternetFileData, db: Sequelize) {
         try {
             const result = await db.query(`
-                INSERT INTO ${DatabaseTables.StagingInternet} (filePath, title, createdAt, updatedAt)
+                INSERT INTO ${DatabaseTables.Internet} (filePath, title, createdAt, updatedAt)
                 VALUES (:filePath, :title, :createdAt, :updatedAt);
             `,
             {
@@ -309,17 +309,17 @@ export class Database {
 
     private static determineModelByTable(table: DatabaseTables) {
         switch (table) {
-            case DatabaseTables.StagingMovies:
+            case DatabaseTables.Movies:
                 return MovieFileDataModel
-            case DatabaseTables.StagingShows:
+            case DatabaseTables.Shows:
                 return ShowFileDataModel
-            case DatabaseTables.StagingStandup:
+            case DatabaseTables.Standup:
                 return StandupFileDataModel
-            case DatabaseTables.StagingAnime:
+            case DatabaseTables.Anime:
                 return AnimeFileDataModel
-            case DatabaseTables.StagingAnimation:
+            case DatabaseTables.Animation:
                 return AnimationFileDataModel
-            case DatabaseTables.StagingInternet:
+            case DatabaseTables.Internet:
                 return InternetFileDataModel
             default:
                 return undefined
@@ -330,7 +330,7 @@ export class Database {
     private static async initAndSyncMediaModel(MediaModel: any, table: DatabaseTables, db: Sequelize) {
         try {
             switch (table) {
-                case DatabaseTables.StagingMovies:
+                case DatabaseTables.Movies:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
@@ -343,7 +343,7 @@ export class Database {
                         }
                     )
                     break
-                case DatabaseTables.StagingShows:
+                case DatabaseTables.Shows:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -357,7 +357,7 @@ export class Database {
                         }
                     )
                     break
-                case DatabaseTables.StagingStandup:
+                case DatabaseTables.Standup:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -371,7 +371,7 @@ export class Database {
                         }
                     )
                     break
-                case DatabaseTables.StagingAnime:
+                case DatabaseTables.Anime:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -385,7 +385,7 @@ export class Database {
                         }
                     )
                     break
-                case DatabaseTables.StagingAnimation:
+                case DatabaseTables.Animation:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
@@ -399,7 +399,7 @@ export class Database {
                         }
                     )
                     break
-                case DatabaseTables.StagingInternet:
+                case DatabaseTables.Internet:
                     await MediaModel.init(
                         {
                             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
