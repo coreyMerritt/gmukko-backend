@@ -1,29 +1,26 @@
+import { GmukkoLogger, GmukkoTime, MediaFiles, Validators } from './index.js'
+import { AnimationFileData, AnimeFileData, BackupPaths, DatabaseTables, InternetFileData, MediaData, MediaDataTypes, MovieFileData, StandupFileData, ShowFileData, DatabaseNames 
+} from '../interfaces_and_enums/index.js'
+import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel } from '../database_models/index.js'
 import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
-import { MovieFileDataModel, ShowFileDataModel, StandupFileDataModel, AnimeFileDataModel, AnimationFileDataModel, InternetFileDataModel, MediaDataFileModel } from '../database_models/media_file_data_models.js'
-import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
-import MediaFiles from './media_files.js'
-import { AnimationFileData, AnimeFileData, InternetFileData, MediaData, MediaDataTypes, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
-import GmukkoLogger from './gmukko_logger.js'
-import Validators from './validators.js'
-import { BackupPaths } from '../interfaces_and_enums/backup_directories.js'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import GmukkoTime from './gmukko_time.js'
 
 
-export default class Database {
+export class Database {
     private static username = process.env.GMUKKO_BACKEND_USERNAME
     private static password = process.env.GMUKKO_BACKEND_PASSWORD
     private static host = 'localhost'
     private static port = '3306'
-    private static databaseName = 'gmukko-backend'
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
 
 
-    public static async backupDatabase() {
+    public static async backupDatabase(): Promise<number> {
         const execAsync = promisify(exec)
         try {
-            await execAsync(`mysqldump -u ${this.username} -p${this.password} ${this.databaseName} > "./${BackupPaths.DefaultDirectory}/${this.databaseName} - ${GmukkoTime.getCurrentDateTime(true)}".sql`)
+            for (const databaseName in DatabaseNames) {
+                await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupPaths.DefaultDirectory}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
+            }
             return 200
         } catch (error) {
             return 500
@@ -31,18 +28,18 @@ export default class Database {
     }
 
 
-    public static async refreshTable(table: DatabaseTables, directoryToIndex: string, validFileTypes: string[]) {
+    public static async refreshTable(databaseName: DatabaseNames, table: DatabaseTables, directoryToIndex: string, validFileTypes: string[]) {
         GmukkoLogger.info(`Attempting to refresh the ${table} table.`)
         try {
-            const db = await this.createAndLoadDatabase(this.databaseName)
-            const tableExists = await this.tableExists(db, table)
+            const dataBase = await this.createAndLoadDatabase(databaseName)
+            const tableExists = await this.tableExists(dataBase, table)
             if (!tableExists) {
-                await this.createTable(table, db)
+                await this.createTable(table, dataBase)
             }
 
-            const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, db, table)
+            const mediaFiles = await MediaFiles.getFileDataToIndex(directoryToIndex, validFileTypes, dataBase, table)
             if (mediaFiles) {
-                await this.indexMediaData(mediaFiles, db, table)
+                await this.indexMediaData(mediaFiles, dataBase, table)
                 GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
             }
         } catch (error) {

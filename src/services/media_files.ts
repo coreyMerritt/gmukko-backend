@@ -1,17 +1,14 @@
+import { Database, GmukkoLogger, Validators } from './index.js'
+import { DatabaseTables, getStagingTableDestination, MediaData, Prompts } from '../interfaces_and_enums/index.js'
 import fs from 'fs'
 import path from 'path'
 import ffmpeg from 'fluent-ffmpeg'
 import AI from './ai.js'
-import { Prompts } from '../interfaces_and_enums/prompts.js'
-import { DatabaseTables, getStagingTableDestination } from '../interfaces_and_enums/database_tables.js'
-import { MediaData } from '../interfaces_and_enums/video_file_data_types.js'
 import { Sequelize } from 'sequelize'
-import GmukkoLogger from './gmukko_logger.js'
-import Validators from './validators.js'
-import Database from './db.js'
 
 
-export default class MediaFiles {
+
+export class MediaFiles {
 
     public static async getFileDataToIndex(directory: string, acceptableExtensions: string[], db: Sequelize, table: DatabaseTables): Promise<MediaData[]|undefined> {
         GmukkoLogger.info(`Attempting to retrieve media file data to index.`)

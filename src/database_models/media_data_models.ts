@@ -1,5 +1,6 @@
 import { Model } from "sequelize"
 
+
 export class MediaDataFileModel extends Model {
     public filePath!: string
     public title!: string

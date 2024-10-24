@@ -1,15 +1,11 @@
+import { GmukkoTime } from './index.js'
+import { LoggingPaths, MediaDataTypes, Prompts } from '../interfaces_and_enums/index.js'
 import fs from 'fs/promises'
-import { LoggingPaths } from '../interfaces_and_enums/logging_paths.js'
-import GmukkoTime from './gmukko_time.js'
-import { Prompts } from '../interfaces_and_enums/prompts.js'
-import express from 'express'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
-import { DatabaseTables } from '../interfaces_and_enums/database_tables.js'
-import { MediaDataTypes } from '../interfaces_and_enums/video_file_data_types.js'
 
-export default class GmukkoLogger {
 
+export class GmukkoLogger {
 
     static async incomingRequest(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) {
         console.log(`\nRequest received:\n` +

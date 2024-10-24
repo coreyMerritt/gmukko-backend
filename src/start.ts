@@ -1,9 +1,9 @@
+import { GmukkoLogger, Startup } from './services/index.js'
 import http from 'http'
 import express from 'express'
-import initialIndexRoutes from './api/db/index/initial/index.js'
-import dbBackupRoutes from './api/db/backup/index.js'
-import Startup from './services/startup.js'
-import GmukkoLogger from './services/gmukko_logger.js'
+import initialIndexRoutes from './api/db/index/initial/routes.js'
+import dbBackupRoutes from './api/db/backup/routes.js'
+
 
 Startup.execute()
 const app = express()

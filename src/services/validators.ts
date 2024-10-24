@@ -1,6 +1,7 @@
-import { AnimationFileData, AnimeFileData, InternetFileData, MediaData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/video_file_data_types.js'
+import { AnimationFileData, AnimeFileData, InternetFileData, MediaData, MovieFileData, ShowFileData, StandupFileData } from '../interfaces_and_enums/index.js'
 
-export default class Validators {
+
+export class Validators {
 
     public static isSomeMediaData(object: object): object is MediaData {
         return 'filePath' in object &&

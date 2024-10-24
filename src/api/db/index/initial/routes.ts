@@ -1,7 +1,7 @@
 import express from 'express'
 import Database from '../../../../services/db.js'
 import { DatabaseTables } from '../../../../interfaces_and_enums/database_tables.js'
-import { MediaDataTypes } from '../../../../interfaces_and_enums/video_file_data_types.js'
+import { MediaDataTypes } from '../../../../interfaces_and_enums/media_data_types.js'
 
 const router = express.Router()
 

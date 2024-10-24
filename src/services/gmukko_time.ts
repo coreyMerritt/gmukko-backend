@@ -1,4 +1,4 @@
-export default class GmukkoTime {
+export class GmukkoTime {
 
     public static getCurrentDateTime(fileFormat?: boolean) {
         const now = new Date()

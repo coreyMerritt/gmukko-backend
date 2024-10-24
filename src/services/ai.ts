@@ -1,6 +1,7 @@
+import { GmukkoLogger } from './index.js'
 import { OpenAI } from 'openai'
-import { Prompts } from '../interfaces_and_enums/prompts.js'
-import GmukkoLogger from './gmukko_logger.js'
+import { Prompts } from '../interfaces_and_enums/index.js'
+
 
 export default class AI {
     
