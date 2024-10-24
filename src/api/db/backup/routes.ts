@@ -5,7 +5,7 @@ import express from 'express'
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-    const code = await Database.backupDatabase()
+    const code = await Database.backup()
     res.status(code).send(`${code}\n`)
 })
 
