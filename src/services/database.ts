@@ -2,7 +2,7 @@ import { GmukkoLogger, GmukkoTime, VideoFiles, Validators } from './index.js'
 import { AnimationData, AnimeData, DatabaseTables, InternetData, VideoData, VideoDataTypes, MovieData, StandupData, ShowData, DatabaseNames 
 } from '../interfaces_and_enums/index.js'
 import { BackupPaths } from '../interfaces_and_enums/paths/index.js'
-import { MovieDataModel, ShowDataModel, StandupDataModel, AnimeDataModel, AnimationDataModel, InternetDataModel } from '../database_models/index.js'
+import { MovieDataModel, ShowDataModel, StandupDataModel, AnimeDataModel, AnimationDataModel, InternetDataModel, ModelAttributesAndOptions } from '../database_models/index.js'
 import { DataTypes, Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
 import { exec } from 'child_process'
@@ -16,7 +16,7 @@ export class Database {
     private static sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
 
 
-    public static async backupDatabase(): Promise<number> {
+    public static async backup(): Promise<number> {
         const execAsync = promisify(exec)
         try {
             for (const databaseName in DatabaseNames) {
@@ -330,90 +330,7 @@ export class Database {
 
     private static async initAndSyncVideoModel(VideoModel: any, table: DatabaseTables, db: Sequelize) {
         try {
-            switch (table) {
-                case DatabaseTables.Movies:
-                    await VideoModel.init(
-                        {
-                            filePath: {type: DataTypes.STRING, allowNull: false, unique: true},
-                            title: {type: DataTypes.STRING, allowNull: false},
-                            releaseYear: {type: DataTypes.INTEGER, allowNull: true}
-                        },
-                        {
-                            sequelize: db,
-                            tableName: `${table}`
-                        }
-                    )
-                    break
-                case DatabaseTables.Shows:
-                    await VideoModel.init(
-                        {
-                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
-                            title: {type: DataTypes.STRING, allownull: false},
-                            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
-                            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
-                        },
-                        {
-                            sequelize: db,
-                            tableName: `${table}`
-                        }
-                    )
-                    break
-                case DatabaseTables.Standup:
-                    await VideoModel.init(
-                        {
-                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
-                            title: {type: DataTypes.STRING, allownull: false},
-                            artist: {type: DataTypes.STRING, allownull: true},
-                            releaseYear: {type: DataTypes.INTEGER, allownull: true}
-                        },
-                        {
-                            sequelize: db,
-                            tableName: `${table}`
-                        }
-                    )
-                    break
-                case DatabaseTables.Anime:
-                    await VideoModel.init(
-                        {
-                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
-                            title: {type: DataTypes.STRING, allownull: false},
-                            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
-                            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
-                        },
-                        {
-                            sequelize: db,
-                            tableName: `${table}`
-                        }
-                    )
-                    break
-                case DatabaseTables.Animation:
-                    await VideoModel.init(
-                        {
-                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
-                            title: {type: DataTypes.STRING, allownull: false},
-                            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
-                            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
-                        },
-                        {
-                            sequelize: db,
-                            tableName: `${table}`
-                        }
-                    )
-                    break
-                case DatabaseTables.Internet:
-                    await VideoModel.init(
-                        {
-                            filePath: {type: DataTypes.STRING, allownull: false, unique: true},
-                            title: {type: DataTypes.STRING, allownull: false}
-                        },
-                        {
-                            sequelize: db,
-                            tableName: `${table}`
-                        }
-                    )
-                    break
-            }
-
+            await VideoModel.init(ModelAttributesAndOptions.getAttributes(table), ModelAttributesAndOptions.getOptions(db, table))
             await VideoModel.sync()
             GmukkoLogger.info(`Successfully created ${table} table.`)
         } catch (error) {
