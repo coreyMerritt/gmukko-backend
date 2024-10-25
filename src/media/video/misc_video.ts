@@ -1,11 +1,11 @@
 import { InternetModel } from "../../database_models/index.js"
-import { DatabaseTables } from "../../configuration/index.js"
+import { DatabaseTableNames } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/index.js"
 import { Video, VideoTypes } from "./video.js"
 
 export class MiscVideo extends Video {
     public static readonly videoType = VideoTypes.Misc
-    public static readonly table = DatabaseTables.MiscVideo
+    public static readonly table = DatabaseTableNames.MiscVideo
     public static readonly stagingDir = StagingPaths.Internet
     public static readonly model = InternetModel
 

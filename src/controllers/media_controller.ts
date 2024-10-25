@@ -1,4 +1,4 @@
-import { AI, Database, GmukkoLogger, MediaHandler } from '../services/index.js'
+import { AI, Database, GmukkoLogger, MediaHandler, Validators } from '../services/index.js'
 import { Animation, Anime, MiscVideo, Movie, Show, Standup, Video } from '../media/video/index.js'
 import { Prompts } from '../configuration/index.js'
 import { StagingPaths } from '../configuration/staging.js'
@@ -8,11 +8,13 @@ export class MediaController {
     public static async indexStaging(mediaType: string | undefined) {
         if (mediaType === undefined) {
             this.indexAllStagingDirectories()
-        } else {
+        } else if (Validators.isMediaType(mediaType)) {
             const stagingDirectory = await this.determineStagingDirectory(mediaType)
             const fileExtensions = await this.determineFileExtensions(mediaType)
-            const prompt = await this.determinePrompt(mediaType)
+            const prompt = new Prompts(mediaType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
+        } else {
+            throw new Error(`Parameter passed was invalid.`)
         }
     }
 
@@ -25,27 +27,27 @@ export class MediaController {
             fileExtensions = Video.extensions
 
             stagingDirectory = Animation.stagingDir
-            prompt = Prompts.ReturnAnimationAsJson
+            prompt = new Prompts(Animation.videoType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
 
             stagingDirectory = Anime.stagingDir
-            prompt = Prompts.ReturnAnimeAsJson
+            prompt = new Prompts(Anime.videoType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
 
             stagingDirectory = Movie.stagingDir
-            prompt = Prompts.ReturnMovieAsJson
+            prompt = new Prompts(Movie.videoType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
 
             stagingDirectory = Show.stagingDir
-            prompt = Prompts.ReturnShowAsJson
+            prompt = new Prompts(Show.videoType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
 
             stagingDirectory = Standup.stagingDir
-            prompt = Prompts.ReturnStandupAsJson
+            prompt = new Prompts(Standup.videoType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
 
             stagingDirectory = MiscVideo.stagingDir
-            prompt = Prompts.ReturnMiscVideoAsJson
+            prompt = new Prompts(MiscVideo.videoType)
             this.indexOneStagingDirectory(stagingDirectory, fileExtensions, prompt)
     }
 
@@ -96,23 +98,6 @@ export class MediaController {
                 return Standup.extensions
             default:
                 return MiscVideo.extensions
-        }
-    }
-
-    private static async determinePrompt(mediaType: string) {
-        switch (mediaType) {
-            case Animation.videoType:
-                return Prompts.ReturnAnimationAsJson
-            case Anime.videoType:
-                return Prompts.ReturnAnimeAsJson
-            case Movie.videoType:
-                return Prompts.ReturnMovieAsJson
-            case Show.videoType:
-                return Prompts.ReturnShowAsJson
-            case Standup.videoType:
-                return Prompts.ReturnStandupAsJson
-            default:
-                return Prompts.ReturnMiscVideoAsJson
         }
     }
 }

@@ -1,7 +1,7 @@
 import { GmukkoLogger } from './gmukko_logger.js'
 import { GmukkoTime } from './gmukko_time.js'
-import { DatabaseTables, DatabaseNames } from '../configuration/index.js'
-import { BackupPaths } from '../configuration/index.js'
+import { DatabaseNames } from '../configuration/index.js'
+import { BackupDirectories } from '../configuration/index.js'
 import { ModelAttributesAndOptions } from '../database_models/index.js'
 import { Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
@@ -20,7 +20,7 @@ export class Database {
         const execAsync = promisify(exec)
         try {
             for (const [, databaseName] of [DatabaseNames.Production, DatabaseNames.Staging]) {
-                await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupPaths.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
+                await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             }
             return 200
         } catch (error) {

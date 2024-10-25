@@ -1,9 +1,9 @@
 import { Model } from "sequelize"
-import { DatabaseTables } from "../configuration/index.js"
+import { DatabaseTableNames } from "../configuration/index.js"
 import { StagingPaths } from "../configuration/staging.js"
 
 export abstract class Media {
-    public static readonly table: DatabaseTables
+    public static readonly table: DatabaseTableNames
     public static readonly stagingDirectory: StagingPaths
     public static readonly extensions: string[]
     public static readonly model: any

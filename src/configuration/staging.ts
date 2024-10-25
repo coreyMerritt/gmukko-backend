@@ -1,10 +1,10 @@
-import { CorePaths } from "./core.js";
+import { CoreDirectories } from "./directories/core_directories.js";
 
 export enum StagingPaths {
-    Animation = `${CorePaths.Videos}/animation`,
-    Anime = `${CorePaths.Videos}/anime`,
-    Internet = `${CorePaths.Videos}/internet`,
-    Movies = `${CorePaths.Videos}/movies`,
-    Shows = `${CorePaths.Videos}/shows`,
-    Standup = `${CorePaths.Videos}/standup`
+    Animation = `${CoreDirectories.Videos}/animation`,
+    Anime = `${CoreDirectories.Videos}/anime`,
+    Internet = `${CoreDirectories.Videos}/internet`,
+    Movies = `${CoreDirectories.Videos}/movies`,
+    Shows = `${CoreDirectories.Videos}/shows`,
+    Standup = `${CoreDirectories.Videos}/standup`
 }

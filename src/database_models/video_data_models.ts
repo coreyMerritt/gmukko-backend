@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize"
-import { DatabaseTables } from "../configuration/database_tables.js"
+import { DatabaseTableNames } from "../configuration/db/database_table_names.js"
 
 
 export class VideoModel extends Model {
@@ -37,36 +37,36 @@ export class InternetModel extends VideoModel {
 
 export class ModelAttributesAndOptions {
     
-    public static getAttributes(table: DatabaseTables): any  {
+    public static getAttributes(table: DatabaseTableNames): any  {
         switch (table) {
-            case DatabaseTables.Animation:
+            case DatabaseTableNames.Animation:
                 return {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
                     seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                     episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                 }
-            case DatabaseTables.Anime:
+            case DatabaseTableNames.Anime:
                 return {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
                     seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                     episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                 }
-            case DatabaseTables.Movies:
+            case DatabaseTableNames.Movies:
                 return {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
                     releaseYear: {type: DataTypes.INTEGER, allowNull: true}
                 }
-            case DatabaseTables.Shows:
+            case DatabaseTableNames.Shows:
                 return {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
                     seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
                     episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
                 }
-            case DatabaseTables.Standup:
+            case DatabaseTableNames.Standup:
                 return {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
@@ -82,29 +82,29 @@ export class ModelAttributesAndOptions {
     
     }
 
-    public static getOptions(database: Sequelize, table: DatabaseTables) {
+    public static getOptions(database: Sequelize, table: DatabaseTableNames) {
         switch (table) {
-            case DatabaseTables.Animation:
+            case DatabaseTableNames.Animation:
                 return {
                     sequelize: database,
                     tableName: `${table}`
                 }
-            case DatabaseTables.Animation:
+            case DatabaseTableNames.Animation:
                 return {
                     sequelize: database,
                     tableName: `${table}`
                 }
-            case DatabaseTables.Animation:
+            case DatabaseTableNames.Animation:
                 return {
                     sequelize: database,
                     tableName: `${table}`
                 }
-            case DatabaseTables.Animation:
+            case DatabaseTableNames.Animation:
                 return {
                     sequelize: database,
                     tableName: `${table}`
                 }
-            case DatabaseTables.Animation:
+            case DatabaseTableNames.Animation:
                 return {
                     sequelize: database,
                     tableName: `${table}`

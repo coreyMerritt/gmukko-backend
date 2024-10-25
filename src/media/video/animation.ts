@@ -1,11 +1,11 @@
 import { AnimationModel } from "../../database_models/index.js"
-import { DatabaseTables } from "../../configuration/index.js"
+import { DatabaseTableNames } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/staging.js"
 import { Video, VideoTypes } from "./video.js"
 
 export class Animation extends Video {
     public static readonly videoType = VideoTypes.Animation
-    public static readonly table = DatabaseTables.Animation
+    public static readonly table = DatabaseTableNames.Animation
     public static readonly stagingDir = StagingPaths.Animation
     public static readonly model = AnimationModel
 

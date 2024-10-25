@@ -1,4 +1,4 @@
-export enum DatabaseTables {
+export enum DatabaseTableNames {
     Animation = 'video_animation',
     Anime = 'video_anime',
     MiscVideo = 'video_misc',

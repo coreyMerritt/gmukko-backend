@@ -1,5 +1,5 @@
 import { Database } from './database.js'
-import { BackupPaths, CorePaths, LogFiles, LogPaths, StagingPaths } from '../configuration/index.js'
+import { BackupDirectories, CoreDirectories, LogPaths, StagingPaths } from '../configuration/index.js'
 import fs from 'fs/promises'
 import cron from 'node-cron'
 
@@ -8,8 +8,8 @@ export class Startup {
 
     public static async execute() {
         var directoriesToCreate: string[] = []
-        directoriesToCreate.push(...(Object.values(BackupPaths)))
-        directoriesToCreate.push(...(Object.values(CorePaths)))
+        directoriesToCreate.push(...(Object.values(BackupDirectories)))
+        directoriesToCreate.push(...(Object.values(CoreDirectories)))
         directoriesToCreate.push(...(Object.values(LogPaths)))
         directoriesToCreate.push(...(Object.values(StagingPaths)))
 

@@ -20,7 +20,7 @@ export class AI {
             const result = await this.model.chat.completions.create({
                 model: `gpt-3.5-turbo-0125`,
                 messages: [
-                    { role: `system`, content: prompt},
+                    { role: `system`, content: prompt.value},
                     { role: 'user', content: data.toString()}
                 ],
                 max_tokens: 3500,

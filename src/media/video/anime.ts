@@ -1,11 +1,11 @@
 import { AnimeModel } from "../../database_models/index.js"
-import { DatabaseTables } from "../../configuration/index.js"
+import { DatabaseTableNames } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/index.js"
 import { Video, VideoTypes } from "./video.js"
 
 export class Anime extends Video {
     public static readonly videoType = VideoTypes.Anime
-    public static readonly table = DatabaseTables.Anime
+    public static readonly table = DatabaseTableNames.Anime
     public static readonly stagingDir = StagingPaths.Anime
     public static readonly model = AnimeModel
 

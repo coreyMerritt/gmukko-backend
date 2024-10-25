@@ -1,9 +1,9 @@
-import { Media } from '../media/media.js'
-import { Anime, Animation, MiscVideo, Movie, Show, Standup, Video } from '../media/video/index.js'
+import { Media, MediaTypes } from '../media/media.js'
+import { Anime, Animation, MiscVideo, Movie, Show, Standup, Video, VideoTypes } from '../media/video/index.js'
 
 
 export class Validators {
-
+   
     public static isMedia(object: object): object is Media {
         return 'filePath' in object &&
             'title' in object
@@ -53,6 +53,15 @@ export class Validators {
             'title' in object
     }
 
+    public static isMediaArray(objectArray: object[]): objectArray is Media[] {
+        for (const [i, object] of objectArray.entries()) {
+            if (!Validators.isMedia(object)) {
+                return false
+            }
+        }
+        return true
+    }
+
     public static isVideoArray(objectArray: object[]): objectArray is Video[] {
         for (const [i, object] of objectArray.entries()) {
             if (!Validators.isVideo(object)) {
@@ -62,12 +71,21 @@ export class Validators {
         return true
     }
 
-    public static isMediaArray(objectArray: object[]): objectArray is Media[] {
-        for (const [i, object] of objectArray.entries()) {
-            if (!Validators.isMedia(object)) {
-                return false
-            }
+    public static isMediaType(someString: string): someString is MediaTypes {
+        const videoTypes = Object.values(VideoTypes) as string[]
+        if (videoTypes.includes(someString)) {
+            return true
+        } else {
+            return false
         }
-        return true
+    }
+
+    public static isVideoType(someString: string): someString is VideoTypes {
+        const videoTypes = Object.values(VideoTypes) as string[]
+        if (videoTypes.includes(someString)) {
+            return true
+        } else {
+            return false
+        }
     }
 }

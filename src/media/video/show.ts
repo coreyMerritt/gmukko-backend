@@ -1,11 +1,11 @@
 import { ShowModel } from "../../database_models/index.js"
-import { DatabaseTables } from "../../configuration/index.js"
+import { DatabaseTableNames } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/index.js"
 import { Video, VideoTypes } from "./video.js"
 
 export class Show extends Video {
     public static readonly videoType = VideoTypes.Show
-    public static readonly table = DatabaseTables.Shows
+    public static readonly table = DatabaseTableNames.Shows
     public static readonly stagingDir = StagingPaths.Shows
     public static readonly model = ShowModel
 

@@ -1,5 +1,5 @@
 import { GmukkoLogger } from './gmukko_logger.js'
-import { DatabaseTables, Prompts } from '../configuration/index.js'
+import { DatabaseTableNames, Prompts } from '../configuration/index.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -64,23 +64,5 @@ export class MediaHandler {
 
         GmukkoLogger.info(`Succesfully retrieved ${filesMatchingExtension.length} file paths from ${directoryToCheck}.`)
         return filesMatchingExtension
-    }
-
-
-    private static determinePromptByTable(table: DatabaseTables): Prompts {
-        switch (table) {
-            case DatabaseTables.Movies:
-                return Prompts.ReturnMovieAsJson
-            case DatabaseTables.Shows:
-                return Prompts.ReturnShowAsJson
-            case DatabaseTables.Standup:
-                return Prompts.ReturnStandupAsJson
-            case DatabaseTables.Anime:
-                return Prompts.ReturnAnimeAsJson
-            case DatabaseTables.Animation:
-                return Prompts.ReturnAnimationAsJson
-            case DatabaseTables.MiscVideo:
-                return Prompts.ReturnMiscVideoAsJson
-        }
     }
 }
