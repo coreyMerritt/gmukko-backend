@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize"
-import { DatabaseTables } from "../interfaces_and_enums/database_tables.js"
+import { DatabaseTables } from "../configuration/database_tables.js"
 
 
 export class VideoModel extends Model {

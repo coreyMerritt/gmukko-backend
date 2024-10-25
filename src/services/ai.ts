@@ -1,7 +1,7 @@
 import { GmukkoLogger } from './gmukko_logger.js'
 import { Validators } from './validators.js'
 import { OpenAI } from 'openai'
-import { Prompts } from '../interfaces_and_enums/index.js'
+import { Prompts } from '../configuration/index.js'
 import { Media } from '../media/media.js'
 import { MediaFactory } from '../media/media_factory.js'
 

@@ -1,6 +1,6 @@
 import { Model } from "sequelize"
-import { DatabaseTables } from "../interfaces_and_enums/index.js"
-import { StagingPaths } from "../interfaces_and_enums/paths/staging.js"
+import { DatabaseTables } from "../configuration/index.js"
+import { StagingPaths } from "../configuration/staging.js"
 
 export abstract class Media {
     public static readonly table: DatabaseTables

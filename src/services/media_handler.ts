@@ -1,5 +1,5 @@
 import { GmukkoLogger } from './gmukko_logger.js'
-import { DatabaseTables, Prompts } from '../interfaces_and_enums/index.js'
+import { DatabaseTables, Prompts } from '../configuration/index.js'
 import fs from 'fs'
 import path from 'path'
 

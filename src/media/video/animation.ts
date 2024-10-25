@@ -1,6 +1,6 @@
 import { AnimationModel } from "../../database_models/index.js"
-import { DatabaseTables } from "../../interfaces_and_enums/index.js"
-import { StagingPaths } from "../../interfaces_and_enums/paths/staging.js"
+import { DatabaseTables } from "../../configuration/index.js"
+import { StagingPaths } from "../../configuration/staging.js"
 import { Video, VideoTypes } from "./video.js"
 
 export class Animation extends Video {

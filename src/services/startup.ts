@@ -1,5 +1,5 @@
 import { Database } from './database.js'
-import { BackupPaths, CorePaths, LogFiles, LogPaths, StagingPaths } from '../interfaces_and_enums/paths/index.js'
+import { BackupPaths, CorePaths, LogFiles, LogPaths, StagingPaths } from '../configuration/index.js'
 import fs from 'fs/promises'
 import cron from 'node-cron'
 

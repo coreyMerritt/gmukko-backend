@@ -1,10 +1,10 @@
 import { AI, Database, GmukkoLogger, MediaHandler } from '../services/index.js'
 import { Animation, Anime, MiscVideo, Movie, Show, Standup, Video } from '../media/video/index.js'
-import { Prompts } from '../interfaces_and_enums/index.js'
-import { StagingPaths } from '../interfaces_and_enums/paths/staging.js'
+import { Prompts } from '../configuration/index.js'
+import { StagingPaths } from '../configuration/staging.js'
 
 export class MediaController {
-    
+
     public static async indexStaging(mediaType: string | undefined) {
         if (mediaType === undefined) {
             this.indexAllStagingDirectories()

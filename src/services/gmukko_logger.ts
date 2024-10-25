@@ -1,6 +1,6 @@
 import { GmukkoTime } from './gmukko_time.js'
-import { VideoDataTypes, Prompts } from '../interfaces_and_enums/index.js'
-import { LogFiles } from '../interfaces_and_enums/paths/index.js'
+import { VideoDataTypes, Prompts } from '../configuration/index.js'
+import { LogFiles } from '../configuration/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
