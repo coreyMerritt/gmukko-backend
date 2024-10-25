@@ -4,11 +4,11 @@ import { MiscVideo } from './misc_video.js'
 import { Movie } from './movie.js' 
 import { Show } from './show.js'
 import { Standup } from './standup.js'
-import { VideoTypes } from './video.js'
-import { GmukkoLogger } from '../../services/index.js'
+import { Video, VideoTypes } from './video.js'
+import { GmukkoLogger } from '../../core/index.js'
 
 export class VideoFactory {
-    public static createVideo(object: any) {
+    public static createVideoFromObject(object: any): Video {
         if (`videoType` in object && `filePath` in object) {
             switch (object.videoType) {
                 case VideoTypes.Animation:
@@ -50,6 +50,23 @@ export class VideoFactory {
             return new MiscVideo(object.filePath,
                 'title' in object ? object.title : undefined
             )
+        }
+    }
+
+    public static createVideoFromVideoType(videoType: VideoTypes): Video {
+        switch (videoType) {
+            case VideoTypes.Animation:
+                return new Animation("")
+            case VideoTypes.Anime:
+                return new Anime("")
+            case VideoTypes.Movie:
+                return new Movie("")
+            case VideoTypes.Show:
+                return new Show("")
+            case VideoTypes.Standup:
+                return new Standup("")
+            default:
+                return new MiscVideo("")
         }
     }
 }

@@ -1,18 +1,22 @@
 import { DataTypes, Sequelize } from "sequelize"
-import { DatabaseTableNames } from "../../configuration/index.js"
+import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 
 export class MiscVideo extends Video {
-    public static readonly videoType = VideoTypes.Misc
-    public static readonly table = DatabaseTableNames.MiscVideo
-    public static readonly stagingDir = StagingPaths.Internet
-    public static readonly model = VideoModel
+    public videoType = VideoTypes.Misc
+    public table = DatabaseTableNames.MiscVideo
+    public stagingDirectory = StagingPaths.Internet
+    public model = VideoModel
+    public prompt = new Prompt(this.videoType)
+
+    public filePath: string
+    public title: string | undefined
 
     constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number) {
-        super(filePath)
+        super()
         this.filePath = filePath
-        title ? this.title = title : undefined
+        this.title = title
     }
 
     getAttributes() {

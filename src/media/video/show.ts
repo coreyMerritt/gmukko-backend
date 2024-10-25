@@ -1,5 +1,5 @@
 import { DataTypes, Sequelize } from "sequelize"
-import { DatabaseTableNames } from "../../configuration/index.js"
+import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 
@@ -9,20 +9,23 @@ class ShowModel extends VideoModel {
 }
 
 export class Show extends Video {
-    public static readonly videoType = VideoTypes.Show
-    public static readonly table = DatabaseTableNames.Shows
-    public static readonly stagingDir = StagingPaths.Shows
-    public static readonly model = ShowModel
+    public videoType = VideoTypes.Show
+    public table = DatabaseTableNames.Shows
+    public stagingDirectory = StagingPaths.Shows
+    public model = ShowModel
+    public prompt = new Prompt(this.videoType)
 
+    public filePath: string
+    public title: string | undefined
     public seasonNumber: number | undefined
     public episodeNumber: number | undefined
 
     constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number) {
-        super(filePath)
+        super()
         this.filePath = filePath
-        title ? this.title = title : undefined
-        seasonNumber ? this.seasonNumber = seasonNumber : undefined
-        episodeNumber ? this.episodeNumber = episodeNumber : undefined
+        this.title = title
+        this.seasonNumber = seasonNumber
+        this.episodeNumber = episodeNumber
     }
 
     getAttributes() {

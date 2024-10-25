@@ -1,5 +1,5 @@
 import { GmukkoTime } from './gmukko_time.js'
-import { Prompt, VideoDataTypes } from '../configuration/index.js'
+import { VideoDataTypes, Prompt } from '../configuration/index.js'
 import { LogFiles } from '../configuration/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
@@ -72,11 +72,11 @@ export class GmukkoLogger {
     }
 
 
-    static async invalidJsonArray(prompt: Prompt, data: string[], response: string) {
+    static async invalidJsonArray(prompt: string, data: string[], response: string) {
         this.error(`Invalid Json Array.`)
         fs.appendFile(`${LogFiles.InvalidJsonArray}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
-            `Prompt: ${prompt.value}\n` +
+            `Prompt: ${prompt}\n` +
             `Data: ${data.toString()}\n` +
             `Response: ${response}\n\n`
         )

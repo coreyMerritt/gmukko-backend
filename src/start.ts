@@ -1,4 +1,4 @@
-import { GmukkoLogger, Startup } from './services/index.js'
+import { GmukkoLogger, Startup } from './core/index.js'
 import http from 'http'
 import express from 'express'
 import initialIndexRoutes from './api/db/staging/index/routes.js'

@@ -5,7 +5,8 @@ import { Anime, Animation, MiscVideo, Movie, Show, Standup, Video, VideoTypes } 
 export class Validators {
    
     public static isMedia(object: object): object is Media {
-        return 'filePath' in object &&
+        return 'mediaType' in object &&
+            'filePath' in object &&
             'title' in object
     }
 

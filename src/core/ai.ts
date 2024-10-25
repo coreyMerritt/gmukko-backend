@@ -14,13 +14,13 @@ export class AI {
         this.model = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     }
 
-    async evaluate(prompt: Prompt, data: string[]): Promise<string|undefined> {
+    async evaluate(prompt: string, data: string[]): Promise<string|undefined> {
         GmukkoLogger.info(`Attempting to send a request to the OpenAI API with ${data.length} pieces of data...`)
         try {
             const result = await this.model.chat.completions.create({
                 model: `gpt-3.5-turbo-0125`,
                 messages: [
-                    { role: `system`, content: prompt.value},
+                    { role: `system`, content: prompt},
                     { role: 'user', content: data.toString()}
                 ],
                 max_tokens: 3500,
@@ -73,18 +73,16 @@ export class AI {
     public static async parseSomeMediaData(filePaths: string[], prompt: Prompt): Promise<Media[]|undefined> {
         try {
             const ai = new AI()
-            const aiResult = await ai.evaluate(prompt, filePaths)
+            const aiResult = await ai.evaluate(prompt.value, filePaths)
             if (aiResult) {
                 const jsonArray = await this.stringToJsonArray(aiResult, prompt, filePaths)
                 if (jsonArray) {
                     if (Validators.isMediaArray(jsonArray)) {
-                        var media: Media[] = []
+                        var media = []
                         for (const [, object] of jsonArray.entries()) {
                             const objectAsMedia = MediaFactory.createMedia(object)
                             if (objectAsMedia) {
                                 media.push(objectAsMedia)
-                            } else {
-                                GmukkoLogger.error(`Object is not media: ${object}`)
                             }
                         }
                         return media
@@ -112,7 +110,7 @@ export class AI {
         if (jsonArrayAsString) {
             return JSON.parse(jsonArrayAsString)
         } else {
-            GmukkoLogger.invalidJsonArray(prompt, data, someString)
+            GmukkoLogger.invalidJsonArray(prompt.value, data, someString)
             return undefined
         }
     }

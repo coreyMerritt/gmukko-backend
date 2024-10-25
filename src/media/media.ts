@@ -1,38 +1,20 @@
 import { Model, Sequelize } from "sequelize"
-import { DatabaseTableNames } from "../configuration/index.js"
+import { DatabaseTableNames, Prompt } from "../configuration/index.js"
 import { StagingPaths } from "../configuration/staging.js"
 
 export abstract class Media {
-    public static readonly table: DatabaseTableNames
-    public static readonly stagingDirectory: StagingPaths
-    public static readonly extensions: string[]
-    public static readonly model: any
+    public abstract mediaType: MediaTypes
+    public abstract table: DatabaseTableNames
+    public abstract stagingDirectory: StagingPaths
+    public abstract fileExtensions: string[]
+    public abstract model: any
+    public abstract prompt: Prompt
     
-    public filePath: string 
-    public title: string | undefined
-
-    constructor(filePath: string) {
-        this.filePath = filePath
-    }
+    public abstract filePath: string
+    public abstract title: string | undefined
 
     abstract getAttributes(): any
     abstract getOptions(database: Sequelize, tableName: DatabaseTableNames): { sequelize: Sequelize, tableName: string }
-
-    getTable() {
-        return (this.constructor as typeof Media).table
-    }
-
-    getStagingDir() {
-        return (this.constructor as typeof Media).stagingDirectory
-    }
-
-    getExtensions() {
-        return (this.constructor as typeof Media).extensions
-    }
-
-    getModel() {
-        return (this.constructor as typeof Media).model
-    }
 }
 
 export enum MediaTypes {

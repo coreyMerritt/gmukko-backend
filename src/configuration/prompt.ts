@@ -1,9 +1,9 @@
 import { MediaTypes } from "../media/media.js"
 import { VideoTypes } from "../media/video/video.js"
-import { Validators } from '../services/index.js'
+import { Validators } from '../core/index.js'
 
 
-export class Prompts {
+export class Prompt {
 
     public value: string
 
@@ -32,23 +32,23 @@ export class Prompts {
     private determinePromptByVideoType(videoType: VideoTypes): string {
         switch (videoType) {
             case VideoTypes.Movie:
-                return Prompts.MovieAsJson()
+                return this.MovieAsJson()
             case VideoTypes.Show:
-                return Prompts.ShowAsJson()
+                return this.ShowAsJson()
             case VideoTypes.Standup:
-                return Prompts.StandupAsJson()
+                return this.StandupAsJson()
             case VideoTypes.Anime:
-                return Prompts.AnimeAsJson()
+                return this.AnimeAsJson()
             case VideoTypes.Animation:
-                return Prompts.AnimationAsJson()
+                return this.AnimationAsJson()
             case VideoTypes.Misc:
-                return Prompts.MiscVideoAsJson()
+                return this.MiscVideoAsJson()
             default:
                 throw new Error(`Could not determine prompt type because videoType object is not a valid VideoType.`)
         }
     }
 
-    private static MovieAsJson() {
+    private MovieAsJson() {
         return 'Return a fully parsable JSON array of objects in this format:\n' +
         '"[ { "mediaType": "video", "videoType": "movie", "filePath": string, "title": string, "releaseYear": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
@@ -57,7 +57,7 @@ export class Prompts {
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
 
-    private static ShowAsJson() {
+    private ShowAsJson() {
         return 'Return a fully parsable JSON array of objects in this format:\n' +
         '"[ { "mediaType": "video", "videoType": "show", "filePath": string, "title": string, "seasonNumber": number, "episodeNumber": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
@@ -66,7 +66,7 @@ export class Prompts {
         'Make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'   
     }
-    private static StandupAsJson() {
+    private StandupAsJson() {
         return 'Return a fully parsable JSON array of objects in this format:\n' +
         '"[ { "mediaType": "video", "videoType": "standup", "filePath": string, "title": string, "artist": string, "releaseYear": number }, { ... } ]"\n' +
         'Be sure to capitalize titles and artists where appropriate.\n' +
@@ -75,7 +75,7 @@ export class Prompts {
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
         
-    private static AnimeAsJson() {
+    private AnimeAsJson() {
         return 'Return a fully parsable JSON array of objects in this format:\n' +
         '"[ { "mediaType": "video", "videoType": "anime", "filePath": string, "title": string, "seasonNumber": number, "episodeNumber": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
@@ -84,7 +84,7 @@ export class Prompts {
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
     
-    private static AnimationAsJson() {
+    private AnimationAsJson() {
         return 'Return a fully parsable JSON array of objects in this format:\n' +
         '"[ { "mediaType": "video", "videoType": "animation", "filePath": string, "title": string, "seasonNumber": number, "episodeNumber": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
@@ -92,7 +92,7 @@ export class Prompts {
         'Make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
-    private static MiscVideoAsJson() {
+    private MiscVideoAsJson() {
         return 'Return a fully parsable JSON array of objects in this format:\n' +
         '"[ { "mediaType": "video", "videoType": "misc", "filePath": string, "title": string }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
