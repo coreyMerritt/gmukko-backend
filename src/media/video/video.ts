@@ -1,4 +1,10 @@
+import { Model } from "sequelize"
 import { Media, MediaTypes } from "../media.js"
+
+export class VideoModel extends Model {
+    public filePath!: string
+    public title!: string
+}
 
 export abstract class Video extends Media {
     public static readonly mediaType = MediaTypes.Video

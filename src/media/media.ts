@@ -1,4 +1,4 @@
-import { Model } from "sequelize"
+import { Model, Sequelize } from "sequelize"
 import { DatabaseTableNames } from "../configuration/index.js"
 import { StagingPaths } from "../configuration/staging.js"
 
@@ -14,6 +14,9 @@ export abstract class Media {
     constructor(filePath: string) {
         this.filePath = filePath
     }
+
+    abstract getAttributes(): any
+    abstract getOptions(database: Sequelize, tableName: DatabaseTableNames): { sequelize: Sequelize, tableName: string }
 
     getTable() {
         return (this.constructor as typeof Media).table

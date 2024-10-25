@@ -2,7 +2,6 @@ import { GmukkoLogger } from './gmukko_logger.js'
 import { GmukkoTime } from './gmukko_time.js'
 import { DatabaseNames } from '../configuration/index.js'
 import { BackupDirectories } from '../configuration/index.js'
-import { ModelAttributesAndOptions } from '../database_models/index.js'
 import { Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
 import { exec } from 'child_process'
@@ -196,7 +195,7 @@ export class Database {
     private static async initAndSyncModel(database: Sequelize, media: Media) {
         try {
             const model = await media.getModel()
-            model.init(ModelAttributesAndOptions.getAttributes(media.getTable()), ModelAttributesAndOptions.getOptions(database, media.getTable()))
+            model.init(media.getAttributes(), media.getOptions(database, media.getTable()))
             await model.sync()
             GmukkoLogger.info(`Successfully created ${media.getTable()} table.`)
         } catch (error) {
