@@ -1,4 +1,4 @@
-import { Database } from './index.js'
+import { Database } from './database.js'
 import { BackupPaths, CorePaths, LogFiles, LogPaths, StagingPaths } from '../interfaces_and_enums/paths/index.js'
 import fs from 'fs/promises'
 import cron from 'node-cron'
@@ -26,5 +26,11 @@ export class Startup {
         }, {
             timezone: 'UTC'
         })
+
+        this.debug()
+    }
+
+    private static async debug() {
+        
     }
 }

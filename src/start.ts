@@ -1,7 +1,7 @@
 import { GmukkoLogger, Startup } from './services/index.js'
 import http from 'http'
 import express from 'express'
-import initialIndexRoutes from './api/db/index/initial/routes.js'
+import initialIndexRoutes from './api/db/staging/index/routes.js'
 import dbBackupRoutes from './api/db/backup/routes.js'
 
 
@@ -19,5 +19,5 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use(`/db/index/initial`, initialIndexRoutes)
+app.use(`/db/staging/index`, initialIndexRoutes)
 app.use(`/db/backup`, dbBackupRoutes)

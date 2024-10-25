@@ -1,4 +1,4 @@
-import { GmukkoTime } from './index.js'
+import { GmukkoTime } from './gmukko_time.js'
 import { VideoDataTypes, Prompts } from '../interfaces_and_enums/index.js'
 import { LogFiles } from '../interfaces_and_enums/paths/index.js'
 import fs from 'fs/promises'

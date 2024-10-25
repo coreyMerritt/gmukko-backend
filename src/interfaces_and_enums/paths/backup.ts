@@ -1,4 +1,4 @@
-import { CorePaths } from './index.js'
+import { CorePaths } from './core.js'
 
 export enum BackupPaths {
     Output = "backups",
