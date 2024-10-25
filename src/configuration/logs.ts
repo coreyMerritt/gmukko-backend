@@ -14,5 +14,5 @@ export enum LogFiles {
     InvalidStandupData = `${LogPaths.Default}/invalid_standup_data`,
     InvalidAnimeData = `${LogPaths.Default}/invalid_anime_data`,
     InvalidAnimationData = `${LogPaths.Default}/invalid_animation_data`,
-    InvalidInternetData = `${LogPaths.Default}/invalid_internet_data`
+    InvalidMiscVideoData = `${LogPaths.Default}/invalid_misc_video_data`
 }

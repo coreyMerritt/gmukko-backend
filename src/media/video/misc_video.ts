@@ -6,7 +6,7 @@ import { Video, VideoModel, VideoTypes } from "./video.js"
 export class MiscVideo extends Video {
     public videoType = VideoTypes.Misc
     public table = DatabaseTableNames.MiscVideo
-    public stagingDirectory = StagingPaths.Internet
+    public stagingDirectory = StagingPaths.MiscVideo
     public model = VideoModel
     public prompt = new Prompt(this.videoType)
 

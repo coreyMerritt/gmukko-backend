@@ -1,9 +1,10 @@
 import { GmukkoTime } from './gmukko_time.js'
-import { Prompt, VideoDataTypes } from '../configuration/index.js'
+import { Prompt } from '../configuration/index.js'
 import { LogFiles } from '../configuration/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
+import { VideoTypes } from '../media/video/video.js'
 
 
 export class GmukkoLogger {
@@ -83,7 +84,7 @@ export class GmukkoLogger {
     }
 
 
-    static async invalidVideoData(object: any, expectedVideoType?: VideoDataTypes) {
+    static async invalidVideoData(object: any, expectedVideoType?: VideoTypes) {
         this.error(`Invalid Video Data.`)
         const logPath = this.determineLogPath(expectedVideoType)
         const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
@@ -94,22 +95,20 @@ export class GmukkoLogger {
         )
     }
 
-    private static determineLogPath(expectedVideoType: VideoDataTypes | undefined) {
+    private static determineLogPath(expectedVideoType: VideoTypes | undefined) {
         switch (expectedVideoType) {
-            case VideoDataTypes.Movies:
+            case VideoTypes.Movie:
                 return LogFiles.InvalidMovieData
-            case VideoDataTypes.Shows:
+            case VideoTypes.Show:
                 return LogFiles.InvalidShowData
-            case VideoDataTypes.Standup:
+            case VideoTypes.Standup:
                 return LogFiles.InvalidStandupData
-            case VideoDataTypes.Anime:
+            case VideoTypes.Anime:
                 return LogFiles.InvalidAnimeData
-            case VideoDataTypes.Animation:
+            case VideoTypes.Animation:
                 return LogFiles.InvalidAnimationData
-            case VideoDataTypes.Internet:
-                return LogFiles.InvalidInternetData
             default:
-                return LogFiles.InvalidVideoData
+                return LogFiles.InvalidMiscVideoData
         }
     }
 }
