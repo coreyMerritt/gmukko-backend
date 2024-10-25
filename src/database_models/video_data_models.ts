@@ -82,36 +82,36 @@ export class ModelAttributesAndOptions {
     
     }
 
-    public static getOptions(db: Sequelize, table: DatabaseTables) {
+    public static getOptions(database: Sequelize, table: DatabaseTables) {
         switch (table) {
             case DatabaseTables.Animation:
                 return {
-                    sequelize: db,
+                    sequelize: database,
                     tableName: `${table}`
                 }
             case DatabaseTables.Animation:
                 return {
-                    sequelize: db,
+                    sequelize: database,
                     tableName: `${table}`
                 }
             case DatabaseTables.Animation:
                 return {
-                    sequelize: db,
+                    sequelize: database,
                     tableName: `${table}`
                 }
             case DatabaseTables.Animation:
                 return {
-                    sequelize: db,
+                    sequelize: database,
                     tableName: `${table}`
                 }
             case DatabaseTables.Animation:
                 return {
-                    sequelize: db,
+                    sequelize: database,
                     tableName: `${table}`
                 }
             default:
                 return {
-                    sequelize: db,
+                    sequelize: database,
                     tableName: `${table}`
                 }
         }

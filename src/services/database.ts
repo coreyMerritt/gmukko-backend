@@ -137,13 +137,13 @@ export class Database {
             if (this.username && this.password) {
                 const sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
                 await sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\``, { logging: false })
-                const db = new Sequelize(databaseName, this.username, this.password, {
+                const database = new Sequelize(databaseName, this.username, this.password, {
                     host: 'localhost',
                     dialect: 'mysql',
                     logging: false,
                 })
                 GmukkoLogger.info(`Successfully loaded database.`)
-                return db
+                return database
             } else {
                 GmukkoLogger.error(`Failed to load database because username or password were not defined.`)
                 process.exit(1)
