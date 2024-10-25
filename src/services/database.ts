@@ -62,6 +62,7 @@ export class Database {
 
 
     private static async insertMediaIntoTable(database: Sequelize, media: Media) {
+        GmukkoLogger.info(`Attempting to index: ${media.filePath}`)
         try {
             const columns: string[] = ['filePath', 'title', 'createdAt', 'updatedAt']
             const values: string[] = [':filePath', ':title', ':createdAt', ':updatedAt']
@@ -102,8 +103,9 @@ export class Database {
                 replacements,
                 type: QueryTypes.INSERT
             })
+            GmukkoLogger.info(`Successfully indexed: ${media.filePath}`)
         } catch (error) {
-            GmukkoLogger.error(`Unable to insert into ${media.getTable()}: ${JSON.stringify(media)}`)
+            GmukkoLogger.error(`Failed to index: ${media.filePath}`)
         }
     }
 
@@ -115,9 +117,9 @@ export class Database {
         try {
             for (const singleMedia of media) {
                 if (!await this.filePathInTable(database, singleMedia)) {
-                    GmukkoLogger.info(`Keeping file ${singleMedia.filePath} to index.`)
+                    GmukkoLogger.info(`Keeping unindexed file: ${singleMedia.filePath}.`)
                 } else {
-                    GmukkoLogger.info(`Tossing ${singleMedia.filePath} from list of files that need to be indexed.`)
+                    GmukkoLogger.info(`Tossing already indexed file: ${singleMedia.filePath}.`)
                     filePathsToToss.push(singleMedia.filePath)
                 }
             }
@@ -160,7 +162,6 @@ export class Database {
 
 
     private static async tableExists(database: Sequelize, table: string) {
-        GmukkoLogger.info(`Checking if ${table} exists.`)
         try {
             const result = await database.query(
                 `SELECT * FROM ${table}`,
@@ -168,10 +169,8 @@ export class Database {
                   type: QueryTypes.SELECT,
                 }
             )
-            GmukkoLogger.info(`${table} does exist.`)
             return true
         } catch (error) {
-            GmukkoLogger.info(`${table} does not exist.`)
             return false
         }
     }
