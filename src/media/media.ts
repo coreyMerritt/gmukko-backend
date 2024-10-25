@@ -1,3 +1,4 @@
+import { Model } from "sequelize"
 import { DatabaseTables } from "../interfaces_and_enums/index.js"
 import { StagingPaths } from "../interfaces_and_enums/paths/staging.js"
 
@@ -5,7 +6,7 @@ export abstract class Media {
     public static readonly table: DatabaseTables
     public static readonly stagingDirectory: StagingPaths
     public static readonly extensions: string[]
-    public static readonly insertQuery: string
+    public static readonly model: any
     
     public filePath: string 
     public title: string | undefined
@@ -26,8 +27,8 @@ export abstract class Media {
         return (this.constructor as typeof Media).extensions
     }
 
-    getInsertQuery() {
-        return (this.constructor as typeof Media).insertQuery
+    getModel() {
+        return (this.constructor as typeof Media).model
     }
 }
 

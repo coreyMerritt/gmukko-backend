@@ -2,36 +2,36 @@ import { DataTypes, Model, Sequelize } from "sequelize"
 import { DatabaseTables } from "../interfaces_and_enums/database_tables.js"
 
 
-export class VideoDataModel extends Model {
+export class VideoModel extends Model {
     public filePath!: string
     public title!: string
 }
 
-export class MovieDataModel extends VideoDataModel {
+export class MovieModel extends VideoModel {
     public releaseYear!: number
 }
 
-export class ShowDataModel extends VideoDataModel {
+export class ShowModel extends VideoModel {
     public seasonNumber!: number
     public episodeNumber!: number
 }
 
-export class StandupDataModel extends VideoDataModel {
+export class StandupModel extends VideoModel {
     public artist!: string
     public releaseYear!: number
 }
 
-export class AnimeDataModel extends VideoDataModel {
+export class AnimeModel extends VideoModel {
     public seasonNumber!: number
     public episodeNumber!: number
 }
 
-export class AnimationDataModel extends VideoDataModel {
+export class AnimationModel extends VideoModel {
     public seasonNumber!: number
     public episodeNumber!: number
 }
 
-export class InternetDataModel extends VideoDataModel {
+export class InternetModel extends VideoModel {
 
 }
 
@@ -57,9 +57,7 @@ export class ModelAttributesAndOptions {
                 return {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
-                    releaseYear: {type: DataTypes.INTEGER, allowNull: true},
-                    seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
-                    episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
+                    releaseYear: {type: DataTypes.INTEGER, allowNull: true}
                 }
             case DatabaseTables.Shows:
                 return {
@@ -73,8 +71,7 @@ export class ModelAttributesAndOptions {
                     filePath: {type: DataTypes.STRING, allownull: false, unique: true},
                     title: {type: DataTypes.STRING, allownull: false},
                     artist: {type: DataTypes.STRING, allownull: true},
-                    seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
-                    episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
+                    releaseYear: {type: DataTypes.INTEGER, allowNull: true}
                 }
             default:
                 return {

@@ -2,7 +2,12 @@ import { Media, MediaTypes } from "../media.js"
 
 export abstract class Video extends Media {
     public static readonly mediaType = MediaTypes.Video
+    public static readonly videoType: VideoTypes
     public static readonly extensions = [ '.mkv', '.avi', '.mp4', '.mov' ]
+
+    getVideoType() {
+        return (this.constructor as typeof Video).videoType
+    }
 }
 
 export enum VideoTypes {

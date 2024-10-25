@@ -1,3 +1,4 @@
+import { StandupModel } from "../../database_models/index.js"
 import { DatabaseTables } from "../../interfaces_and_enums/index.js"
 import { StagingPaths } from "../../interfaces_and_enums/paths/index.js"
 import { Video, VideoTypes } from "./video.js"
@@ -6,6 +7,7 @@ export class Standup extends Video {
     public static readonly videoType = VideoTypes.Standup
     public static readonly table = DatabaseTables.Standup
     public static readonly stagingDir = StagingPaths.Standup
+    public static readonly model = StandupModel
 
     public artist: string | undefined
     public releaseYear: number | undefined
