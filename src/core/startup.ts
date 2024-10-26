@@ -17,7 +17,7 @@ export class Startup {
             try {
                 await fs.mkdir(path)
             } catch (error) {
-                // Not a genuine error
+                // Not a genuine error, directory exists
             }   
         }
 
@@ -26,11 +26,5 @@ export class Startup {
         }, {
             timezone: 'UTC'
         })
-
-        this.debug()
-    }
-
-    private static async debug() {
-        
     }
 }

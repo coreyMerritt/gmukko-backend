@@ -53,7 +53,7 @@ export class VideoFactory {
         }
     }
 
-    public static createVideoFromVideoType(videoType: VideoTypes): Video {
+    public static createNullFromVideoType(videoType: VideoTypes): Video {
         switch (videoType) {
             case VideoTypes.Animation:
                 return new Animation("")
@@ -67,6 +67,44 @@ export class VideoFactory {
                 return new Standup("")
             default:
                 return new MiscVideo("")
+        }
+    }
+
+    public static createVideoFromVideoType(object: any, videoType: VideoTypes): Video {
+        switch (videoType) {
+            case VideoTypes.Animation:
+                return new Animation(object.filePath,
+                    `title` in object ? object.title : undefined,
+                    `seasonNumber` in object ? object.seasonNumber : undefined,
+                    `episodeNumber` in object ? object.episodeNumber : undefined
+                )
+            case VideoTypes.Anime:
+                return new Anime(object.filePath,
+                    `title` in object ? object.title : undefined,
+                    `seasonNumber` in object ? object.seasonNumber : undefined,
+                    `episodeNumber` in object ? object.episodeNumber : undefined
+                )
+            case VideoTypes.Movie:
+                return new Movie(object.filePath,
+                    `title` in object ? object.title : undefined,
+                    `releaseYear` in object ? object.releaseYear : undefined
+                )
+            case VideoTypes.Show:
+                return new Show(object.filePath,
+                    `title` in object ? object.title : undefined,
+                    `seasonNumber` in object ? object.seasonNumber : undefined,
+                    `episodeNumber` in object ? object.episodeNumber : undefined
+                )
+            case VideoTypes.Standup:
+                return new Standup(object.filePath,
+                    `title` in object ? object.title : undefined,
+                    `artist` in object ? object.artist : undefined,
+                    `releaseYear` in object ? object.releaseYear : undefined
+                )
+            default:
+                return new MiscVideo(object.filePath,
+                    `title` in object ? object.title : undefined
+                )
         }
     }
 }

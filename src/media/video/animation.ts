@@ -1,8 +1,8 @@
-import { DataTypes, Sequelize } from "sequelize"
+import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/staging.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
-import { Table } from "mysqldump"
+import { MediaStates } from "../media.js"
 
 class AnimationModel extends VideoModel {
     public seasonNumber!: number
@@ -10,26 +10,42 @@ class AnimationModel extends VideoModel {
 }
 
 export class Animation extends Video {
-    public videoType = VideoTypes.Animation
-    public table = DatabaseTableNames.Animation
-    public stagingDirectory = StagingPaths.Animation
-    public model = AnimationModel
-    public prompt = new Prompt(this.videoType)
-
     public filePath: string
     public title: string | undefined
     public seasonNumber: number | undefined
     public episodeNumber: number | undefined
+    public state: MediaStates | undefined
 
-    constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number) {
+    constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number, state?: MediaStates) {
         super()
         this.filePath = filePath
         this.title = title
         this.seasonNumber = seasonNumber
         this.episodeNumber = episodeNumber
+        this.state = state
     }
 
-    getAttributes() {
+    getVideoType() {
+        return VideoTypes.Animation
+    }
+
+    getTableName() {
+        return DatabaseTableNames.Animation
+    }
+
+    getStagingDirectory(): StagingPaths {
+        return StagingPaths.Animation
+    }
+
+    getPrompt() {
+        return new Prompt(this.getVideoType())
+    }
+
+    getModel(): ModelStatic<Model> {
+        return AnimationModel
+    }
+
+    getAttributes(): object {
         return {
             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
             title: {type: DataTypes.STRING, allownull: false},
@@ -38,7 +54,7 @@ export class Animation extends Video {
         }
     }
 
-    getOptions(database: Sequelize, tableName: DatabaseTableNames) {
+    getOptions(database: Sequelize, tableName: DatabaseTableNames): any {
         return {
             sequelize: database,
             tableName: `${tableName}`

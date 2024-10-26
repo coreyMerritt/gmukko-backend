@@ -7,9 +7,16 @@ export class VideoModel extends Model {
 }
 
 export abstract class Video extends Media {
-    public mediaType = MediaTypes.Video
-    public fileExtensions = [ '.mkv', '.avi', '.mp4', '.mov' ]
-    public abstract videoType: VideoTypes
+
+    public abstract getVideoType(): VideoTypes
+
+    public getMediaType() {
+        return MediaTypes.Video
+    }
+    
+    public getFileExtensions() {
+        return [ '.mkv', '.avi', '.mp4', '.mov' ]
+    }
 }
 
 export enum VideoTypes {

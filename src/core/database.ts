@@ -1,6 +1,6 @@
 import { GmukkoLogger } from './gmukko_logger.js'
 import { GmukkoTime } from './gmukko_time.js'
-import { DatabaseNames } from '../configuration/index.js'
+import { DatabaseNames, DatabaseTableNames } from '../configuration/index.js'
 import { BackupDirectories } from '../configuration/index.js'
 import { Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
@@ -29,11 +29,11 @@ export class Database {
 
 
     public static async indexMedia(media: Media[]) {
-        const table = media[0].table
+        const table = media[0].getTableName()
         GmukkoLogger.info(`Attempting to refresh the ${table} table.`)
         try {
             const stagingDatabase = await this.createAndLoadDatabase(DatabaseNames.Staging)
-            const tableExistsInStaging = await this.tableExists(stagingDatabase, media[0].table)
+            const tableExistsInStaging = await this.tableExists(stagingDatabase, media[0].getTableName())
             if (tableExistsInStaging) {
                 media = await this.removeAlreadyIndexedMedia(stagingDatabase, media)
             } else {
@@ -42,7 +42,7 @@ export class Database {
 
             if (media.length > 0) {
                 const productionDatabase = await this.createAndLoadDatabase(DatabaseNames.Production)
-                const tableExistsInProduction = await this.tableExists(productionDatabase, media[0].table)
+                const tableExistsInProduction = await this.tableExists(productionDatabase, media[0].getTableName())
                 if (tableExistsInProduction) {
                     media = await this.removeAlreadyIndexedMedia(stagingDatabase, media)
                 }
@@ -56,6 +56,20 @@ export class Database {
             GmukkoLogger.info(`Successfully refreshed the ${table} table.`)
         } catch (error) {
             GmukkoLogger.info(`Failed to refresh the ${table} table.`)
+        }
+    }
+
+
+    public static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames) {
+        const database = await this.createAndLoadDatabase(databaseName)
+        if (await this.tableExists(database, tableName)) {
+            const resultOfQuery = await database.query(
+                `SELECT * FROM ${tableName}`,
+                {
+                  type: QueryTypes.SELECT,
+                }
+            )
+            return resultOfQuery
         }
     }
 
@@ -94,11 +108,11 @@ export class Database {
             }
 
             const query = `
-                INSERT INTO ${media.table} (${columns.join(', ')})
+                INSERT INTO ${media.getTableName()} (${columns.join(', ')})
                 VALUES (${values.join(', ')})
             `
 
-            const result = await database.query(query, {
+            await database.query(query, {
                 replacements,
                 type: QueryTypes.INSERT
             })
@@ -109,9 +123,9 @@ export class Database {
     }
 
 
-    public static async removeAlreadyIndexedMedia(database: Sequelize, media: Media[]) {
+    private static async removeAlreadyIndexedMedia(database: Sequelize, media: Media[]) {
         GmukkoLogger.info("Attempting to remove already indexed files from list of files to index.")
-        let filePathsToToss: string[] = []
+        var filePathsToToss: string[] = []
     
         try {
             for (const singleMedia of media) {
@@ -155,7 +169,7 @@ export class Database {
 
 
     private static async createTable(database: Sequelize, media: Media) {
-        GmukkoLogger.info(`Attempting to create ${media.table}.`)
+        GmukkoLogger.info(`Attempting to create ${media.getTableName()}.`)
         await this.initAndSyncModel(database, media)
     }
 
@@ -175,11 +189,11 @@ export class Database {
     }
 
 
-    public static async filePathInTable(database: Sequelize, media: Media) {
+    private static async filePathInTable(database: Sequelize, media: Media) {
         try {
             const result = await database.query(`
                 SELECT *
-                FROM ${media.table}
+                FROM ${media.getTableName()};
             `)
             if (result.length > 0) {
                 return true
@@ -187,19 +201,19 @@ export class Database {
                 return false
             }
         } catch (error) {
-            GmukkoLogger.error(`Failed to query table: ${media.table}`, error)
+            GmukkoLogger.error(`Failed to query table: ${media.getTableName()}`, error)
         }
     }
     
 
     private static async initAndSyncModel(database: Sequelize, media: Media) {
         try {
-            const model = await media.model
-            model.init(media.getAttributes(), media.getOptions(database, media.table))
+            const model = media.getModel()
+            model.init(media.getAttributes(), media.getOptions(database, media.getTableName()))
             await model.sync()
-            GmukkoLogger.info(`Successfully created ${media.table} table.`)
+            GmukkoLogger.info(`Successfully created ${media.getTableName()} table.`)
         } catch (error) {
-            GmukkoLogger.error(`Failed to create ${media.table} table.`, error)
+            GmukkoLogger.error(`Failed to create ${media.getTableName()} table.`, error)
         }
     }
 }

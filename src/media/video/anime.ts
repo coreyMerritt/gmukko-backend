@@ -1,7 +1,8 @@
-import { DataTypes, Sequelize } from "sequelize"
+import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingPaths } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
+import { MediaStates } from "../media.js"
 
 class AnimeModel extends VideoModel {
     public seasonNumber!: number
@@ -9,23 +10,45 @@ class AnimeModel extends VideoModel {
 }
 
 export class Anime extends Video {
-    public videoType = VideoTypes.Anime
-    public table = DatabaseTableNames.Anime
-    public stagingDirectory = StagingPaths.Anime
     public model = AnimeModel
+    public videoType = VideoTypes.Anime
+    public tableName = DatabaseTableNames.Anime
+    public stagingDirectory = StagingPaths.Anime
     public prompt = new Prompt(this.videoType)
+    public state: MediaStates | undefined
 
     public filePath: string
     public title: string | undefined
     public seasonNumber: number | undefined
     public episodeNumber: number | undefined
 
-    constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number) {
+    constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number, state?: MediaStates) {
         super()
         this.filePath = filePath
         this.title = title
         this.seasonNumber = seasonNumber
         this.episodeNumber = episodeNumber
+        this.state = state
+    }
+
+    getVideoType() {
+        return VideoTypes.Anime
+    }
+
+    getTableName() {
+        return DatabaseTableNames.Anime
+    }
+
+    getStagingDirectory(): StagingPaths {
+        return StagingPaths.Anime
+    }
+
+    getPrompt() {
+        return new Prompt(this.getVideoType())
+    }
+
+    getModel(): ModelStatic<Model> {
+        return AnimeModel
     }
 
     getAttributes() {
