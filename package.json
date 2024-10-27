@@ -4,14 +4,15 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "tsc -p tsconfig.json && node ./dist/src/start.js",
-    "validate": "tsc -p tsconfig.validation_client.json && node ./dist/tools/validation_client/start.js"
+    "server": "tsc -p tsconfig.json && node ./dist/src/startup/start.js",
+    "client": "tsc -p tsconfig.validation_client.json && node ./dist/tools/test_client/start.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/chalk": "^0.4.31",
     "@types/fluent-ffmpeg": "^2.1.26",
     "@types/node": "^22.7.5",
     "@types/node-cron": "^3.0.11",

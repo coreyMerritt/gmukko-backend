@@ -100,7 +100,7 @@
   },
   "include": [
     "src/*.ts"
-  ],
+, "src/startup/start.ts"  ],
   "exclude": [
     "node_modules"
   ]

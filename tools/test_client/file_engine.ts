@@ -12,35 +12,17 @@ export class FileEngine {
             await fs.writeFile(Paths.PendingStagingMedia, pendingStagingMediaAsYamlString)
             console.log(`Wrote pending staging media to: ${Paths.PendingStagingMedia}`)
         } catch (error) {
-            console.error(`Unable to write pending staging media to: ${Paths.PendingStagingMedia}`)
+            throw new Error(`Unable to write pending staging media to: ${Paths.PendingStagingMedia}`)
         }
     }
 
-    public async readAcceptedMedia() {
-        const isPopulatedYaml = await this.isPopulatedYaml(Paths.AcceptedStagingMedia)
-        if (isPopulatedYaml) {
-            try {
-                const acceptedFile = (await fs.readFile(Paths.AcceptedStagingMedia)).toString()
-                const acceptedMedia = await yaml.parse(acceptedFile)
-                console.log(`Successfully read accepted media.`)
-                return acceptedMedia
-            } catch (error) {
-                console.error(`Failed to read accepted media.`)
-            }
-        }
-    }
-
-    public async readRejectedMedia(): Promise<Media[]|undefined> {
-        const isPopulatedYaml = await this.isPopulatedYaml(Paths.RejectedStagingMedia)
-        if (isPopulatedYaml) {
-            try {
-                const rejectedFile = (await fs.readFile(Paths.RejectedStagingMedia)).toString()
-                const rejectedMedia = JSON.parse(rejectedFile)
-                console.log(`Successfully read rejected media.`)
-                return rejectedMedia
-            } catch (error) {
-                console.error(`Failed to read rejected media.`)
-            }
+    public async readYamlFileToObject(path: Paths): Promise<object> {
+        try {
+            const fileContents = (await fs.readFile(path)).toString()
+            const fileContentsObject = await yaml.parse(fileContents)
+            return fileContentsObject
+        } catch (error) {
+            throw new Error(`Failed to read accepted media. Likely bad path or path is not yaml:\n${error}`)
         }
     }
 
@@ -60,6 +42,10 @@ export class FileEngine {
         } else {
             return false
         }
+    }
+
+    public async backupPendingStagingMedia() {
+        
     }
 
     private fileExists(filePath: string): boolean {

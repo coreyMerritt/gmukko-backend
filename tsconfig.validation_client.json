@@ -99,7 +99,7 @@
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "tools/validation_client/*.ts"
+    "tools/test_client/*.ts"
   ],
   "exclude": [
     "node_modules"

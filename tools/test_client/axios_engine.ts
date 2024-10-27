@@ -4,6 +4,7 @@ import { Menus } from "./menus.js"
 import yaml from 'yaml'
 import axiosRetry from "axios-retry"
 import http from 'http'
+import { Paths } from "./configuration.js"
 
 
 export class AxiosEngine {
@@ -20,7 +21,7 @@ export class AxiosEngine {
             const reply = await this.instance.post(`/db/staging/index`)
             console.log(`${reply.status}: reply.data`)
         } catch (error) {
-            console.error(`Failed to start indexing.`, error)
+            throw new Error(`Failed to start indexing.\n${error}`)
         }
     }
 
@@ -30,40 +31,26 @@ export class AxiosEngine {
             const getData = rawGet.data
             console.log(rawGet.status)
             return getData
-        } catch {
-            console.error(`Server did not respond to GET.`)
+        } catch (error) {
+            throw new Error(`Server did not respond to GET.\n${error}`)
         }
     }
 
-    public async postAcceptedStagingMedia() {
+    public async postStagingValidationResults(path: Paths) {
         const fileEngine = new FileEngine()
-        const acceptedMedia = await fileEngine.readAcceptedMedia()
-        if (acceptedMedia) {
+        const validationResults = await fileEngine.readYamlFileToObject(path)
+        if (validationResults) {
             try {
-                const reply = await this.instance.post(`/db/staging/validation/accepted`, acceptedMedia)
+                const reply = await this.instance.post(`/db/staging/validation/accepted`, validationResults)
                 console.log(`${reply.status}: ${reply.data}`)
-            } catch {
-                console.error(`Unable to post accepted staging media results:\n${yaml.stringify(acceptedMedia)}`)
+            } catch (error) {
+                throw new Error(`Unable to post ${path}:\n${error}`)
             }
         } else {
-            console.log(`No accepted media to post.`)
+            throw new Error(`No staging validation results to post.`)
         }
     }
 
-    public async postRejectedStagingMedia() {
-        const fileEngine = new FileEngine()
-        const rejectedMedia = await fileEngine.readRejectedMedia()
-        if (rejectedMedia) {
-            try {
-                const reply = await this.instance.post(`/db/staging/validation/rejected`, rejectedMedia)
-                console.log(`${reply.status}: ${reply.data}`)
-            } catch {
-                console.error(`Unable to post rejected staging media results:\n${yaml.stringify(rejectedMedia)}`)
-            }
-        } else {
-            console.log(`No rejected media to post.`)
-        }
-    }
 
     private createCustomAxios(): AxiosInstance {
         const axiosInstance = axios.create({

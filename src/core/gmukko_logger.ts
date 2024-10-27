@@ -4,6 +4,7 @@ import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
 import { VideoTypes } from '../media/video/video.js'
+import chalk from 'chalk'
 
 
 export class GmukkoLogger {
@@ -30,6 +31,14 @@ export class GmukkoLogger {
 
     static async info(info: string) {
         console.log(info)
+        fs.appendFile(`${LogFiles.Default}`, 
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
+            `Info: ${info}\n\n`
+        )
+    }
+
+    static async success(info: string) {
+        console.log(chalk.green(info))
         fs.appendFile(`${LogFiles.Default}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
