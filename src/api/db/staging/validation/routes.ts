@@ -1,16 +1,19 @@
-import express, { Router } from 'express'
+import express from 'express'
 import { MediaController } from '../../../../controllers/index.js'
 import { Database } from '../../../../core/database.js'
 import { Validators } from '../../../../core/validators.js'
-import { GmukkoLogger } from '../../../../core/gmukko_logger.js'
 
 
 const router = express.Router()
 
 router.get('/pending', async (req, res, next) => {
-    const validationRequest = await MediaController.getStagingMedia()
-    res.status(200).send(validationRequest)
-    console.log(`200: Sent Staging Media.`)
+    try {
+        const validationRequest = await MediaController.getStagingMedia()
+        res.status(200).send(validationRequest)
+    } catch (error) {
+        res.sendStatus(500)
+        next(error)
+    }
 })
 
 router.post('/accepted', async (req, res, next) => {
@@ -20,17 +23,22 @@ router.post('/accepted', async (req, res, next) => {
         if (Validators.isValidationRequest(originalRequest)) {
             await MediaController.moveStagingFilesToProduction(updatedRequest)
             await Database.moveStagingDatabaseEntriesToProduction(originalRequest, updatedRequest)
-            res.status(200).send('Success\n')
+            res.status(200).send('200: Success.\n')
         }
     } catch (error) {
-        res.status(500).send(`500\n`)
+        res.sendStatus(500)
         next(error)
     }
 })
 
-router.post('/rejected', async (req, res) => {
-    console.log(req.body)
-    res.status(200).send('Success\n')
+router.post('/rejected', async (req, res, next) => {
+    try {
+        console.log(req.body)
+        res.status(200).send('200: Success.\n')
+    } catch (error) {
+        res.sendStatus(500)
+        next(error)
+    }
 })
 
 export default router

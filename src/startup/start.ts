@@ -19,7 +19,7 @@ class Start {
     }
 
 
-    
+
     private async createDirectories() {
         var directoriesToCreate: string[] = []
         directoriesToCreate.push(...(Object.values(BackupDirectories)))
@@ -60,9 +60,10 @@ class Start {
 
     private async startPassiveJobs() {
         cron.schedule('0 0 * * *', () => {
-            Database.backup()
-        }, {
-            timezone: 'UTC'
+            Database.backupAll()
+        }, 
+        {
+            timezone: 'America/Detroit'
         })
     }
 }

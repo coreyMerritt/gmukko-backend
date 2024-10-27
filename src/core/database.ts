@@ -18,15 +18,14 @@ export class Database {
     private static port = '3306'
 
 
-    public static async backup(): Promise<number> {
+    public static async backupAll(): Promise<void> {
         const execAsync = promisify(exec)
         try {
             for (const [, databaseName] of [DatabaseNames.Production, DatabaseNames.Staging]) {
                 await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             }
-            return 200
         } catch (error) {
-            return 500
+            throw new Error(`Failed to back up databases:\n${error}`)
         }
     }
 

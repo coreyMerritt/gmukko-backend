@@ -4,9 +4,14 @@ import express from 'express'
 
 const router = express.Router()
 
-router.post('/', async (req, res) => {
-    const code = await Database.backup()
-    res.status(code).send(`${code}\n`)
+router.post('/', async (req, res, next) => {
+    try {
+        await Database.backupAll()
+        res.status(200).send('200: Success.\n')
+    } catch (error) {
+        res.sendStatus(500)
+        next(error)
+    }
 })
 
 export default router

@@ -4,13 +4,14 @@ import express from 'express'
 
 const router = express.Router()
 
-router.post('/:mediaType?', async (req, res) => {
-    const mediaType = req.params.mediaType
+router.post('/:mediaType?', async (req, res, next) => {
     try {
+        const mediaType = req.params.mediaType
         MediaController.indexStaging(mediaType)
-        res.status(200).send(`Attempting to stage new files.\n`)
+        res.status(200).send('200: Started indexing of new files.\n')
     } catch (error) {
-        res.status(500).send(`Something went wrong.\n${error}\n`)
+        res.sendStatus(500)
+        next(error)
     }
 })
 
