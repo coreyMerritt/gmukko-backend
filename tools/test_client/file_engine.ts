@@ -1,7 +1,9 @@
 import yaml from 'yaml'
 import fs from 'fs/promises'
+import fsSync from 'fs'
+import path from 'path'
 import { Paths } from './configuration.js'
-import { Media } from '../../src/media/media.js'
+import { GmukkoTime } from '../../src/core/gmukko_time.js'
 
 
 export class FileEngine {
@@ -9,10 +11,10 @@ export class FileEngine {
     public async writePendingStagingMedia(object: object): Promise<void> {
         try {
             const pendingStagingMediaAsYamlString = yaml.stringify(object)
-            await fs.writeFile(Paths.PendingStagingMedia, pendingStagingMediaAsYamlString)
-            console.log(`Wrote pending staging media to: ${Paths.PendingStagingMedia}`)
+            await fs.writeFile(Paths.PendingValidation, pendingStagingMediaAsYamlString)
+            console.log(`Wrote pending staging media to: ${Paths.PendingValidation}`)
         } catch (error) {
-            throw new Error(`Unable to write pending staging media to: ${Paths.PendingStagingMedia}`)
+            throw new Error(`Unable to write pending staging media to: ${Paths.PendingValidation}`)
         }
     }
 
@@ -44,8 +46,28 @@ export class FileEngine {
         }
     }
 
-    public async backupPendingStagingMedia() {
-        
+    
+
+    public backupFile(originalPath: Paths, backupPath: Paths) {
+        try {
+            const originalFileContent = this.readFileAsString(originalPath)
+            const newFileDirectory = path.dirname(backupPath)
+            const newFileName = path.basename(backupPath)
+            const newFilePath = `${newFileDirectory}/${GmukkoTime.getCurrentDateTime(true)}/${newFileName}`
+            fsSync.writeFileSync(newFilePath, originalFileContent)
+        } catch (error) {
+            throw new Error(`Failed to back up staging validation files.\n${error}`)
+        }
+    }
+
+    private readFileAsString(path: Paths): string {
+        try {
+            const fileBuffer = fsSync.readFileSync(path)
+            const fileString = String(fileBuffer)
+            return fileString
+        } catch (error) {
+            throw new Error(`Unable to read ${path} as string.\n${error}`)
+        }
     }
 
     private fileExists(filePath: string): boolean {

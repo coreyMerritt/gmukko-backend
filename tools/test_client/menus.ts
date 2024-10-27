@@ -9,6 +9,7 @@ export class Menus {
     public async main(): Promise<void> {
         const userAnswer = this.getUserInput(
             `Main Menu:\n` +
+            `\t0) Back Up Databases\n` +
             `\t1) Index Staging\n` +
             `\t2) Get Staging Index\n` +
             `\t3) Post Staging Validation\n`
@@ -50,15 +51,18 @@ export class Menus {
             case AcceptableUserAnswers.GetStagingIndex:
                 const pendingStagingMedia = await axios.getPendingStagingMedia()
                 if (pendingStagingMedia) {
-                    await fileEngine.backupPendingStagingMedia()
+                    fileEngine.backupFile(Paths.PendingValidation, Paths.AcceptedValidation)
+                    fileEngine.backupFile(Paths.AcceptedValidation, Paths.AcceptedValidation)
+                    fileEngine.backupFile(Paths.RejectedValidation, Paths.RejectedValidation)
                     await fileEngine.writePendingStagingMedia(pendingStagingMedia)
+                    fileEngine
                 } else {
                     console.log(`No pending staging media.`)
                 }
                 break
             case AcceptableUserAnswers.PostStagingValidation:
-                await axios.postStagingValidationResults(Paths.AcceptedStagingMedia)
-                await axios.postStagingValidationResults(Paths.RejectedStagingMedia)
+                await axios.postStagingValidationResults(Paths.AcceptedValidation)
+                await axios.postStagingValidationResults(Paths.RejectedValidation)
                 break
             default:
                 throw new Error(`Invalid input.`)
