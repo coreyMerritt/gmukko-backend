@@ -6,19 +6,6 @@ export class VideoModel extends Model {
     public title!: string
 }
 
-export abstract class Video extends Media {
-
-    public abstract getVideoType(): VideoTypes
-
-    public getMediaType() {
-        return MediaTypes.Video
-    }
-    
-    public getFileExtensions() {
-        return [ '.mkv', '.avi', '.mp4', '.mov' ]
-    }
-}
-
 export enum VideoTypes {
     Animation = 'animation',
     Anime = 'anime',
@@ -26,4 +13,12 @@ export enum VideoTypes {
     Movie = 'movie',
     Show = 'show',
     Standup = 'standup'
+}
+
+export abstract class Video extends Media {
+    public abstract videoType: VideoTypes
+
+    public getFileExtensions() {
+        return [ '.mkv', '.avi', '.mp4', '.mov' ]
+    }
 }

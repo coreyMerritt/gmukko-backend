@@ -1,8 +1,8 @@
 import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
-import { StagingPaths } from "../../configuration/index.js"
+import { StagingDirectories } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
-import { MediaStates, MediaTypes } from "../media.js"
+import { MediaTypes } from "../media.js"
 
 class StandupModel extends VideoModel {
     public artist!: string
@@ -10,25 +10,19 @@ class StandupModel extends VideoModel {
 }
 
 export class Standup extends Video {
-    public model = StandupModel
+    public mediaType = MediaTypes.Video
     public videoType = VideoTypes.Standup
-    public tableName = DatabaseTableNames.Standup
-    public stagingDirectory = StagingPaths.Standup
-    public prompt = new Prompt(this.videoType)
-    public state: MediaStates | undefined
-
     public filePath: string
-    public title: string | undefined
-    public artist: string | undefined
-    public releaseYear: number | undefined
+    public title: string
+    public artist: string
+    public releaseYear: number
 
-    constructor(filePath: string, title?: string, artist?: string, releaseYear?: number, state?: MediaStates) {
+    constructor(filePath: string, title: string, artist: string, releaseYear: number) {
         super()
         this.filePath = filePath
         this.title = title
         this.artist = artist
         this.releaseYear = releaseYear
-        this.state = state
     }
 
     getVideoType() {
@@ -39,8 +33,8 @@ export class Standup extends Video {
         return DatabaseTableNames.Standup
     }
 
-    getStagingDirectory(): StagingPaths {
-        return StagingPaths.Standup
+    getStagingDirectory(): StagingDirectories {
+        return StagingDirectories.Standup
     }
 
     getPrompt() {

@@ -1,25 +1,19 @@
 import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
-import { StagingPaths } from "../../configuration/index.js"
+import { StagingDirectories } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
-import { MediaStates } from "../media.js"
+import { MediaTypes } from "../media.js"
 
 export class MiscVideo extends Video {
-    public model = VideoModel
+    public mediaType = MediaTypes.Video
     public videoType = VideoTypes.Misc
-    public tableName = DatabaseTableNames.MiscVideo
-    public stagingDirectory = StagingPaths.MiscVideo
-    public prompt = new Prompt(this.videoType)
-    public state: MediaStates | undefined
-
     public filePath: string
-    public title: string | undefined
+    public title: string
 
-    constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number, state?: MediaStates) {
+    constructor(filePath: string, title: string) {
         super()
         this.filePath = filePath
         this.title = title
-        this.state = state
     }
 
     getVideoType() {
@@ -30,8 +24,8 @@ export class MiscVideo extends Video {
         return DatabaseTableNames.MiscVideo
     }
 
-    getStagingDirectory(): StagingPaths {
-        return StagingPaths.MiscVideo
+    getStagingDirectory(): StagingDirectories {
+        return StagingDirectories.MiscVideo
     }
 
     getPrompt() {

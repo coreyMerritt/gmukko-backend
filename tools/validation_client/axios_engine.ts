@@ -11,14 +11,21 @@ export class AxiosEngine {
     private protocol = `http`
     private host = `localhost`
     private port = 3080
-    private url = `${this.protocol}://${this.host}:${this.port}/db/staging/validation/`
-
+    private url = `${this.protocol}://${this.host}:${this.port}`
     private instance = this.createCustomAxios() 
 
 
+    public async startIndexing() {
+        try {
+            await this.instance.post(`/db/staging/index`)
+        } catch (error) {
+            console.error(`Failed to start indexing.`, error)
+        }
+    }
+
     public async getPendingStagingMedia(): Promise<object|undefined> {
         try {
-            const rawGet = await this.instance.get(`pending`)
+            const rawGet = await this.instance.get(`/db/staging/validation/pending`)
             const getData = rawGet.data
             return getData
         } catch {
@@ -31,7 +38,7 @@ export class AxiosEngine {
         const acceptedMedia = await fileEngine.readAcceptedMedia()
         if (acceptedMedia) {
             try {
-                await this.instance.post(`accepted`, acceptedMedia)
+                await this.instance.post(`/db/staging/validation/accepted`, acceptedMedia)
                 console.log(`Posted accepted staging media results.`)
             } catch {
                 console.error(`Unable to post accepted staging media results:\n${yaml.stringify(acceptedMedia)}`)
@@ -39,7 +46,6 @@ export class AxiosEngine {
         } else {
             console.log(`No accepted media to post.`)
         }
-        new Menus().main()
     }
 
     public async postRejectedStagingMedia() {
@@ -47,7 +53,7 @@ export class AxiosEngine {
         const rejectedMedia = await fileEngine.readRejectedMedia()
         if (rejectedMedia) {
             try {
-                await this.instance.post(`rejected`, rejectedMedia)
+                await this.instance.post(`/db/staging/validation/rejected`, rejectedMedia)
                 console.log(`Posted rejected staging media results.`)
             } catch {
                 console.error(`Unable to post rejected staging media results:\n${yaml.stringify(rejectedMedia)}`)
@@ -55,7 +61,6 @@ export class AxiosEngine {
         } else {
             console.log(`No rejected media to post.`)
         }
-        new Menus().main()
     }
 
     private createCustomAxios(): AxiosInstance {

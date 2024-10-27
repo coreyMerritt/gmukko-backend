@@ -7,7 +7,7 @@ import { VideoFactory, VideoTypes } from "./video/index.js"
 export class MediaFactory {
     public static createMedia(object: any) {
         if (Validators.isMedia(object)) {
-            switch (object.getMediaType()) {
+            switch (object.mediaType) {
                 case MediaTypes.Video:
                     return VideoFactory.createVideoFromObject(object)
                 default:

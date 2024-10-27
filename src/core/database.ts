@@ -2,10 +2,11 @@ import { GmukkoLogger } from './gmukko_logger.js'
 import { GmukkoTime } from './gmukko_time.js'
 import { DatabaseNames, DatabaseTableNames } from '../configuration/index.js'
 import { BackupDirectories } from '../configuration/index.js'
-import { Sequelize, QueryTypes } from 'sequelize'
+import { Sequelize, QueryTypes, col } from 'sequelize'
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import { Media } from '../media/media.js'
+import { ValidationRequest } from '../controllers/media_controller.js'
 
 
 export class Database {
@@ -60,6 +61,16 @@ export class Database {
     }
 
 
+    public static async moveStagingDatabaseEntriesToProduction(validationRequest: ValidationRequest): Promise<void> {
+        const productionDatabase = await this.createAndLoadDatabase(DatabaseNames.Production)
+        for (const [, tableName] of Object.keys(validationRequest.tables).entries()) {
+            for (const [, media] of validationRequest.tables[tableName].entries()) {
+                await this.insertMediaIntoTable(productionDatabase, media)
+            }
+        }
+    }
+
+
     public static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames) {
         const database = await this.createAndLoadDatabase(databaseName)
         if (await this.tableExists(database, tableName)) {
@@ -70,6 +81,44 @@ export class Database {
                 }
             )
             return resultOfQuery
+        }
+    }
+
+
+    public static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string) {
+        const database = await this.createAndLoadDatabase(databaseName)
+        if (await this.tableExists(database, tableName)) {
+            const resultOfQuery = await database.query(
+                `SELECT * 
+                FROM ${tableName}
+                WHERE :column = :match;`,
+                {
+                    replacements: {
+                        column: column,
+                        match: match
+                    },
+                    type: QueryTypes.SELECT,
+                }
+            )
+            return resultOfQuery
+        }
+    }
+
+
+    private static async deleteFromTableWhereOneEqualsTwo(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string) {
+        const database = await this.createAndLoadDatabase(databaseName)
+        if (await this.tableExists(database, tableName)) {
+            const resultOfQuery = await database.query(
+                `DELETE FROM ${tableName}
+                WHERE :column = :match;`,
+                {
+                    type: QueryTypes.DELETE,
+                    replacements: {
+                        column: column,
+                        match: match
+                    }
+                }
+            )
         }
     }
 

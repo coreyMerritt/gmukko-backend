@@ -26,3 +26,4 @@ app.use((req, res, next) => {
 app.use(`/db/backup`, dbBackupRoutes)
 app.use(`/db/staging/index`, initialIndexRoutes)
 app.use(`/db/staging/validation`, validationRoutes)
+app.use(GmukkoLogger.error)

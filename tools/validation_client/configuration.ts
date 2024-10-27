@@ -1,4 +1,5 @@
 export enum AcceptableUserAnswers {
+    Index = 'index',
     Get = 'get',
     PostAccepted = 'post accepted',
     PostRejected = 'post rejected',

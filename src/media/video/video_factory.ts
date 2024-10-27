@@ -56,17 +56,17 @@ export class VideoFactory {
     public static createNullFromVideoType(videoType: VideoTypes): Video {
         switch (videoType) {
             case VideoTypes.Animation:
-                return new Animation("")
+                return new Animation("", "", 0, 0)
             case VideoTypes.Anime:
-                return new Anime("")
+                return new Anime("", "", 0, 0)
             case VideoTypes.Movie:
-                return new Movie("")
+                return new Movie("", "", 0)
             case VideoTypes.Show:
-                return new Show("")
+                return new Show("", "", 0, 0)
             case VideoTypes.Standup:
-                return new Standup("")
+                return new Standup("", "", "", 0)
             default:
-                return new MiscVideo("")
+                return new MiscVideo("", "")
         }
     }
 

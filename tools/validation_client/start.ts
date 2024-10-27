@@ -6,7 +6,6 @@ import { Menus } from "./menus.js"
 class Startup {
     async execute(): Promise<void> {
         this.createFilesAndDirectories()
-        
         new Menus().main()
     }
 
@@ -15,7 +14,11 @@ class Startup {
             fs.mkdir(directory, { recursive: true })
         }
         for (const [, filePath] of Object.values(Paths).entries()) {
-            fs.writeFile(filePath, "")
+            try {
+                fs.access(filePath)
+            } catch {
+                fs.writeFile(filePath, "")
+            }
         }
     }
 }

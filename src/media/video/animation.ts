@@ -1,8 +1,8 @@
 import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
-import { StagingPaths } from "../../configuration/staging.js"
+import { StagingDirectories } from "../../configuration/directories/staging_directories.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
-import { MediaStates } from "../media.js"
+import { MediaTypes } from "../media.js"
 
 class AnimationModel extends VideoModel {
     public seasonNumber!: number
@@ -10,19 +10,19 @@ class AnimationModel extends VideoModel {
 }
 
 export class Animation extends Video {
+    public mediaType = MediaTypes.Video
+    public videoType = VideoTypes.Animation
     public filePath: string
-    public title: string | undefined
-    public seasonNumber: number | undefined
-    public episodeNumber: number | undefined
-    public state: MediaStates | undefined
+    public title: string
+    public seasonNumber: number
+    public episodeNumber: number
 
-    constructor(filePath: string, title?: string, seasonNumber?: number, episodeNumber?: number, state?: MediaStates) {
+    constructor(filePath: string, title: string, seasonNumber: number, episodeNumber: number) {
         super()
         this.filePath = filePath
         this.title = title
         this.seasonNumber = seasonNumber
         this.episodeNumber = episodeNumber
-        this.state = state
     }
 
     getVideoType() {
@@ -33,8 +33,8 @@ export class Animation extends Video {
         return DatabaseTableNames.Animation
     }
 
-    getStagingDirectory(): StagingPaths {
-        return StagingPaths.Animation
+    getStagingDirectory(): StagingDirectories {
+        return StagingDirectories.Animation
     }
 
     getPrompt() {

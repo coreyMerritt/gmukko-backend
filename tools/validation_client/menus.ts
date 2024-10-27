@@ -12,6 +12,9 @@ export class Menus {
         const axios = new AxiosEngine()
 
         switch (userAnswer) {
+            case AcceptableUserAnswers.Index:
+                await axios.startIndexing()
+                break
             case AcceptableUserAnswers.Get:
                 const pendingStagingMedia = await axios.getPendingStagingMedia()
                 if (pendingStagingMedia) {
@@ -48,7 +51,7 @@ export class Menus {
         while (!acceptableUserAnswers.includes(userAnswer)) {
             !firstLoop ? console.error(`Invalid input.`) : undefined
             firstLoop = false
-            userAnswer = prompt(`"get" | "post accepted" | "post rejected" | "post all": `)
+            userAnswer = prompt(`"index" | "get" | "post accepted" | "post rejected" | "post all": `)
             userAnswer = userAnswer.toLowerCase()
         }
         return userAnswer

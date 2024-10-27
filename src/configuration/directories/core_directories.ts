@@ -1,5 +1,6 @@
 export enum CoreDirectories {
     Staging = `/mnt/z/gmukko_staging`,
-    Media = `${Staging}/media`,
-    Videos = `${Media}/videos`
+    StagingMedia = `${Staging}/media`,
+    Production = '/mnt/z/gmukko_production',
+    ProductionMedia = `${Production}/media`,
 }
