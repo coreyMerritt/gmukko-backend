@@ -9,21 +9,17 @@ const router = express.Router()
 
 router.get('/pending', async (req, res, next) => {
     const validationRequest = await MediaController.getStagingMedia()
-    if (validationRequest.tables !== undefined) {
-        res.status(200).send(validationRequest)
-        console.log(`200: Send Staging Media.`)
-    } else {
-        res.status(204).send(`204\n`)
-        console.log(`204: No Staging Media Found.`)
-    }
+    res.status(200).send(validationRequest)
+    console.log(`200: Sent Staging Media.`)
 })
 
 router.post('/accepted', async (req, res, next) => {
     try {
-        const validationRequest = req.body
-        if (Validators.isValidationRequest(validationRequest)) {
-            const validationRequestWithNewFilePaths = await MediaController.moveStagingFilesToProduction(validationRequest)
-            await Database.moveStagingDatabaseEntriesToProduction(validationRequestWithNewFilePaths)
+        const originalRequest = structuredClone(req.body)
+        const updatedRequest = structuredClone(req.body)
+        if (Validators.isValidationRequest(originalRequest)) {
+            await MediaController.moveStagingFilesToProduction(updatedRequest)
+            await Database.moveStagingDatabaseEntriesToProduction(originalRequest, updatedRequest)
             res.status(200).send('Success\n')
         }
     } catch (error) {

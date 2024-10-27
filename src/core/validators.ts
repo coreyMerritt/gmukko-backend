@@ -84,12 +84,13 @@ export class Validators {
 
     public static isValidationRequest(object: object): object is ValidationRequest {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
-            for (const [, media] of Object.values(object.tables).entries()) {
-                if (!this.isMedia(media)) {
-                    GmukkoLogger.error(`Rejected media validation request. This is not valid media ${JSON.stringify(media)}.`)
+            for (const [, someArray] of Object.values(object.tables).entries()) {
+                if (!this.isMediaArray(someArray)) {
+                    GmukkoLogger.error(`Rejected media validation request. This is not valid media ${JSON.stringify(someArray)}.`)
                     return false
                 }
-                for (const [, value] of Object.values(media)) {
+                for (const [, media] of Object.values(someArray).entries()) {
+                    for (const [, value] of Object.values(media).entries())
                     if (value === null || value === undefined || value === `placeholder` || value === -1) {
                         throw new Error(`Rejected media validation request. Media contains a null, undefined, placeholer, or -1 value:\n${JSON.stringify(media)}`)
                     }

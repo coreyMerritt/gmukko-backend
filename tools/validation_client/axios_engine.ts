@@ -17,7 +17,8 @@ export class AxiosEngine {
 
     public async startIndexing() {
         try {
-            await this.instance.post(`/db/staging/index`)
+            const reply = await this.instance.post(`/db/staging/index`)
+            console.log(`${reply.status}: reply.data`)
         } catch (error) {
             console.error(`Failed to start indexing.`, error)
         }
@@ -27,6 +28,7 @@ export class AxiosEngine {
         try {
             const rawGet = await this.instance.get(`/db/staging/validation/pending`)
             const getData = rawGet.data
+            console.log(rawGet.status)
             return getData
         } catch {
             console.error(`Server did not respond to GET.`)
@@ -38,8 +40,8 @@ export class AxiosEngine {
         const acceptedMedia = await fileEngine.readAcceptedMedia()
         if (acceptedMedia) {
             try {
-                await this.instance.post(`/db/staging/validation/accepted`, acceptedMedia)
-                console.log(`Posted accepted staging media results.`)
+                const reply = await this.instance.post(`/db/staging/validation/accepted`, acceptedMedia)
+                console.log(`${reply.status}: ${reply.data}`)
             } catch {
                 console.error(`Unable to post accepted staging media results:\n${yaml.stringify(acceptedMedia)}`)
             }
@@ -53,8 +55,8 @@ export class AxiosEngine {
         const rejectedMedia = await fileEngine.readRejectedMedia()
         if (rejectedMedia) {
             try {
-                await this.instance.post(`/db/staging/validation/rejected`, rejectedMedia)
-                console.log(`Posted rejected staging media results.`)
+                const reply = await this.instance.post(`/db/staging/validation/rejected`, rejectedMedia)
+                console.log(`${reply.status}: ${reply.data}`)
             } catch {
                 console.error(`Unable to post rejected staging media results:\n${yaml.stringify(rejectedMedia)}`)
             }

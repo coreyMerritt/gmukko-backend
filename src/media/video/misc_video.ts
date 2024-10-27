@@ -38,15 +38,10 @@ export class MiscVideo extends Video {
 
     getAttributes() {
         return {
+            mediaType: {type: DataTypes.STRING, allownull: false},
+            videoType: {type: DataTypes.STRING, allownull: false},
             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
             title: {type: DataTypes.STRING, allownull: false}
-        }
-    }
-
-    getOptions(database: Sequelize, tableName: DatabaseTableNames) {
-        return {
-            sequelize: database,
-            tableName: `${tableName}`
         }
     }
 }

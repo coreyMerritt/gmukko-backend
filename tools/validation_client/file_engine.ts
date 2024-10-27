@@ -16,12 +16,12 @@ export class FileEngine {
         }
     }
 
-    public async readAcceptedMedia(): Promise<Media[]|undefined> {
+    public async readAcceptedMedia() {
         const isPopulatedYaml = await this.isPopulatedYaml(Paths.AcceptedStagingMedia)
         if (isPopulatedYaml) {
             try {
                 const acceptedFile = (await fs.readFile(Paths.AcceptedStagingMedia)).toString()
-                const acceptedMedia = yaml.parse(acceptedFile)
+                const acceptedMedia = await yaml.parse(acceptedFile)
                 console.log(`Successfully read accepted media.`)
                 return acceptedMedia
             } catch (error) {

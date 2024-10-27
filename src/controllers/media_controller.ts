@@ -21,31 +21,31 @@ export class MediaController {
             for (const [, media] of validationRequest.tables[tableName].entries()) {
                 const newFilePath = await this.getNewFilePathFromMedia(media, tableName as DatabaseTableNames)
                 if (newFilePath) {
-                    fs.mkdir(path.dirname(newFilePath), { recursive: true }, (error) => {
-                        if (error) {
-                            GmukkoLogger.error(`Unable to make directories for new file.\nStaging: ${media.filePath}\nProduction: ${newFilePath}`, error)
-                        }
-                    })
-                    fs.access(media.filePath, (error) => {
-                        if (error) {
-                            GmukkoLogger.error(`Unable to access file.`, error)
-                        } else {
-                            fs.rename(media.filePath, newFilePath, (error) => {
-                                if (error) {
-                                    GmukkoLogger.error(`Unable to move file to production.\nStaging: ${media.filePath}\nProduction: ${newFilePath}`, error)
-                                } else {
-                                    GmukkoLogger.info(`Successfully moved file to production:\nStaging: ${media.filePath}\nProduction: ${newFilePath}`)
-                                    media.filePath = newFilePath
-                                }
-                            })
-                        }
-                    })
+                    try {
+                        fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
+                    } catch (error) {
+                        throw new Error(`Unable to make directories for new file.\nStaging: ${media.filePath}\nProduction: ${newFilePath}\n${error}`)
+                    }
+                    
+                    try {
+                        fs.accessSync(media.filePath)
+                    } catch (error) {
+                        throw new Error(`Unable to access file.\nerror`)
+                    }
+
+                    try {
+                        fs.renameSync(media.filePath, newFilePath)
+                        media.filePath = newFilePath
+                    } catch (error) {
+                        throw new Error(`Unable to rename file.\n${error}`)
+                    }
 
                 } else {
                     GmukkoLogger.error(`Unable to determine new file path.`)
                 }
             }
         }
+        GmukkoLogger.info(`Successfully moved file from staging to production.`)
         return validationRequest
     }
 
@@ -68,8 +68,10 @@ export class MediaController {
             validationRequest.tables[tableName] = []
             const results = await Database.selectAllFromTable(DatabaseNames.Staging, tableName)
             if (results) {
-                for (const [, object] of results.entries()) {
-                    validationRequest.tables[tableName].push(object as Media)
+                for (const [, media] of results.entries()) {
+                    if (Validators.isMedia(media)) {
+                        validationRequest.tables[tableName].push(media)
+                    }
                 }
             }
         }
@@ -78,7 +80,7 @@ export class MediaController {
     }
 
     private static async getNewFilePathFromMedia(media: Media, tableName: DatabaseTableNames) {
-        var newBasePath = `${CoreDirectories.ProductionMedia}/${tableName}`
+        var newBasePath = `${CoreDirectories.ProductionVideos}/${tableName}`
         var currentFileExtension = path.extname(media.filePath)
         var title = 'title' in media ? media.title.toLowerCase().replace(/ /g, '-') : undefined
         var artist = 'artist' in media ? String(media.artist).toLowerCase().replace(/ /g, '-') : undefined
@@ -88,42 +90,42 @@ export class MediaController {
         switch (tableName) {
             case DatabaseTableNames.Animation:
                 if (Validators.isAnimation(media)) {
-                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}.${currentFileExtension}`
+                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
                 } else {
                     GmukkoLogger.error(`Media sent to production under table ${tableName} is not actually an animation.`)
                 }
                 break
             case DatabaseTableNames.Anime:
                 if (Validators.isAnime(media)) {
-                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}.${currentFileExtension}`
+                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
                 } else {
                     GmukkoLogger.error(`Media sent to production under table ${tableName} is not actually an anime.`)
                 }
                 break
             case DatabaseTableNames.Movies:
                 if (Validators.isMovie(media)) {
-                    return `${newBasePath}/(${media.releaseYear})-${title}.${currentFileExtension}`
+                    return `${newBasePath}/(${media.releaseYear})-${title}${currentFileExtension}`
                 } else {
                     GmukkoLogger.error(`Media sent to production under table ${tableName} is not actually a movie.`)
                 }
                 break
             case DatabaseTableNames.Shows:
                 if (Validators.isShow(media)) {
-                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}.${currentFileExtension}`
+                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
                 } else {
                     GmukkoLogger.error(`Media sent to production under table ${tableName} is not actually a show.`)
                 }
                 break
             case DatabaseTableNames.Standup:
                 if (Validators.isStandup(media)) {
-                    return `${newBasePath}/${artist}/(${media.releaseYear})-${title}.${currentFileExtension}`
+                    return `${newBasePath}/${artist}/(${media.releaseYear})-${title}${currentFileExtension}`
                 } else {
                     GmukkoLogger.error(`Media sent to production under table ${tableName} is not actually standup.`)
                 }
                 break
             default:
                 if (Validators.isMiscVideo(media)) {
-                    return `${newBasePath}/${title}.${currentFileExtension}`
+                    return `${newBasePath}/${title}${currentFileExtension}`
                 } else {
                     GmukkoLogger.error(`Media sent to production under table ${tableName} is not actually a misc video.`)
                 }
@@ -133,22 +135,22 @@ export class MediaController {
     }
 
     private static async indexAllStagingDirectories() {  
-            const nullAnimation = new Animation("", "", 0, 0)
+            const nullAnimation = VideoFactory.createNullFromVideoType(VideoTypes.Animation)
             this.indexOneStagingDirectory(nullAnimation)
 
-            const nullAnime = new Anime("", "", 0, 0)
+            const nullAnime = VideoFactory.createNullFromVideoType(VideoTypes.Anime)
             this.indexOneStagingDirectory(nullAnime)
 
-            const nullMovie = new Movie("", "", 0)
+            const nullMovie = VideoFactory.createNullFromVideoType(VideoTypes.Movie)
             this.indexOneStagingDirectory(nullMovie)
 
-            const nullShow = new Show("", "", 0, 0)
+            const nullShow = VideoFactory.createNullFromVideoType(VideoTypes.Show)
             this.indexOneStagingDirectory(nullShow)
 
-            const nullStandup = new Standup("", "", "", 0)
+            const nullStandup = VideoFactory.createNullFromVideoType(VideoTypes.Standup)
             this.indexOneStagingDirectory(nullStandup)
 
-            const nullMiscVideo = new MiscVideo("", "")
+            const nullMiscVideo = VideoFactory.createNullFromVideoType(VideoTypes.Misc)
             this.indexOneStagingDirectory(nullMiscVideo)
     }
 

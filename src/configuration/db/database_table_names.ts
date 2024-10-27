@@ -1,8 +1,8 @@
 export enum DatabaseTableNames {
-    Animation = 'video_animation',
-    Anime = 'video_anime',
-    MiscVideo = 'video_misc',
-    Movies = 'video_movies',
-    Shows = 'video_shows',
-    Standup = 'video_standup'
+    Animation = 'animation',
+    Anime = 'anime',
+    MiscVideo = 'misc',
+    Movies = 'movies',
+    Shows = 'shows',
+    Standup = 'standup'
 }

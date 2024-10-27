@@ -47,17 +47,12 @@ export class Standup extends Video {
 
     getAttributes() {
         return {
+            mediaType: {type: DataTypes.STRING, allownull: false},
+            videoType: {type: DataTypes.STRING, allownull: false},
             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
             title: {type: DataTypes.STRING, allownull: false},
-            artist: {type: DataTypes.STRING, allownull: true},
-            releaseYear: {type: DataTypes.INTEGER, allowNull: true}
-        }
-    }
-
-    getOptions(database: Sequelize, tableName: DatabaseTableNames) {
-        return {
-            sequelize: database,
-            tableName: `${tableName}`
+            artist: {type: DataTypes.STRING, allownull: false},
+            releaseYear: {type: DataTypes.INTEGER, allowNull: false}
         }
     }
 }

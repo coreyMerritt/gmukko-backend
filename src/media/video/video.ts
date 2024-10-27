@@ -1,7 +1,8 @@
 import { Model } from "sequelize"
-import { Media, MediaTypes } from "../media.js"
+import { Media } from "../media.js"
 
 export class VideoModel extends Model {
+    public mediaType!: string
     public filePath!: string
     public title!: string
 }

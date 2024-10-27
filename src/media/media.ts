@@ -14,7 +14,6 @@ export abstract class Media {
     public abstract getPrompt(): Prompt
     public abstract getModel(): ModelStatic<Model>
     public abstract getAttributes(): any
-    public abstract getOptions(database: Sequelize, tableName: DatabaseTableNames): { sequelize: Sequelize, tableName: string }
 }
 
 export enum MediaTypes {

@@ -44,16 +44,11 @@ export class Movie extends Video {
 
     getAttributes() {
         return {
+            mediaType: {type: DataTypes.STRING, allownull: false},
+            videoType: {type: DataTypes.STRING, allownull: false},
             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
             title: {type: DataTypes.STRING, allownull: false},
-            releaseYear: {type: DataTypes.INTEGER, allowNull: true}
-        }
-    }
-
-    getOptions(database: Sequelize, tableName: DatabaseTableNames) {
-        return {
-            sequelize: database,
-            tableName: `${tableName}`
+            releaseYear: {type: DataTypes.INTEGER, allowNull: false}
         }
     }
 }

@@ -3,6 +3,7 @@ import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingDirectories } from "../../configuration/directories/staging_directories.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
+import { all } from "axios"
 
 class AnimationModel extends VideoModel {
     public seasonNumber!: number
@@ -47,17 +48,12 @@ export class Animation extends Video {
 
     getAttributes(): object {
         return {
+            mediaType: {type: DataTypes.STRING, allownull: false},
+            videoType: {type: DataTypes.STRING, allownull: false},
             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
             title: {type: DataTypes.STRING, allownull: false},
-            seasonNumber: {type: DataTypes.INTEGER, allowNull: true},
-            episodeNumber: {type: DataTypes.INTEGER, allowNull: true}
-        }
-    }
-
-    getOptions(database: Sequelize, tableName: DatabaseTableNames): any {
-        return {
-            sequelize: database,
-            tableName: `${tableName}`
+            seasonNumber: {type: DataTypes.INTEGER, allowNull: false},
+            episodeNumber: {type: DataTypes.INTEGER, allowNull: false}
         }
     }
 }
