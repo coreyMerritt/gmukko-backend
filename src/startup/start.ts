@@ -58,6 +58,7 @@ class Start {
         app.use(GmukkoLogger.error)
     }
 
+    
     private async startPassiveJobs() {
         cron.schedule('0 0 * * *', () => {
             Database.backupAll()

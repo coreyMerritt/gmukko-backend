@@ -23,7 +23,7 @@ router.post('/accepted', async (req, res, next) => {
         if (Validators.isValidationRequest(originalRequest)) {
             await MediaController.moveStagingFilesToProduction(updatedRequest)
             await Database.moveStagingDatabaseEntriesToProduction(originalRequest, updatedRequest)
-            res.status(200).send('Success.\n')
+            res.status(200).send('Successfully processed accepted entries.\n')
         }
     } catch (error) {
         res.sendStatus(500)
@@ -33,7 +33,7 @@ router.post('/accepted', async (req, res, next) => {
 
 router.post('/rejected', async (req, res, next) => {
     try {
-        res.status(200).send('Success.\n')
+        res.status(200).send('Successfully processed rejected entries.\n')
     } catch (error) {
         res.sendStatus(500)
         next(error)

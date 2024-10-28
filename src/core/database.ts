@@ -26,28 +26,18 @@ export class Database {
             }
             GmukkoLogger.success(`Backed up both databases.`)
         } catch (error) {
-            throw new Error(`Failed to back up databases:\n${error}`)
+            throw new Error(`Failed to back up databases.`, { cause: error })
         }
     }
 
 
     public static async indexMedia(media: Media[]) {
-        const table = media[0].getTableName()
         try {
+            const tableName = media[0].getTableName()
             const stagingDatabase = await this.createAndLoadDatabase(DatabaseNames.Staging)
-            const tableExistsInStaging = await this.tableExists(stagingDatabase, media[0].getTableName())
-            if (tableExistsInStaging) {
-                media = await this.removeAlreadyIndexedMedia(stagingDatabase, media)
-            } else {
-                await this.initAndSyncModel(stagingDatabase, media[0])
-            }
-
-            if (media.length > 0) {
-                const productionDatabase = await this.createAndLoadDatabase(DatabaseNames.Production)
-                const tableExistsInProduction = await this.tableExists(productionDatabase, media[0].getTableName())
-                if (tableExistsInProduction) {
-                    media = await this.removeAlreadyIndexedMedia(stagingDatabase, media)
-                }
+            const tableExistsInStaging = await this.tableExists(stagingDatabase, tableName)
+            if (!tableExistsInStaging) {
+               await this.initAndSyncModel(stagingDatabase, media[0])
             }
             
             if (media.length > 0) {
@@ -58,16 +48,16 @@ export class Database {
 
             return media.length
         } catch (error) {
-            GmukkoLogger.info(`Failed to refresh the ${table} table.`)
+            throw new Error(`Failed to add indexes to table: ${media[0].getTableName()}`, {cause: error})
         }
     }
 
 
     public static async moveStagingDatabaseEntriesToProduction(originalRequest: ValidationRequest, updatedRequest: ValidationRequest): Promise<void> {
         var count = 0
-        const productionDatabase = await this.createAndLoadDatabase(DatabaseNames.Production)
-        const stagingDatabase = await this.createAndLoadDatabase(DatabaseNames.Staging)
         try {
+            const productionDatabase = await this.createAndLoadDatabase(DatabaseNames.Production)
+            const stagingDatabase = await this.createAndLoadDatabase(DatabaseNames.Staging)
             for (const [, tableName] of Object.keys(updatedRequest.tables).entries()) {
                 for (const [i, media] of updatedRequest.tables[tableName].entries()) {
                     const stagingFilePath = originalRequest.tables[tableName][i].filePath
@@ -78,13 +68,13 @@ export class Database {
                         await this.deleteFromTableWhereOneEqualsTwo(stagingDatabase, tableName as DatabaseTableNames, `filepath`, stagingFilePath)
                         count++
                     } else {
-                        throw new Error(`filePath was not updated, something was done out of order.\nAbandoning insertion into production and deletion from staging.`)
+                        throw new Error(`filePath was not updated for production.\nDatabase indexes were not changed.`)
                     }
                 }
             }
             GmukkoLogger.success(`${count} production index${count > 1 ? 'es' : undefined} created and ${count} staging index${count > 1 ? 'es' : undefined} removed.`)
         } catch (error) {
-            throw new Error(`Failed to move staging database entry into production database.\n${error}`)
+            throw new Error(`Error while moving staging database entry into production database. State unclear.`, { cause: error })
         }
     }
 
@@ -168,26 +158,29 @@ export class Database {
             })
 
         } catch (error) {
-            GmukkoLogger.error(`Failed to index: ${media.filePath}`, error)
+            throw new Error(`Failed to index: ${media.filePath} in database: ${database.getDatabaseName()}`, { cause: error })
         }
     }
 
 
-    private static async removeAlreadyIndexedMedia(database: Sequelize, media: Media[]) {
+    public static async removeAlreadyIndexedFilePaths(databaseName: DatabaseNames, filePaths: string[]) {
         var filePathsToToss: string[] = []
-    
+        const database = await this.createAndLoadDatabase(databaseName)
         try {
-            for (const singleMedia of media) {
-                if (await this.filePathInTable(database, singleMedia)) {
-                    GmukkoLogger.info(`Tossing already indexed file: ${singleMedia.filePath}.`)
-                    filePathsToToss.push(singleMedia.filePath)
+            for (const [, filePath] of filePaths.entries()) {
+                if (await this.filePathInDatabase(database, filePath)) {
+                    GmukkoLogger.data(`Tossing already indexed file`, filePath)
+                    filePathsToToss.push(filePath)
                 }
             }
-            media = media.filter(item => !filePathsToToss.includes(item.filePath))
+            filePaths = filePaths.filter(filePath => !filePathsToToss.includes(filePath))
+            if (filePathsToToss.length > 0) {
+                GmukkoLogger.important(`${filePathsToToss.length} staging files were tossed due to already being indexed.`)
+            }
+            return filePaths
         } catch (error) {
-            GmukkoLogger.error("Error while removing already indexed media", error)
+            throw new Error("Error while removing already indexed media", { cause: error })
         }
-        return media
     }
 
 
@@ -203,18 +196,16 @@ export class Database {
                 })
                 return database
             } else {
-                GmukkoLogger.error(`Failed to load database because username or password were not defined.`)
-                process.exit(1)
+                throw new Error(`Failed to load database because username and/or password were not defined.`)
             }
         } catch (error) {
-            GmukkoLogger.error(`Failed to load database.`, error)
-            process.exit(1)
+            throw new Error(`Failed to load database: ${databaseName}`, { cause: error })
         }
     }
 
     private static async tableExists(database: Sequelize, tableName: DatabaseTableNames) {
         try {
-            const test = await database.query(
+            await database.query(
                 `SELECT * FROM ${tableName};`,
                 {
                   type: QueryTypes.SELECT,
@@ -228,29 +219,31 @@ export class Database {
     }
 
 
-    private static async filePathInTable(database: Sequelize, media: Media) {
-        try {
-            const resultOfQuery = await database.query(`
-                SELECT *
-                FROM ${media.getTableName()}
-                WHERE filePath = :filePath;
-                `,
-                {
-                    replacements: {
-                        filePath: media.filePath
-                    }
+    private static async filePathInDatabase(database: Sequelize, filePath: string): Promise<boolean> {
+        for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
+            try {
+                const tableExistsInStaging = await this.tableExists(database, tableName)
+                if (tableExistsInStaging) {
+                    const resultOfQuery = await database.query(`
+                        SELECT *
+                        FROM ${tableName}
+                        WHERE filePath = :filePath;
+                        `,
+                        {
+                            replacements: {
+                                filePath: filePath
+                            }
+                        })
+                
+                    if (resultOfQuery[0].length > 0) {
+                        return true
+                    }                    
                 }
-            )
-        
-            if (resultOfQuery[0].length > 0) {
-                return true
-            } else {
-                return false
+            } catch (error) {
+                throw new Error(`Failed to verify if in ${tableName}: ${filePath}\n${error}`)
             }
-
-        } catch (error) {
-            throw new Error(`Failed to query table: ${media.getTableName()}\n${error}`)
-        }
+        } 
+        return false
     }
     
 
@@ -260,7 +253,7 @@ export class Database {
             model.init(media.getAttributes(), { sequelize: database, tableName: media.getTableName() })
             await model.sync()
         } catch (error) {
-            GmukkoLogger.error(`Failed to init & sync model to table: ${media.getTableName()}`, error)
+            throw new Error(`Failed to init & sync model to table: ${media.getTableName()}`, { cause: error })
         }
     }
 }

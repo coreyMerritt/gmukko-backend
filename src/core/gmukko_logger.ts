@@ -6,11 +6,19 @@ import { ParsedQs } from 'qs'
 import { VideoTypes } from '../media/video/video.js'
 import chalk from 'chalk'
 
+const blue = chalk.blue
+const cyan = chalk.cyan
+const green = chalk.green
+const orange = chalk.rgb(255, 165, 0)
+const red = chalk.red
 
 export class GmukkoLogger {
 
     static async incomingRequest(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) {
-        console.log(chalk.blue(`\nRequest received \t[${GmukkoTime.getCurrentDateTime()}]\n`))
+        process.stdout.write(`\n`)
+        this.logTimestamp()
+        process.stdout.write(blue(`Request Recieved\n\n`))
+
         fs.appendFile(`${LogFiles.IncomingRequest}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +
@@ -23,7 +31,29 @@ export class GmukkoLogger {
 
 
     static async info(info: string) {
-        console.log(info)
+        this.logTimestamp()
+        process.stdout.write(`${info}\n`)
+
+        fs.appendFile(`${LogFiles.Default}`, 
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
+            `Info: ${info}\n\n`
+        )
+    }
+
+    static async data(tag: string, data: string) {
+        this.logTimestamp()
+        process.stdout.write(`${tag}: ${cyan(data)}\n`)
+
+        fs.appendFile(`${LogFiles.Default}`, 
+            `[${GmukkoTime.getCurrentDateTime()}]\n` +
+            `${tag}: ${data}\n\n`
+        )
+    }
+
+    static async important(info: string) {
+        this.logTimestamp()
+        process.stdout.write(`${orange(info)}\n`)
+
         fs.appendFile(`${LogFiles.Default}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
@@ -31,7 +61,9 @@ export class GmukkoLogger {
     }
 
     static async success(info: string) {
-        console.log(chalk.green(info))
+        this.logTimestamp()
+        process.stdout.write(`${green(info)}\n`)
+
         fs.appendFile(`${LogFiles.Default}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
@@ -40,8 +72,10 @@ export class GmukkoLogger {
 
 
     static async error(info: string, error?: unknown) {
+        this.logTimestamp()
         if (error) {
-            console.error(`${info}\n${error}`)
+            process.stderr.write(`${red(info)}\n${red(error)}\n`)
+
             fs.appendFile(`${LogFiles.Default}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
@@ -52,8 +86,10 @@ export class GmukkoLogger {
                 `Error: ${info}\n` +
                 `${error}\n\n`
             )   
+
         } else {
-            console.error(`${info}`)
+            process.stderr.write(`${red(info)}\n`)
+
             fs.appendFile(`${LogFiles.Default}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
@@ -65,51 +101,7 @@ export class GmukkoLogger {
         }
     }
 
-
-    static async debug(info: string) {
-        fs.appendFile(`${LogFiles.Debug}`, 
-            `[${GmukkoTime.getCurrentDateTime()}]\n` +
-            `${info}\n\n`
-        )
-    }
-
-
-    static async invalidJsonArray(prompt: string, data: string[], response: string) {
-        this.error(`Invalid Json Array.`)
-        fs.appendFile(`${LogFiles.InvalidJsonArray}`, 
-            `[${GmukkoTime.getCurrentDateTime()}]\n` +
-            `Prompt: ${prompt}\n` +
-            `Data: ${data.toString()}\n` +
-            `Response: ${response}\n\n`
-        )
-    }
-
-
-    static async invalidVideoData(object: any, expectedVideoType?: VideoTypes) {
-        this.error(`Invalid Video Data.`)
-        const logPath = this.determineLogPath(expectedVideoType)
-        const filePath = 'filePath' in object ? object.filePath : "filePath not on object."
-        fs.appendFile(`${logPath}}`, 
-            `[${GmukkoTime.getCurrentDateTime()}]\n` +
-            `Filepath: ${filePath}\n` +
-            `Object: ${JSON.stringify(object)}\n\n`
-        )
-    }
-
-    private static determineLogPath(expectedVideoType: VideoTypes | undefined) {
-        switch (expectedVideoType) {
-            case VideoTypes.Movie:
-                return LogFiles.InvalidMovieData
-            case VideoTypes.Show:
-                return LogFiles.InvalidShowData
-            case VideoTypes.Standup:
-                return LogFiles.InvalidStandupData
-            case VideoTypes.Anime:
-                return LogFiles.InvalidAnimeData
-            case VideoTypes.Animation:
-                return LogFiles.InvalidAnimationData
-            default:
-                return LogFiles.InvalidVideoData
-        }
+    private static async logTimestamp() {
+        process.stdout.write(blue(`[${GmukkoTime.getCurrentTime()}] `))
     }
 }

@@ -53,7 +53,7 @@ export class Prompt {
         '"[ { "mediaType": "video", "videoType": "movie", "filePath": string, "title": string, "releaseYear": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
         'If you struggle with a propertys true value do not use NULL, instead use -1 for number values and "placeholder" for string values\n' +
-        'Make sure all keys are enclosed in double quotes.\n' +
+        'Be extremely careful to make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
 
@@ -63,7 +63,7 @@ export class Prompt {
         'Be sure to capitalize titles where appropriate.\n' +
         'title should reference the title of the show, not the title of the episode.' +
         'If you struggle with a propertys true value do not use NULL, instead use -1 for number values and "placeholder" for string values\n' +
-        'Make sure all keys are enclosed in double quotes.\n' +
+        'Be extremely careful to make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'   
     }
     private StandupAsJson() {
@@ -71,7 +71,7 @@ export class Prompt {
         '"[ { "mediaType": "video", "videoType": "standup", "filePath": string, "title": string, "artist": string, "releaseYear": number }, { ... } ]"\n' +
         'Be sure to capitalize titles and artists where appropriate.\n' +
         'If you struggle with a propertys true value do not use NULL, instead use -1 for number values and "placeholder" for string values\n' +
-        'Make sure all keys are enclosed in double quotes.\n' +
+        'Be extremely careful to make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
         
@@ -80,7 +80,7 @@ export class Prompt {
         '"[ { "mediaType": "video", "videoType": "anime", "filePath": string, "title": string, "seasonNumber": number, "episodeNumber": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
         'If you struggle with a propertys true value do not use NULL, instead use -1 for number values and "placeholder" for string values\n' +
-        'Make sure all keys are enclosed in double quotes.\n' +
+        'Be extremely careful to make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
     
@@ -89,7 +89,7 @@ export class Prompt {
         '"[ { "mediaType": "video", "videoType": "animation", "filePath": string, "title": string, "seasonNumber": number, "episodeNumber": number }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
         'If you struggle with a propertys true value do not use NULL, instead use -1 for number values and "placeholder" for string values\n' +
-        'Make sure all keys are enclosed in double quotes.\n' +
+        'Be extremely careful to make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
     private MiscVideoAsJson() {
@@ -97,7 +97,7 @@ export class Prompt {
         '"[ { "mediaType": "video", "videoType": "misc", "filePath": string, "title": string }, { ... } ]"\n' +
         'Be sure to capitalize titles where appropriate.\n' +
         'If you struggle with a propertys true value do not use NULL, instead use -1 for number values and "placeholder" for string values\n' +
-        'Make sure all keys are enclosed in double quotes.\n' +
+        'Be extremely careful to make sure all keys are enclosed in double quotes.\n' +
         'Your answer should be a fully parsable valid JSON array. The object order should correlate with the order of the data given.\n'
     }
 }

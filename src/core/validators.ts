@@ -47,7 +47,7 @@ export class Validators {
      }
 
     public static isMediaArray(objectArray: object[]): objectArray is Media[] {
-        for (const [i, object] of objectArray.entries()) {
+        for (const [, object] of objectArray.entries()) {
             if (!Validators.isMedia(object)) {
                 return false
             }
@@ -56,7 +56,7 @@ export class Validators {
     }
 
     public static isVideoArray(objectArray: object[]): objectArray is Video[] {
-        for (const [i, object] of objectArray.entries()) {
+        for (const [, object] of objectArray.entries()) {
             if (!Validators.isVideo(object)) {
                 return false
             }
@@ -86,7 +86,7 @@ export class Validators {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
                 if (!this.isMediaArray(someArray)) {
-                    GmukkoLogger.error(`Rejected media validation request. This is not valid media ${JSON.stringify(someArray)}.`)
+                    GmukkoLogger.error(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
                     return false
                 }
                 for (const [, media] of Object.values(someArray).entries()) {

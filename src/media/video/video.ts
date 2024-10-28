@@ -20,6 +20,6 @@ export abstract class Video extends Media {
     public abstract videoType: VideoTypes
 
     public getFileExtensions() {
-        return [ '.mkv', '.avi', '.mp4', '.mov' ]
+        return ['.mkv', '.avi', '.mp4', '.mov']
     }
 }
