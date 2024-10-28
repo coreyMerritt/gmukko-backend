@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.get('/pending', async (req, res, next) => {
     try {
-        const validationRequest = await MediaController.getStagingMedia()
+        const validationRequest = await MediaController.createValidationRequestFromStaging()
         res.status(200).send(validationRequest)
     } catch (error) {
         res.sendStatus(500)

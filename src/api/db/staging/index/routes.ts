@@ -7,7 +7,7 @@ const router = express.Router()
 router.post('/:mediaType?', async (req, res, next) => {
     try {
         const mediaType = req.params.mediaType
-        MediaController.indexStaging(mediaType)
+        MediaController.indexFilesIntoStagingDatabase(mediaType)
         res.status(200).send('Started indexing staging files.\n')
     } catch (error) {
         res.sendStatus(500)

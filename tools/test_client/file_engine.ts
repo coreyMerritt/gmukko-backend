@@ -8,16 +8,6 @@ import { GmukkoTime } from '../../src/core/gmukko_time.js'
 
 export class FileEngine {
 
-    public async writeObjectAsYaml(object: object): Promise<void> {
-        try {
-            const pendingStagingMediaAsYamlString = yaml.stringify(object)
-            await fs.writeFile(Paths.PendingValidation, pendingStagingMediaAsYamlString)
-            console.log(`Wrote pending staging media to: ${Paths.PendingValidation}`)
-        } catch (error) {
-            throw new Error(`Unable to write pending staging media to: ${Paths.PendingValidation}`, { cause: error })
-        }
-    }
-
     public async readYamlFileToObject(path: Paths): Promise<object> {
         try {
             const fileContents = (await fs.readFile(path)).toString()
@@ -27,24 +17,6 @@ export class FileEngine {
             throw new Error(`Failed to read accepted media. Likely bad path or path is not yaml.`, { cause: error })
         }
     }
-
-    public async isPopulatedYaml(filePath: string): Promise<boolean> {
-        if (this.isYaml(filePath)) {
-            try {
-                const fileInfo = await fs.stat(filePath)
-                if (fileInfo.size > 0) {
-                    return true
-                } else {
-                    return false
-                }
-            } catch (error) {
-                throw new Error(`Unable to check info on file: ${filePath}`, { cause: error })
-            }
-        } else {
-            return false
-        }
-    }
-
 
     public async backupValidationFiles() {
         try {
@@ -60,6 +32,33 @@ export class FileEngine {
         fsSync.truncateSync(Paths.PendingValidation)
         fsSync.truncateSync(Paths.AcceptedValidation)
         fsSync.truncateSync(Paths.RejectedValidation)
+    }
+
+    public async writeObjectAsYaml(object: object): Promise<void> {
+        try {
+            const pendingStagingMediaAsYamlString = yaml.stringify(object)
+            await fs.writeFile(Paths.PendingValidation, pendingStagingMediaAsYamlString)
+            console.log(`Wrote pending staging media to: ${Paths.PendingValidation}`)
+        } catch (error) {
+            throw new Error(`Unable to write pending staging media to: ${Paths.PendingValidation}`, { cause: error })
+        }
+    }
+
+    private async isPopulatedYaml(filePath: string): Promise<boolean> {
+        if (this.isYaml(filePath)) {
+            try {
+                const fileInfo = await fs.stat(filePath)
+                if (fileInfo.size > 0) {
+                    return true
+                } else {
+                    return false
+                }
+            } catch (error) {
+                throw new Error(`Unable to check info on file: ${filePath}`, { cause: error })
+            }
+        } else {
+            return false
+        }
     }
 
     private backupFile(originalPath: Paths, backupPath: Paths) {

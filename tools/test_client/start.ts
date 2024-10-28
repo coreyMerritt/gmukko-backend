@@ -5,7 +5,8 @@ import { Menus } from "./menus.js"
 
 
 class Startup {
-    async execute(): Promise<void> {
+    
+    public async execute(): Promise<void> {
         try {
             this.createDirectoriesAndFiles()
             await new Menus().main()

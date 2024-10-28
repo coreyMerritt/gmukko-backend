@@ -23,43 +23,23 @@ export class MediaController {
         for (const [, tableName] of Object.keys(validationRequest.tables).entries()) {
             for (const [, media] of validationRequest.tables[tableName].entries()) {
                 const newFilePath = await this.getNewFilePathFromMedia(media, tableName as DatabaseTableNames)
-                if (newFilePath) {
-                    try {
-                        fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
-                    } catch (error) {
-                        throw new Error(`Unable to make directories for new file.\nStaging: ${media.filePath}\nProduction: ${newFilePath}`, { cause: error })
-                    }
-                    
-                    try {
-                        fs.accessSync(media.filePath)
-                    } catch (error) {
-                        throw new Error(`Unable to access staging file.`, { cause: error })
-                    }
-
-                    try {
-                        fs.renameSync(media.filePath, newFilePath)
-                        media.filePath = newFilePath
-                    } catch (error) {
-                        throw new Error(`Unable to move file from staging to production.`, { cause: error })
-                    }
-
-                    try {
-                        this.cleanStagingDirectory()
-                    } catch (error) {
-                        GmukkoLogger.error(`Unable to clean up empty directories in staging.`, error)
-                    }
-
-                    count++
-                } else {
-                    throw new Error(`Unable to determine new file path for staging media: ${media.filePath}.`)
+                try {
+                     fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
+                    fs.accessSync(media.filePath)
+                    fs.renameSync(media.filePath, newFilePath)
+                    media.filePath = newFilePath
+                    this.cleanStagingDirectory()
+                } catch (error) {
+                    throw new Error(`Something went wrong while trying to move staging file to production: ${media.filePath}.`, { cause: error })
                 }
+                 count++
             }
         }
         GmukkoLogger.success(`${count} staging file${count > 1 ? 's' : ''} moved to production.`)
         return validationRequest
     }
 
-    public static async indexStaging(videoType: string | undefined) {
+    public static async indexFilesIntoStagingDatabase(videoType: string | undefined) {
         var count
         if (videoType === undefined) {
             count = await this.indexAllStagingDirectories()
@@ -73,13 +53,13 @@ export class MediaController {
     }
 
 
-    public static async getStagingMedia(): Promise<ValidationRequest> {
+    public static async createValidationRequestFromStaging(): Promise<ValidationRequest> {
         var validationRequest: ValidationRequest = { tables: {} }
         
         try {
             for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
                 validationRequest.tables[tableName] = []
-                const results = await Database.selectAllFromTable(DatabaseNames.Staging, tableName)
+                const results = await Database.getStagingDatabaseEntriesFromTable(tableName)
                 if (results) {
                     for (const [, media] of results.entries()) {
                         if (Validators.isMedia(media)) {
@@ -95,6 +75,8 @@ export class MediaController {
         GmukkoLogger.success(`Sent validation request.`)
         return validationRequest
     }
+
+
 
     private static async getNewFilePathFromMedia(media: Media, tableName: DatabaseTableNames) {
         var newBasePath = `${CoreDirectories.ProductionVideos}/${tableName}`
@@ -178,7 +160,7 @@ export class MediaController {
             if (filePaths.length > 0) {
                 const media = await AI.parseAllMediaData(filteredFilePaths, nullMedia.getPrompt())
                 if (media.length > 0) {
-                    const indexCount = await Database.indexMedia(media)
+                    const indexCount = await Database.indexFilesIntoStagingDatabase(media)
                     indexCount ? count = indexCount : undefined
                 }
             }
@@ -189,7 +171,7 @@ export class MediaController {
         return count
     }
 
-    public static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]) {
+    private static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]) {
         try {
             const files = fs.readdirSync(directoryToCheck)
             var filesMatchingExtension: string[] = []
@@ -218,7 +200,7 @@ export class MediaController {
     }
 
 
-    public static async deleteEmptyDirectories(directory: string): Promise<boolean> {
+    private static async deleteEmptyDirectories(directory: string): Promise<boolean> {
         var files
 
         try {

@@ -31,7 +31,7 @@ export class Database {
     }
 
 
-    public static async indexMedia(media: Media[]) {
+    public static async indexFilesIntoStagingDatabase(media: Media[]) {
         try {
             const tableName = media[0].getTableName()
             const stagingDatabase = await this.createAndLoadDatabase(DatabaseNames.Staging)
@@ -78,8 +78,12 @@ export class Database {
         }
     }
 
+    public static async getStagingDatabaseEntriesFromTable(tableName: DatabaseTableNames) {
+        const entries = await Database.selectAllFromTable(DatabaseNames.Staging, tableName)
+        return entries
+    }
 
-    public static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames) {
+    private static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames) {
         const database = await this.createAndLoadDatabase(databaseName)
         if (await this.tableExists(database, tableName)) {
             const resultOfQuery = await database.query(
@@ -93,8 +97,7 @@ export class Database {
         }
     }
 
-
-    public static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string) {
+    private static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string) {
         const database = await this.createAndLoadDatabase(databaseName)
         if (await this.tableExists(database, tableName)) {
             const resultOfQuery = await database.query(

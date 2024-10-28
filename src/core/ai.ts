@@ -14,30 +14,6 @@ export class AI {
         this.model = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     }
 
-    async evaluate(prompt: string, data: string[]): Promise<string> {
-        try {
-            const result = await this.model.chat.completions.create({
-                model: `gpt-3.5-turbo-0125`,
-                messages: [
-                    { role: `system`, content: prompt},
-                    { role: 'user', content: data.toString()}
-                ],
-                max_tokens: 3500,
-                temperature: 0,
-                presence_penalty: -2
-            })
-            if (result.choices[0].message.content) {
-                return result.choices[0].message.content
-            } else {
-                throw new Error(`OpenAI API returned null.`)
-            }
-        } catch (error) {
-            throw new Error(`Failed to recieve a response from the OpenAI API.\n`, { cause: error })
-        }
-    }
-
-
-
     public static async parseAllMediaData(filePaths: string[], prompt: Prompt): Promise<Media[]> {
         // This structure is to optimize token usage on OpenAI API calls.
         var videoFiles: Media[] = [] 
@@ -62,8 +38,29 @@ export class AI {
         return videoFiles
     }
 
+    private async evaluate(prompt: string, data: string[]): Promise<string> {
+        try {
+            const result = await this.model.chat.completions.create({
+                model: `gpt-3.5-turbo-0125`,
+                messages: [
+                    { role: `system`, content: prompt},
+                    { role: 'user', content: data.toString()}
+                ],
+                max_tokens: 3500,
+                temperature: 0,
+                presence_penalty: -2
+            })
+            if (result.choices[0].message.content) {
+                return result.choices[0].message.content
+            } else {
+                throw new Error(`OpenAI API returned null.`)
+            }
+        } catch (error) {
+            throw new Error(`Failed to recieve a response from the OpenAI API.\n`, { cause: error })
+        }
+    }
 
-    public static async parseSomeMediaData(filePaths: string[], prompt: Prompt): Promise<Media[]> {
+    private static async parseSomeMediaData(filePaths: string[], prompt: Prompt): Promise<Media[]> {
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt.value, filePaths)
@@ -104,7 +101,7 @@ export class AI {
         }
     }
 
-    public static async stringToJsonArrayString(someString: string): Promise<string> {
+    private static async stringToJsonArrayString(someString: string): Promise<string> {
         try {
             const jsonArrayRegex = /\[(\s*{[\s\S]*?}\s*,?\s*)+\]/g
             var match: any
