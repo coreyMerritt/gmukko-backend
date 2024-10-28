@@ -21,9 +21,10 @@ export class Database {
     public static async backupAll(): Promise<void> {
         const execAsync = promisify(exec)
         try {
-            for (const [, databaseName] of [DatabaseNames.Production, DatabaseNames.Staging]) {
+            for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
                 await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             }
+            GmukkoLogger.success(`Backed up both databases.`)
         } catch (error) {
             throw new Error(`Failed to back up databases:\n${error}`)
         }

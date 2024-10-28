@@ -1,10 +1,3 @@
-export enum AcceptableUserAnswers {
-    Backup = '0',
-    Index = '1',
-    GetStagingIndex = '2',
-    PostStagingValidation = '3'
-}
-
 export enum Directories {
     ClientDirectory = '/mnt/z/gmukko_test_client',
     ClientDirectoryBackup = `${ClientDirectory}/backup`

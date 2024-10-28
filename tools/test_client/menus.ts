@@ -1,71 +1,60 @@
+import ansi from 'ansi-colors'
 import { AxiosEngine } from "./axios_engine.js"
-import { AcceptableUserAnswers, Paths } from "./configuration.js"
 import { FileEngine } from "./file_engine.js"
-import promptSync from 'prompt-sync'
+import { MenuHandler } from "./menu_handler.js"
 
+
+export enum MainMenuAnswers {
+    Exit = 'exit',
+    BackupDatabases = '0',
+    IndexStagingMedia = '1',
+    GetMediaPendingValidation = '2',
+    PostValidationResults = '3'
+}
 
 export class Menus {
 
+    private mainMenuPrompt = 
+        ansi.magenta(`\nMain Menu:\n`) +
+        `\t0) Back Up Databases\n` +
+        `\t1) Index Staging\n` +
+        `\t2) Get Staging Index\n` +
+        `\t3) Post Staging Validation\n`
+
+
     public async main(): Promise<void> {
-        const userAnswer = this.getUserInput(
-            `Main Menu:\n` +
-            `\t0) Back Up Databases\n` +
-            `\t1) Index Staging\n` +
-            `\t2) Get Staging Index\n` +
-            `\t3) Post Staging Validation\n`
-        )
-        
-        await this.executeUserChoice(userAnswer)
+        try {
+            const menuHandler = new MenuHandler()
+            const userAnswer = await menuHandler.getUserInput(this.mainMenuPrompt,Object.values(MainMenuAnswers))
+            await this.routeMain(menuHandler, userAnswer)
+        } catch (error) {
+            console.error(error)
+        }
+
         new Menus().main()
     }
 
-
-    private getUserInput(question: string): string {
-        try {
-            const prompt = promptSync({
-                sigint: true,
-                eot: true
-            })
-            var userAnswer: string = ""
-            var firstLoop = true
-            var acceptableUserAnswers = Object.values(AcceptableUserAnswers) as string[]
-            while (!acceptableUserAnswers.includes(userAnswer)) {
-                !firstLoop ? console.error(`Invalid input.`) : undefined
-                firstLoop = false
-                userAnswer = prompt(question)
-                userAnswer = userAnswer.toLowerCase()
-            }
-            return userAnswer
-        } catch (error) {
-            throw new Error(`Unable to take in user input.\n`)
-        }
-    }
-
-    private async executeUserChoice(userAnswer: string) {
+    
+    private async routeMain(menuHandler: MenuHandler, userAnswer: string) {
         const fileEngine = new FileEngine()
         const axios = new AxiosEngine()
         switch (userAnswer) {
-            case AcceptableUserAnswers.Index:
-                await axios.startIndexing()
+            case MainMenuAnswers.Exit:
+                await menuHandler.exit()
+            case MainMenuAnswers.BackupDatabases:
+                await menuHandler.backupDatabases(axios)
                 break
-            case AcceptableUserAnswers.GetStagingIndex:
-                const pendingStagingMedia = await axios.getPendingStagingMedia()
-                if (pendingStagingMedia) {
-                    fileEngine.backupFile(Paths.PendingValidation, Paths.AcceptedValidation)
-                    fileEngine.backupFile(Paths.AcceptedValidation, Paths.AcceptedValidation)
-                    fileEngine.backupFile(Paths.RejectedValidation, Paths.RejectedValidation)
-                    await fileEngine.writePendingStagingMedia(pendingStagingMedia)
-                    fileEngine
-                } else {
-                    console.log(`No pending staging media.`)
-                }
+            case MainMenuAnswers.IndexStagingMedia:
+                await menuHandler.indexStagingMedia(axios)
                 break
-            case AcceptableUserAnswers.PostStagingValidation:
-                await axios.postStagingValidationResults(Paths.AcceptedValidation)
-                await axios.postStagingValidationResults(Paths.RejectedValidation)
+            case MainMenuAnswers.GetMediaPendingValidation:
+                await menuHandler.getMediaPendingValidation(axios, fileEngine)
+                break
+            case MainMenuAnswers.PostValidationResults:
+                await menuHandler.postValidationResults(axios,fileEngine)
                 break
             default:
-                throw new Error(`Invalid input.`)
+                await menuHandler.defaultMain()
         }
     }
 }

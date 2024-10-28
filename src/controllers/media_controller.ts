@@ -51,10 +51,14 @@ export class MediaController {
 
     public static async indexStaging(videoType: string | undefined) {
         if (videoType === undefined) {
-            this.indexAllStagingDirectories()
+            GmukkoLogger.info(`Attempting to index all staging directories.`)
+            await this.indexAllStagingDirectories()
+            GmukkoLogger.success(`Successfully indexed all staging directories.`)
         } else if (Validators.isVideoType(videoType)) {
             const nullVideo = VideoFactory.createNullFromVideoType(videoType)
-            this.indexOneStagingDirectory(nullVideo)
+            GmukkoLogger.info(`Attempting to index staging directory: ${nullVideo.getStagingDirectory()}`)
+            await this.indexOneStagingDirectory(nullVideo)
+            GmukkoLogger.success(`Successfully indexed staging directory: ${nullVideo.getStagingDirectory()}`)
         } else {
             throw new Error(`Parameter passed was invalid.`)
         }
@@ -175,7 +179,6 @@ export class MediaController {
         var filesMatchingExtension: string[] = []
 
         for (const [i, filePath] of files.entries()) {
-            GmukkoLogger.info(`Checking file #${i}: ${filePath}`)
             const fullPath = path.join(directoryToCheck, filePath)
             const fileExtension = path.extname(filePath)
             const stats = fs.statSync(fullPath)
@@ -187,14 +190,11 @@ export class MediaController {
                 const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
                 if (isProperFileExtension) {
                     filesMatchingExtension.push(fullPath)
-                    GmukkoLogger.info(`Added file: ${fullPath} to initial indexing.`)
-                } else {
-                    GmukkoLogger.info(`Ignored file: ${fullPath} from initial indexing.`)
+                    GmukkoLogger.info(`Added file to be indexed: ${fullPath}`)
                 }
             }
         }
 
-        GmukkoLogger.info(`Succesfully retrieved ${filesMatchingExtension.length} file paths from ${directoryToCheck}.`)
         return filesMatchingExtension
     }
 
@@ -223,7 +223,7 @@ export class MediaController {
             }
         }
 
-        GmukkoLogger.info(`Succesfully retrieved ${filesMatchingExtension.length} file paths from ${directoryToCheck}.`)
+        
         return filesMatchingExtension
     }
 }

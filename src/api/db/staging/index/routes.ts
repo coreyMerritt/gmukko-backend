@@ -8,7 +8,7 @@ router.post('/:mediaType?', async (req, res, next) => {
     try {
         const mediaType = req.params.mediaType
         MediaController.indexStaging(mediaType)
-        res.status(200).send('200: Started indexing of new files.\n')
+        res.status(200).send('Started indexing of new files.\n')
     } catch (error) {
         res.sendStatus(500)
         next(error)

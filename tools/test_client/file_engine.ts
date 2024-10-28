@@ -8,13 +8,13 @@ import { GmukkoTime } from '../../src/core/gmukko_time.js'
 
 export class FileEngine {
 
-    public async writePendingStagingMedia(object: object): Promise<void> {
+    public async writeObjectAsYaml(object: object): Promise<void> {
         try {
             const pendingStagingMediaAsYamlString = yaml.stringify(object)
             await fs.writeFile(Paths.PendingValidation, pendingStagingMediaAsYamlString)
             console.log(`Wrote pending staging media to: ${Paths.PendingValidation}`)
         } catch (error) {
-            throw new Error(`Unable to write pending staging media to: ${Paths.PendingValidation}`)
+            throw new Error(`Unable to write pending staging media to: ${Paths.PendingValidation}`, { cause: error })
         }
     }
 
@@ -24,7 +24,7 @@ export class FileEngine {
             const fileContentsObject = await yaml.parse(fileContents)
             return fileContentsObject
         } catch (error) {
-            throw new Error(`Failed to read accepted media. Likely bad path or path is not yaml:\n${error}`)
+            throw new Error(`Failed to read accepted media. Likely bad path or path is not yaml.`, { cause: error })
         }
     }
 
@@ -35,28 +35,42 @@ export class FileEngine {
                 if (fileInfo.size > 0) {
                     return true
                 } else {
-                    console.log(`filePath is not populated yaml: ${filePath}`)
                     return false
                 }
-            } catch {
-                return false
+            } catch (error) {
+                throw new Error(`Unable to check info on file: ${filePath}`, { cause: error })
             }
         } else {
             return false
         }
     }
 
-    
 
-    public backupFile(originalPath: Paths, backupPath: Paths) {
+    public async backupValidationFiles() {
+        try {
+            this.backupFile(Paths.PendingValidation, Paths.PendingValidationBackup)
+            this.backupFile(Paths.AcceptedValidation, Paths.AcceptedValidationBackup)
+            this.backupFile(Paths.RejectedValidation, Paths.RejectedValidationBackup)
+        } catch {
+            // File does not exist, no need to back up.
+        }
+    }
+
+    public async truncateValidationFiles() {
+        fsSync.truncateSync(Paths.PendingValidation)
+        fsSync.truncateSync(Paths.AcceptedValidation)
+        fsSync.truncateSync(Paths.RejectedValidation)
+    }
+
+    private backupFile(originalPath: Paths, backupPath: Paths) {
         try {
             const originalFileContent = this.readFileAsString(originalPath)
             const newFileDirectory = path.dirname(backupPath)
             const newFileName = path.basename(backupPath)
-            const newFilePath = `${newFileDirectory}/${GmukkoTime.getCurrentDateTime(true)}/${newFileName}`
+            const newFilePath = `${newFileDirectory}/${GmukkoTime.getCurrentDateTime(true)}---${newFileName}`
             fsSync.writeFileSync(newFilePath, originalFileContent)
         } catch (error) {
-            throw new Error(`Failed to back up staging validation files.\n${error}`)
+            throw new Error(`Failed to back up file: ${originalPath} to ${backupPath}`, { cause: error })
         }
     }
 
@@ -66,16 +80,15 @@ export class FileEngine {
             const fileString = String(fileBuffer)
             return fileString
         } catch (error) {
-            throw new Error(`Unable to read ${path} as string.\n${error}`)
+            throw new Error(`Unable to read as string: ${path}`, { cause: error })
         }
     }
 
     private fileExists(filePath: string): boolean {
         try {
-            fs.readFile(filePath)
+            fsSync.accessSync(filePath)
             return true
         } catch {
-            console.log(`filePath does not exist: ${filePath}`)
             return false
         }
     }
@@ -86,11 +99,9 @@ export class FileEngine {
                 yaml.parse(filePath)
                 return true
             } catch {
-                console.log(`filePath is not valid yaml: ${filePath}`)
                 return false
             }
         } else {
-            console.log(`filePath is not valid yaml: ${filePath}`)
             return false
         }
     }

@@ -1,10 +1,9 @@
 import axios, { AxiosInstance } from "axios"
 import { FileEngine } from "./file_engine.js"
-import { Menus } from "./menus.js"
-import yaml from 'yaml'
 import axiosRetry from "axios-retry"
-import http from 'http'
 import { Paths } from "./configuration.js"
+import path from 'path'
+import ansiColors from "ansi-colors"
 
 
 export class AxiosEngine {
@@ -19,47 +18,56 @@ export class AxiosEngine {
     public async startIndexing() {
         try {
             const reply = await this.instance.post(`/db/staging/index`)
-            console.log(`${reply.status}: reply.data`)
+            console.log(reply.data)
         } catch (error) {
-            throw new Error(`Failed to start indexing.\n${error}`)
+            throw new Error(`Failed to start indexing.`, { cause: error })
         }
     }
 
-    public async getPendingStagingMedia(): Promise<object|undefined> {
+    public async startDatabaseBackups() {
+        const reply = await this.instance.post('/db/backup')
+        console.log(reply.data)
+    }
+
+    public async getMediaPendingValidation(): Promise<object|undefined> {
         try {
             const rawGet = await this.instance.get(`/db/staging/validation/pending`)
             const getData = rawGet.data
-            console.log(rawGet.status)
+            console.log(`${rawGet.status}`)
             return getData
         } catch (error) {
-            throw new Error(`Server did not respond to GET.\n${error}`)
+            throw new Error(`Server did not respond to GET.`, { cause: error })
         }
     }
 
-    public async postStagingValidationResults(path: Paths) {
+    public async postStagingValidationResults(filePath: Paths) {
         const fileEngine = new FileEngine()
-        const validationResults = await fileEngine.readYamlFileToObject(path)
+        const validationResults = await fileEngine.readYamlFileToObject(filePath)
         if (validationResults) {
             try {
                 const reply = await this.instance.post(`/db/staging/validation/accepted`, validationResults)
                 console.log(`${reply.status}: ${reply.data}`)
             } catch (error) {
-                throw new Error(`Unable to post ${path}:\n${error}`)
+                throw new Error(`Unable to post ${filePath}`, { cause: error })
             }
         } else {
-            throw new Error(`No staging validation results to post.`)
+            console.log(`No staging validation results to post for ${path.basename(filePath)}.`)
         }
     }
 
 
     private createCustomAxios(): AxiosInstance {
-        const axiosInstance = axios.create({
-            baseURL: this.url,
-            timeout: 9999,
-            maxBodyLength: Infinity,
-            maxContentLength: Infinity
-        })
-        axiosRetry(axiosInstance, { retries: 9999 })
-        return axiosInstance
+        try {
+            const axiosInstance = axios.create({
+                baseURL: this.url,
+                timeout: 9999,
+                maxBodyLength: Infinity,
+                maxContentLength: Infinity
+            })
+            axiosRetry(axiosInstance, { retries: 9999 })
+            return axiosInstance
+        } catch (error) {
+            throw new Error(`Failed to initiate an axios instance.`, { cause: error })
+        }
     }
 }
