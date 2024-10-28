@@ -15,7 +15,6 @@ export class AI {
     }
 
     async evaluate(prompt: string, data: string[]): Promise<string|undefined> {
-        GmukkoLogger.info(`Attempting to send a request to the OpenAI API with ${data.length} pieces of data...`)
         try {
             const result = await this.model.chat.completions.create({
                 model: `gpt-3.5-turbo-0125`,
@@ -28,11 +27,10 @@ export class AI {
                 presence_penalty: -2
             })
             if (result.choices[0].message.content) {
-                GmukkoLogger.info(`Successfully recieved a response from the OpenAI API.`)
                 return result.choices[0].message.content
             } else {
                 GmukkoLogger.invalidJsonArray(prompt, data, "NULL")
-                GmukkoLogger.info(`OpenAI API returned null.`)
+                GmukkoLogger.error(`OpenAI API returned null.`)
                 return undefined
             }
         } catch (error) {
@@ -45,7 +43,6 @@ export class AI {
 
     public static async parseAllMediaData(filePaths: string[], prompt: Prompt): Promise<Media[]> {
         // This structure is to optimize token usage on OpenAI API calls.
-        GmukkoLogger.info(`Attempting to parse ${filePaths.length} file paths.`)
         var videoFiles: Media[] = [] 
         var workingArray: string[] = []
         for (const [i, filePath] of filePaths.entries()) {
@@ -65,7 +62,6 @@ export class AI {
                 }
             }
         }
-        GmukkoLogger.info(`Finished parsing ${filePaths.length} file paths.`)
         return videoFiles
     }
 

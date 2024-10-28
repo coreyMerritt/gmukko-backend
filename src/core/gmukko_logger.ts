@@ -10,14 +10,7 @@ import chalk from 'chalk'
 export class GmukkoLogger {
 
     static async incomingRequest(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) {
-        console.log(`\nRequest received:\n` +
-            `\t[${GmukkoTime.getCurrentDateTime()}]\n` +
-            `\tURL: ${req.url}\n` +
-            `\tMethod: ${req.method}\n` +
-            `\tIP: ${req.socket.remoteAddress}\n` +
-            `\tUser-Agent: ${req.headers['user-agent']}\n` +
-            `\tHeaders: ${JSON.stringify(req.headers, null, 2)}\n`
-        )
+        console.log(chalk.blue(`\nRequest received \t[${GmukkoTime.getCurrentDateTime()}]\n`))
         fs.appendFile(`${LogFiles.IncomingRequest}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +

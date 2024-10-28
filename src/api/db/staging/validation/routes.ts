@@ -33,7 +33,6 @@ router.post('/accepted', async (req, res, next) => {
 
 router.post('/rejected', async (req, res, next) => {
     try {
-        console.log(req.body)
         res.status(200).send('Success.\n')
     } catch (error) {
         res.sendStatus(500)
