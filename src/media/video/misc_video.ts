@@ -16,11 +16,11 @@ export class MiscVideo extends Video {
         this.title = title
     }
 
-    getVideoType() {
+    getVideoType(): VideoTypes {
         return VideoTypes.Misc
     }
 
-    getTableName() {
+    getTableName(): DatabaseTableNames {
         return DatabaseTableNames.MiscVideo
     }
 
@@ -28,7 +28,7 @@ export class MiscVideo extends Video {
         return StagingDirectories.MiscVideo
     }
 
-    getPrompt() {
+    getPrompt(): Prompt {
         return new Prompt(this.getVideoType())
     }
 
@@ -36,7 +36,7 @@ export class MiscVideo extends Video {
         return VideoModel
     }
 
-    getAttributes() {
+    getAttributes(): any {
         return {
             mediaType: {type: DataTypes.STRING, allownull: false},
             videoType: {type: DataTypes.STRING, allownull: false},

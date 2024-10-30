@@ -18,7 +18,7 @@ export class FileEngine {
         }
     }
 
-    public async backupValidationFiles() {
+    public async backupValidationFiles(): Promise<void> {
         try {
             this.backupFile(Paths.PendingValidation, Paths.PendingValidationBackup)
             this.backupFile(Paths.AcceptedValidation, Paths.AcceptedValidationBackup)
@@ -28,7 +28,7 @@ export class FileEngine {
         }
     }
 
-    public async truncateValidationFiles() {
+    public async truncateValidationFiles(): Promise<void> {
         fsSync.truncateSync(Paths.PendingValidation)
         fsSync.truncateSync(Paths.AcceptedValidation)
         fsSync.truncateSync(Paths.RejectedValidation)
@@ -61,7 +61,7 @@ export class FileEngine {
         }
     }
 
-    private backupFile(originalPath: Paths, backupPath: Paths) {
+    private backupFile(originalPath: Paths, backupPath: Paths): void {
         try {
             const originalFileContent = this.readFileAsString(originalPath)
             const newFileDirectory = path.dirname(backupPath)

@@ -15,7 +15,7 @@ export class AxiosEngine {
     private instance = this.createCustomAxios() 
 
 
-    public async startIndexing() {
+    public async startIndexing(): Promise<void> {
         try {
             const reply = await this.instance.post(`/db/staging/index`)
             console.log(reply.data)
@@ -24,7 +24,7 @@ export class AxiosEngine {
         }
     }
 
-    public async startDatabaseBackups() {
+    public async startDatabaseBackups(): Promise<void> {
         const reply = await this.instance.post('/db/backup')
         console.log(reply.data)
     }
@@ -40,7 +40,7 @@ export class AxiosEngine {
         }
     }
 
-    public async postStagingValidationResults(filePath: Paths) {
+    public async postStagingValidationResults(filePath: Paths): Promise<void> {
         const fileEngine = new FileEngine()
         const validationResults = await fileEngine.readYamlFileToObject(filePath)
         if (validationResults) {

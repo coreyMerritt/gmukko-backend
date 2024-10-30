@@ -12,7 +12,7 @@ import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, St
 class Start {
     private port = 3080
 
-    public async execute() {
+    public async execute(): Promise<void> {
         this.createDirectories()
         this.startApp()
         this.startPassiveJobs()
@@ -20,7 +20,7 @@ class Start {
 
     
 
-    private async createDirectories() {
+    private async createDirectories(): Promise<void> {
         var directoriesToCreate: string[] = []
         directoriesToCreate.push(...(Object.values(BackupDirectories)))
         directoriesToCreate.push(...(Object.values(CoreDirectories)))
@@ -37,7 +37,7 @@ class Start {
         }
     }
 
-    private async startApp() {
+    private async startApp(): Promise<void> {
         const app = express()
         const server = http.createServer(app)
 
@@ -59,7 +59,7 @@ class Start {
     }
 
 
-    private async startPassiveJobs() {
+    private async startPassiveJobs(): Promise<void> {
         cron.schedule('0 0 * * *', () => {
             Database.backupAll()
         }, 

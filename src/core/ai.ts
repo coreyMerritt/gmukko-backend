@@ -23,16 +23,12 @@ export class AI {
             if (((i+1) % 30) === 0) {
                 GmukkoLogger.info(`Attempting to parse files ${i-28}-${i+1} of ${filePaths.length}...`)
                 const tenVideoFiles = await this.parseSomeMediaData(workingArray, prompt)
-                if (tenVideoFiles) {
-                    videoFiles = videoFiles.concat(tenVideoFiles)
-                }
+                videoFiles = videoFiles.concat(tenVideoFiles)
                 workingArray = []
             } else if (i+1 === filePaths.length) {
                 GmukkoLogger.info(`Attempting to parse files ${(Math.floor(i/30)*30)+1}-${i+1} of ${filePaths.length}...`)
                 const upToNineVideoFiles = await this.parseSomeMediaData(workingArray, prompt)
-                if (upToNineVideoFiles) {
-                    videoFiles = videoFiles.concat(upToNineVideoFiles)
-                }
+                videoFiles = videoFiles.concat(upToNineVideoFiles)
             }
         }
         return videoFiles
@@ -64,26 +60,18 @@ export class AI {
         try {
             const ai = new AI()
             const aiResult = await ai.evaluate(prompt.value, filePaths)
-            if (aiResult) {
-                const jsonArray = await this.stringToObjectArray(aiResult)
-                if (jsonArray) {
-                    if (Validators.isMediaArray(jsonArray)) {
-                        var media = []
-                        for (const [, object] of jsonArray.entries()) {
-                            const objectAsMedia = MediaFactory.createMedia(object)
-                            if (objectAsMedia) {
-                                media.push(objectAsMedia)
-                            }
-                        }
-                        return media
-                    } else {
-                        throw new Error(`JSON array is not a Media array.`)
+            const jsonArray = await this.stringToObjectArray(aiResult)
+            if (Validators.isMediaArray(jsonArray)) {
+                var media = []
+                for (const [, object] of jsonArray.entries()) {
+                    const objectAsMedia = MediaFactory.createMedia(object)
+                    if (objectAsMedia) {
+                        media.push(objectAsMedia)
                     }
-                } else {
-                    throw new Error(`Unable to parse OpenAI's result as a JSON array.`)
                 }
+                return media
             } else {
-                throw new Error(`Failed to parse filePaths. OpenAI returned an empty result.`)
+                throw new Error(`JSON array is not a Media array.`)
             }
         } catch (error) {
             throw new Error(`Failed to parse ${filePaths.length} files.`, { cause: error })
@@ -121,7 +109,6 @@ export class AI {
                 }   
             }
 
-            // Shouldn't be possible to make it this far, but this makes typescript happy.
             return potentialArray
 
         } catch (error) {

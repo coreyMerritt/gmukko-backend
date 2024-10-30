@@ -15,7 +15,7 @@ class Startup {
         }
     }
 
-    private createDirectoriesAndFiles() {
+    private createDirectoriesAndFiles(): void {
         try {
             for (const [, directory] of Object.values(Directories).entries()) {
                 fsSync.mkdirSync(directory, { recursive: true })

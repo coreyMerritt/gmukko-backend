@@ -36,7 +36,7 @@ export class Menus {
 
     
     
-    private async routeMain(menuHandler: MenuHandler, userAnswer: string) {
+    private async routeMain(menuHandler: MenuHandler, userAnswer: string): Promise<void> {
         const fileEngine = new FileEngine()
         const axios = new AxiosEngine()
         switch (userAnswer) {

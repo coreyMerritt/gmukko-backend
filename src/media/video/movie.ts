@@ -22,11 +22,11 @@ export class Movie extends Video {
         this.releaseYear = releaseYear
     }
 
-    getVideoType() {
+    getVideoType(): VideoTypes {
         return VideoTypes.Movie
     }
 
-    getTableName() {
+    getTableName(): DatabaseTableNames {
         return DatabaseTableNames.Movies
     }
 
@@ -34,7 +34,7 @@ export class Movie extends Video {
         return StagingDirectories.Movies
     }
 
-    getPrompt() {
+    getPrompt(): Prompt {
         return new Prompt(this.getVideoType())
     }
 
@@ -42,7 +42,7 @@ export class Movie extends Video {
         return MovieModel
     }
 
-    getAttributes() {
+    getAttributes(): any {
         return {
             mediaType: {type: DataTypes.STRING, allownull: false},
             videoType: {type: DataTypes.STRING, allownull: false},

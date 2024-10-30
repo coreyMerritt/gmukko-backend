@@ -19,7 +19,7 @@ export enum VideoTypes {
 export abstract class Video extends Media {
     public abstract videoType: VideoTypes
 
-    public getFileExtensions() {
+    public getFileExtensions(): string[] {
         return ['.mkv', '.avi', '.mp4', '.mov']
     }
 }

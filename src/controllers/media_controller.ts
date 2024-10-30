@@ -17,29 +17,28 @@ export interface ValidationRequest {
 
 export class MediaController {
 
-    public static async moveStagingFilesToProduction(validationRequest: ValidationRequest) {
+    public static async moveStagingFilesToProduction(validationRequest: ValidationRequest): Promise<void> {
         GmukkoLogger.info(`Attempting to move files from staging to production...`)
         var count = 0
         for (const [, tableName] of Object.keys(validationRequest.tables).entries()) {
             for (const [, media] of validationRequest.tables[tableName].entries()) {
                 const newFilePath = await this.getNewFilePathFromMedia(media, tableName as DatabaseTableNames)
                 try {
-                     fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
+                    fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
                     fs.accessSync(media.filePath)
                     fs.renameSync(media.filePath, newFilePath)
                     media.filePath = newFilePath
-                    this.cleanStagingDirectory()
+                    await this.cleanStagingDirectory()
+                    count++
                 } catch (error) {
                     throw new Error(`Something went wrong while trying to move staging file to production: ${media.filePath}.`, { cause: error })
                 }
-                 count++
             }
         }
         GmukkoLogger.success(`${count} staging file${count > 1 ? 's' : ''} moved to production.`)
-        return validationRequest
     }
 
-    public static async indexFilesIntoStagingDatabase(videoType: string | undefined) {
+    public static async indexFilesIntoStagingDatabase(videoType: string | undefined): Promise<void> {
         var count
         if (videoType === undefined) {
             count = await this.indexAllStagingDirectories()
@@ -60,11 +59,9 @@ export class MediaController {
             for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
                 validationRequest.tables[tableName] = []
                 const results = await Database.getStagingDatabaseEntriesFromTable(tableName)
-                if (results) {
-                    for (const [, media] of results.entries()) {
-                        if (Validators.isMedia(media)) {
-                            validationRequest.tables[tableName].push(media)
-                        }
+                for (const [, media] of results.entries()) {
+                    if (Validators.isMedia(media)) {
+                        validationRequest.tables[tableName].push(media)
                     }
                 }
             }
@@ -78,7 +75,7 @@ export class MediaController {
 
 
 
-    private static async getNewFilePathFromMedia(media: Media, tableName: DatabaseTableNames) {
+    private static async getNewFilePathFromMedia(media: Media, tableName: DatabaseTableNames): Promise<string> {
         var newBasePath = `${CoreDirectories.ProductionVideos}/${tableName}`
         var currentFileExtension = path.extname(media.filePath)
         var title = await this.prepStringForFilename(media.title)
@@ -126,7 +123,7 @@ export class MediaController {
         }
     }
 
-    private static async indexAllStagingDirectories() {
+    private static async indexAllStagingDirectories(): Promise<number> {
         var count = 0
 
         const nullAnimation = VideoFactory.createNullFromVideoType(VideoTypes.Animation)
@@ -151,7 +148,7 @@ export class MediaController {
     }
 
 
-    private static async indexOneStagingDirectory(nullMedia: Media) {
+    private static async indexOneStagingDirectory(nullMedia: Media): Promise<number> {
         var count = 0
 
         try {
@@ -171,7 +168,7 @@ export class MediaController {
         return count
     }
 
-    private static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]) {
+    private static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
         try {
             const files = fs.readdirSync(directoryToCheck)
             var filesMatchingExtension: string[] = []
@@ -238,7 +235,7 @@ export class MediaController {
     }
 
 
-    private static async cleanStagingDirectory() {
+    private static async cleanStagingDirectory(): Promise<void> {
         for (const [, directory] of Object.values(StagingDirectories).entries()) {
             this.deleteEmptyDirectories(directory)
         }

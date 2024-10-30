@@ -1,6 +1,6 @@
 export class GmukkoTime {
 
-    public static getCurrentDateTime(fileFormat?: boolean) {
+    public static getCurrentDateTime(fileFormat?: boolean): string {
         const now = new Date()
 
         const year = now.getFullYear()
@@ -18,7 +18,7 @@ export class GmukkoTime {
         }
     }
 
-    public static getCurrentTime(fileFormat?: boolean) {
+    public static getCurrentTime(fileFormat?: boolean): string {
         const now = new Date()
     
         const hours = String(now.getHours()).padStart(2, '0')

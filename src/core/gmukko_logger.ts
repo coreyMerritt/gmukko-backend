@@ -14,7 +14,7 @@ const red = chalk.red
 
 export class GmukkoLogger {
 
-    public static async incomingRequest(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>) {
+    public static async incomingRequest(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>): Promise<void> {
         process.stdout.write(`\n`)
         this.logTimestamp()
         process.stdout.write(blue(`Request Recieved\n\n`))
@@ -30,7 +30,7 @@ export class GmukkoLogger {
     }
 
 
-    public static async info(info: string) {
+    public static async info(info: string): Promise<void> {
         this.logTimestamp()
         process.stdout.write(`${info}\n`)
 
@@ -40,7 +40,7 @@ export class GmukkoLogger {
         )
     }
 
-    public static async data(tag: string, data: string) {
+    public static async data(tag: string, data: string): Promise<void> {
         this.logTimestamp()
         process.stdout.write(`${tag}: ${cyan(data)}\n`)
 
@@ -50,7 +50,7 @@ export class GmukkoLogger {
         )
     }
 
-    public static async important(info: string) {
+    public static async important(info: string): Promise<void> {
         this.logTimestamp()
         process.stdout.write(`${orange(info)}\n`)
 
@@ -60,7 +60,7 @@ export class GmukkoLogger {
         )
     }
 
-    public static async success(info: string) {
+    public static async success(info: string): Promise<void> {
         this.logTimestamp()
         process.stdout.write(`${green(info)}\n`)
 
@@ -71,7 +71,7 @@ export class GmukkoLogger {
     }
 
 
-    public static async error(info: string, error?: unknown) {
+    public static async error(info: string, error?: unknown): Promise<void> {
         this.logTimestamp()
         if (error) {
             process.stderr.write(`${red(info)}\n${red(error)}\n`)
@@ -101,7 +101,7 @@ export class GmukkoLogger {
         }
     }
 
-    private static async logTimestamp() {
+    private static async logTimestamp(): Promise<void> {
         process.stdout.write(blue(`[${GmukkoTime.getCurrentTime()}] `))
     }
 }

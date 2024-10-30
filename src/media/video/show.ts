@@ -25,11 +25,11 @@ export class Show extends Video {
         this.episodeNumber = episodeNumber
     }
 
-    getVideoType() {
+    getVideoType(): VideoTypes {
         return VideoTypes.Show
     }
 
-    getTableName() {
+    getTableName(): DatabaseTableNames {
         return DatabaseTableNames.Shows
     }
 
@@ -37,7 +37,7 @@ export class Show extends Video {
         return StagingDirectories.Shows
     }
 
-    getPrompt() {
+    getPrompt(): Prompt {
         return new Prompt(this.getVideoType())
     }
 
@@ -45,7 +45,7 @@ export class Show extends Video {
         return ShowModel
     }
 
-    getAttributes() {
+    getAttributes(): any {
         return {
             mediaType: {type: DataTypes.STRING, allownull: false},
             videoType: {type: DataTypes.STRING, allownull: false},

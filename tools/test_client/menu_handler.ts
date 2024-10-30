@@ -36,11 +36,11 @@ export class MenuHandler {
     }
 
 
-    public exit() {
+    public exit(): Promise<void> {
         process.exit(0)
     }
 
-    public async backupDatabases(axios: AxiosEngine) {
+    public async backupDatabases(axios: AxiosEngine): Promise<void> {
         try {
             await axios.startDatabaseBackups()
         } catch (error) {
@@ -48,7 +48,7 @@ export class MenuHandler {
         }
     }
     
-    public async indexStagingMedia(axios: AxiosEngine) {
+    public async indexStagingMedia(axios: AxiosEngine): Promise<void> {
         try {
             await axios.startIndexing()
         } catch (error) {
@@ -56,7 +56,7 @@ export class MenuHandler {
         }
     }
 
-    public async getMediaPendingValidation(axios: AxiosEngine, fileEngine: FileEngine) {
+    public async getMediaPendingValidation(axios: AxiosEngine, fileEngine: FileEngine): Promise<void> {
         try {
             const mediaPendingValidation = await axios.getMediaPendingValidation()
             if (mediaPendingValidation) {
@@ -70,7 +70,7 @@ export class MenuHandler {
         }
     }
 
-    public async postValidationResults(axios: AxiosEngine, fileEngine: FileEngine) {
+    public async postValidationResults(axios: AxiosEngine, fileEngine: FileEngine): Promise<void> {
         try {
             await fileEngine.backupValidationFiles()
             await axios.postStagingValidationResults(Paths.AcceptedValidation)
@@ -81,7 +81,7 @@ export class MenuHandler {
         }
     }
 
-    public defaultMain() {
+    public defaultMain(): void {
         console.error(`Invalid Input.`)
     }
 }

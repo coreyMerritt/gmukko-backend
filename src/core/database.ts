@@ -31,7 +31,7 @@ export class Database {
     }
 
 
-    public static async indexFilesIntoStagingDatabase(media: Media[]) {
+    public static async indexFilesIntoStagingDatabase(media: Media[]): Promise<number> {
         try {
             const tableName = media[0].getTableName()
             const stagingDatabase = await this.createAndLoadDatabase(DatabaseNames.Staging)
@@ -78,26 +78,28 @@ export class Database {
         }
     }
 
-    public static async getStagingDatabaseEntriesFromTable(tableName: DatabaseTableNames) {
+    public static async getStagingDatabaseEntriesFromTable(tableName: DatabaseTableNames): Promise<object[]> {
         const entries = await Database.selectAllFromTable(DatabaseNames.Staging, tableName)
         return entries
     }
 
-    private static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames) {
+    private static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise <object[]> {
         const database = await this.createAndLoadDatabase(databaseName)
         if (await this.tableExists(database, tableName)) {
             const resultOfQuery = await database.query(
                 `SELECT * FROM ${tableName};`,
-                {
+                {   
                   type: QueryTypes.SELECT,
                 }
             )
             
             return resultOfQuery
+        }  else {
+            return []
         }
     }
 
-    private static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string) {
+    private static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<object[]> {
         const database = await this.createAndLoadDatabase(databaseName)
         if (await this.tableExists(database, tableName)) {
             const resultOfQuery = await database.query(
@@ -113,13 +115,15 @@ export class Database {
                 }
             )
             return resultOfQuery
+        } else {
+            return []
         }
     }
 
 
-    private static async deleteFromTableWhereOneEqualsTwo(database: Sequelize, tableName: DatabaseTableNames, column: string, match: string) {
+    private static async deleteFromTableWhereOneEqualsTwo(database: Sequelize, tableName: DatabaseTableNames, column: string, match: string): Promise<void> {
         if (await this.tableExists(database, tableName)) {
-            const resultOfQuery = await database.query(
+            await database.query(
                 `DELETE FROM ${tableName}
                 WHERE ${column} = :match;`,
                 {
@@ -133,7 +137,7 @@ export class Database {
     }
 
 
-    private static async insertMediaIntoTable(database: Sequelize, media: Media, tableName?: DatabaseTableNames) {
+    private static async insertMediaIntoTable(database: Sequelize, media: Media, tableName?: DatabaseTableNames): Promise<void> {
         try {
             const adjustedTableName = tableName ? tableName : media.getTableName() 
             const columns: string[] = ['createdAt', 'updatedAt']
@@ -166,7 +170,7 @@ export class Database {
     }
 
 
-    public static async removeAlreadyIndexedFilePaths(databaseName: DatabaseNames, filePaths: string[]) {
+    public static async removeAlreadyIndexedFilePaths(databaseName: DatabaseNames, filePaths: string[]): Promise<string[]> {
         var filePathsToToss: string[] = []
         const database = await this.createAndLoadDatabase(databaseName)
         try {
@@ -206,7 +210,7 @@ export class Database {
         }
     }
 
-    private static async tableExists(database: Sequelize, tableName: DatabaseTableNames) {
+    private static async tableExists(database: Sequelize, tableName: DatabaseTableNames): Promise<boolean> {
         try {
             await database.query(
                 `SELECT * FROM ${tableName};`,
@@ -250,7 +254,7 @@ export class Database {
     }
     
 
-    private static async initAndSyncModel(database: Sequelize, media: Media) {
+    private static async initAndSyncModel(database: Sequelize, media: Media): Promise<void> {
         try {
             const model = media.getModel()
             model.init(media.getAttributes(), { sequelize: database, tableName: media.getTableName() })
