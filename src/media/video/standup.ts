@@ -25,10 +25,6 @@ export class Standup extends Video {
         this.releaseYear = releaseYear
     }
 
-    getVideoType(): VideoTypes {
-        return VideoTypes.Standup
-    }
-
     getTableName(): DatabaseTableNames {
         return DatabaseTableNames.Standup
     }
@@ -38,7 +34,7 @@ export class Standup extends Video {
     }
 
     getPrompt(): Prompt {
-        return new Prompt(this.getVideoType())
+        return new Prompt(this.videoType)
     }
 
     getModel(): ModelStatic<Model> {

@@ -16,10 +16,6 @@ export class MiscVideo extends Video {
         this.title = title
     }
 
-    getVideoType(): VideoTypes {
-        return VideoTypes.Misc
-    }
-
     getTableName(): DatabaseTableNames {
         return DatabaseTableNames.MiscVideo
     }
@@ -29,7 +25,7 @@ export class MiscVideo extends Video {
     }
 
     getPrompt(): Prompt {
-        return new Prompt(this.getVideoType())
+        return new Prompt(this.videoType)
     }
 
     getModel(): ModelStatic<Model> {

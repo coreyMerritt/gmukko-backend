@@ -22,10 +22,6 @@ export class Movie extends Video {
         this.releaseYear = releaseYear
     }
 
-    getVideoType(): VideoTypes {
-        return VideoTypes.Movie
-    }
-
     getTableName(): DatabaseTableNames {
         return DatabaseTableNames.Movies
     }
@@ -35,7 +31,7 @@ export class Movie extends Video {
     }
 
     getPrompt(): Prompt {
-        return new Prompt(this.getVideoType())
+        return new Prompt(this.videoType)
     }
 
     getModel(): ModelStatic<Model> {

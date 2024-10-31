@@ -25,10 +25,6 @@ export class Show extends Video {
         this.episodeNumber = episodeNumber
     }
 
-    getVideoType(): VideoTypes {
-        return VideoTypes.Show
-    }
-
     getTableName(): DatabaseTableNames {
         return DatabaseTableNames.Shows
     }
@@ -38,7 +34,7 @@ export class Show extends Video {
     }
 
     getPrompt(): Prompt {
-        return new Prompt(this.getVideoType())
+        return new Prompt(this.videoType)
     }
 
     getModel(): ModelStatic<Model> {
