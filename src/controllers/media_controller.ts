@@ -10,8 +10,16 @@ interface TableRequest {
     [tableName: string]: Media[]
 }
 
+interface TableResponse {
+    [tableName: string]: Media[]
+}
+
 export interface ValidationRequest {
     tables: TableRequest
+}
+
+export interface ValidationResponse {
+    tables: TableResponse
 }
 
 
@@ -22,7 +30,7 @@ export class MediaController {
         var count = 0
         for (const [, tableName] of Object.keys(validationRequest.tables).entries()) {
             for (const [, media] of validationRequest.tables[tableName].entries()) {
-                const newFilePath = await this.getNewFilePathFromMedia(media, tableName as DatabaseTableNames)
+                const newFilePath = media.getProductionFilePath()
                 try {
                     fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
                     fs.accessSync(media.filePath)
@@ -40,7 +48,7 @@ export class MediaController {
 
     public static async indexFilesIntoStagingDatabase(videoType: string | undefined): Promise<void> {
         var count
-        if (videoType === undefined) {
+        if (!videoType) {
             count = await this.indexAllStagingDirectories()
         } else if (Validators.isVideoType(videoType)) {
             const nullVideo = VideoFactory.createNullFromVideoType(videoType)
@@ -73,55 +81,6 @@ export class MediaController {
         return validationRequest
     }
 
-
-
-    private static async getNewFilePathFromMedia(media: Media, tableName: DatabaseTableNames): Promise<string> {
-        var newBasePath = `${CoreDirectories.ProductionVideos}/${tableName}`
-        var currentFileExtension = path.extname(media.filePath)
-        var title = await this.prepStringForFilename(media.title)
-        var artist = 'artist' in media ? await this.prepStringForFilename(String(media.artist)) : undefined
-        var seasonNumber = 'seasonNumber' in media ? String(media.seasonNumber).padStart(2, '0') : undefined
-        var episodeNumber = 'episodeNumber' in media ? String(media.episodeNumber).padStart(2, '0') : undefined
-
-        switch (tableName) {
-            case DatabaseTableNames.Animation:
-                if (Validators.isAnimation(media)) {
-                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
-                } else {
-                    throw new Error(`Media attempting to be sent to production under table ${tableName} is not actually an animation.`)
-                }
-            case DatabaseTableNames.Anime:
-                if (Validators.isAnime(media)) {
-                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
-                } else {
-                    throw new Error(`Media attempting to be sent to production under table ${tableName} is not actually an anime.`)
-                }
-            case DatabaseTableNames.Movies:
-                if (Validators.isMovie(media)) {
-                    return `${newBasePath}/(${media.releaseYear})-${title}${currentFileExtension}`
-                } else {
-                    throw new Error(`Media attempting to be sent to production under table ${tableName} is not actually a movie.`)
-                }
-            case DatabaseTableNames.Shows:
-                if (Validators.isShow(media)) {
-                    return `${newBasePath}/${(title)}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
-                } else {
-                    throw new Error(`Media attempting to be sent to production under table ${tableName} is not actually a show.`)
-                }
-            case DatabaseTableNames.Standup:
-                if (Validators.isStandup(media)) {
-                    return `${newBasePath}/${artist}/(${media.releaseYear})-${title}${currentFileExtension}`
-                } else {
-                    throw new Error(`Media attempting to be sent to production under table ${tableName} is not actually standup.`)
-                }
-            default:
-                if (Validators.isMiscVideo(media)) {
-                    return `${newBasePath}/${title}${currentFileExtension}`
-                } else {
-                    throw new Error(`Media sent to production under table ${tableName} is not actually a misc video.`)
-                }
-        }
-    }
 
     private static async indexAllStagingDirectories(): Promise<number> {
         var count = 0

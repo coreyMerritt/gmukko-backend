@@ -18,12 +18,15 @@ router.get('/pending', async (req, res, next) => {
 
 router.post('/accepted', async (req, res, next) => {
     try {
-        const originalRequest = structuredClone(req.body)
-        const updatedRequest = structuredClone(req.body)
-        if (Validators.isValidationRequest(originalRequest)) {
-            await MediaController.moveStagingFilesToProduction(updatedRequest)
-            await Database.moveStagingDatabaseEntriesToProduction(originalRequest, updatedRequest)
+        const originalValidationReponse = req.body
+        if (Validators.isValidationResponse(originalValidationReponse)) {
+            const validationReponseWithUpdatedFilePaths = structuredClone(req.body)
+            await MediaController.moveStagingFilesToProduction(validationReponseWithUpdatedFilePaths)
+            await Database.moveStagingDatabaseEntriesToProduction(originalValidationReponse, validationReponseWithUpdatedFilePaths)
             res.status(200).send('Successfully processed accepted entries.\n')
+        } else {
+            res.status(500).send(`Invalid data type.\n`)
+            next(`Data sent is not a proper validation request.`)
         }
     } catch (error) {
         res.sendStatus(500)

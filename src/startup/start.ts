@@ -10,12 +10,14 @@ import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, St
 
 
 class Start {
+    
     private port = 3080
 
     public async execute(): Promise<void> {
         this.createDirectories()
         this.startApp()
         this.startPassiveJobs()
+        Database.initialize()
     }
 
     
@@ -36,6 +38,7 @@ class Start {
             }   
         }
     }
+
 
     private async startApp(): Promise<void> {
         const app = express()

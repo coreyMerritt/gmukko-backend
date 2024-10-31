@@ -1,8 +1,13 @@
-import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
-import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
+import { DataTypes, Model, ModelStatic } from "sequelize"
+import { CoreDirectories, DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingDirectories } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
+import path from "path"
+
+
+class MiscVideoModel extends VideoModel {}
+
 
 export class MiscVideo extends Video {
     public mediaType = MediaTypes.Video
@@ -29,7 +34,7 @@ export class MiscVideo extends Video {
     }
 
     getModel(): ModelStatic<Model> {
-        return VideoModel
+        return MiscVideoModel
     }
 
     getAttributes(): any {
@@ -39,5 +44,12 @@ export class MiscVideo extends Video {
             filePath: {type: DataTypes.STRING, allownull: false, unique: true},
             title: {type: DataTypes.STRING, allownull: false}
         }
+    }
+
+    getProductionFilePath(): string {
+        var newBasePath = `${CoreDirectories.ProductionVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        return `${newBasePath}/${title}${currentFileExtension}`
     }
 }

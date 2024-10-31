@@ -1,10 +1,8 @@
-import { Model } from "sequelize"
-import { Media } from "../media.js"
+import { Media, MediaModel } from "../media.js"
 
-export class VideoModel extends Model {
-    public mediaType!: string
-    public filePath!: string
-    public title!: string
+
+export class VideoModel extends MediaModel {
+    public videoType!: string
 }
 
 export enum VideoTypes {
@@ -16,10 +14,17 @@ export enum VideoTypes {
     Standup = 'standup'
 }
 
+
 export abstract class Video extends Media {
     public abstract videoType: VideoTypes
 
     public getFileExtensions(): string[] {
         return ['.mkv', '.avi', '.mp4', '.mov']
+    }
+
+    public prepStringForFileName(someString: string): string {
+        var newString = someString.toLowerCase().replace(/ /g, '-').replace(`:`, ``).replace(`'`, ``).replace(`;`, "").replace(`"`, ``)
+        newString = newString.replace(`?`, ``).replace(`>`, ``).replace(`<`, ``).replace(`\\`, `/`).replace(`|`, ``).replace(`*`, ``)
+        return newString
     }
 }

@@ -1,4 +1,4 @@
-import { ValidationRequest } from '../controllers/media_controller.js'
+import { ValidationRequest, ValidationResponse } from '../controllers/media_controller.js'
 import { Media, MediaTypes } from '../media/media.js'
 import { Anime, Animation, MiscVideo, Movie, Show, Standup, Video, VideoTypes } from '../media/video/index.js'
 import { GmukkoLogger } from './gmukko_logger.js'
@@ -83,6 +83,26 @@ export class Validators {
     }
 
     public static isValidationRequest(object: object): object is ValidationRequest {
+        if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
+            for (const [, someArray] of Object.values(object.tables).entries()) {
+                if (!this.isMediaArray(someArray)) {
+                    GmukkoLogger.error(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
+                    return false
+                }
+                for (const [, media] of Object.values(someArray).entries()) {
+                    for (const [, value] of Object.values(media).entries())
+                    if (value === null || value === undefined || value === `placeholder` || value === -1) {
+                        throw new Error(`Rejected media validation request. Media contains a null, undefined, placeholer, or -1 value:\n${JSON.stringify(media)}`)
+                    }
+                }
+            }
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public static isValidationResponse(object: object): object is ValidationResponse {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
                 if (!this.isMediaArray(someArray)) {

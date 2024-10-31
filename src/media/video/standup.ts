@@ -1,8 +1,9 @@
 import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
-import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
+import { CoreDirectories, DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingDirectories } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
+import path from "path"
 
 class StandupModel extends VideoModel {
     public artist!: string
@@ -50,5 +51,13 @@ export class Standup extends Video {
             artist: {type: DataTypes.STRING, allownull: false},
             releaseYear: {type: DataTypes.INTEGER, allowNull: false}
         }
+    }
+
+    getProductionFilePath(): string {
+        var newBasePath = `${CoreDirectories.ProductionVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        var artist = this.prepStringForFileName(String(this.artist))
+        return `${newBasePath}/${artist}/(${this.releaseYear})-${title}${currentFileExtension}`
     }
 }

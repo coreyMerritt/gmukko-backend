@@ -1,8 +1,9 @@
 import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
-import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
+import { CoreDirectories, DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingDirectories } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
+import path from "path"
 
 class MovieModel extends VideoModel {
     public releaseYear!: number
@@ -46,5 +47,12 @@ export class Movie extends Video {
             title: {type: DataTypes.STRING, allownull: false},
             releaseYear: {type: DataTypes.INTEGER, allowNull: false}
         }
+    }
+
+    getProductionFilePath(): string {
+        var newBasePath = `${CoreDirectories.ProductionVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        return `${newBasePath}/(${this.releaseYear})-${title}${currentFileExtension}`
     }
 }

@@ -1,6 +1,12 @@
-import { Model, ModelStatic, Sequelize } from "sequelize"
+import { Model, ModelStatic } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../configuration/index.js"
 import { StagingDirectories } from "../configuration/directories/staging_directories.js"
+
+export class MediaModel extends Model {
+    public mediaType!: string
+    public filePath!: string
+    public title!: string
+}
 
 export abstract class Media {
     public abstract mediaType: MediaTypes
@@ -14,6 +20,7 @@ export abstract class Media {
     public abstract getPrompt(): Prompt
     public abstract getModel(): ModelStatic<Model>
     public abstract getAttributes(): any
+    public abstract getProductionFilePath(): string
 }
 
 export enum MediaTypes {

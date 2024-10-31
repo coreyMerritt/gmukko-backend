@@ -1,8 +1,9 @@
 import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
-import { DatabaseTableNames, Prompt } from "../../configuration/index.js"
+import { CoreDirectories, DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingDirectories } from "../../configuration/index.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
+import path from "path"
 
 class AnimeModel extends VideoModel {
     public seasonNumber!: number
@@ -50,5 +51,14 @@ export class Anime extends Video {
             seasonNumber: {type: DataTypes.INTEGER, allowNull: false},
             episodeNumber: {type: DataTypes.INTEGER, allowNull: false}
         }
+    }
+
+    getProductionFilePath(): string {
+        var newBasePath = `${CoreDirectories.ProductionVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        var seasonNumber = String(this.seasonNumber).padStart(2, '0')
+        var episodeNumber = String(this.episodeNumber).padStart(2, '0')
+        return `${newBasePath}/${title}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
     }
 }
