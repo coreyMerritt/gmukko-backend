@@ -1,5 +1,5 @@
-import { DatabaseTableNames } from "../db/database_table_names.js";
-import { CoreDirectories } from "./core_directories.js";
+import { DatabaseTableNames } from "../db/database_table_names.js"
+import { CoreDirectories } from "./core_directories.js"
 
 export enum ProductionDirectories {
     Animation = `${CoreDirectories.ProductionVideos}/${DatabaseTableNames.Animation}`,

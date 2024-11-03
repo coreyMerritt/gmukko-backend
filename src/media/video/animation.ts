@@ -61,4 +61,13 @@ export class Animation extends Video {
         var episodeNumber = String(this.episodeNumber).padStart(2, '0')
         return `${newBasePath}/${title}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
     }
+
+    getRejectFilePath(): string {
+        var newBasePath = `${CoreDirectories.RejectVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        var seasonNumber = String(this.seasonNumber).padStart(2, '0')
+        var episodeNumber = String(this.episodeNumber).padStart(2, '0')
+        return `${newBasePath}/${title}/s${seasonNumber}e${episodeNumber}${currentFileExtension}`
+    }
 }

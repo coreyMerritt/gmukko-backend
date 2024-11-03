@@ -9,7 +9,9 @@ export enum MainMenuAnswers {
     BackupDatabases = '0',
     IndexStagingMedia = '1',
     GetMediaPendingValidation = '2',
-    PostValidationResults = '3'
+    PostAcceptedValidationResults = '3',
+    PostRejectedValidationResults = '4',
+    PostAllValidationResults = '5'
 }
 
 export class Menus {
@@ -19,7 +21,9 @@ export class Menus {
         `\t0) Back Up Databases\n` +
         `\t1) Index Staging\n` +
         `\t2) Get Staging Index\n` +
-        `\t3) Post Staging Validation\n`
+        `\t3) Post Accepted Validation Response\n` +
+        `\t4) Post Rejected Validation Response\n` +
+        `\t5) Post All Validation Response\n`
 
 
     public async main(): Promise<void> {
@@ -51,11 +55,17 @@ export class Menus {
             case MainMenuAnswers.GetMediaPendingValidation:
                 await menuHandler.getMediaPendingValidation(axios, fileEngine)
                 break
-            case MainMenuAnswers.PostValidationResults:
-                await menuHandler.postValidationResults(axios,fileEngine)
+            case MainMenuAnswers.PostAcceptedValidationResults:
+                await menuHandler.postAcceptedValidationResults(axios,fileEngine)
+                break
+            case MainMenuAnswers.PostRejectedValidationResults:
+                await menuHandler.postRejectedValidationResults(axios,fileEngine)
+                break
+            case MainMenuAnswers.PostAllValidationResults:
+                await menuHandler.postAllValidationResults(axios,fileEngine)
                 break
             default:
-                await menuHandler.defaultMain()
+                menuHandler.defaultMain()
         }
     }
 }

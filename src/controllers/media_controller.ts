@@ -22,28 +22,20 @@ export interface ValidationResponse {
     tables: TableResponse
 }
 
+enum LandingPoints {
+    Staging = 'staging',
+    Production = 'production',
+    Reject = 'reject'
+}
 
 export class MediaController {
 
-    public static async moveStagingFilesToProduction(validationRequest: ValidationRequest): Promise<void> {
-        GmukkoLogger.info(`Attempting to move files from staging to production...`)
-        var count = 0
-        for (const [, tableName] of Object.keys(validationRequest.tables).entries()) {
-            for (const [, media] of validationRequest.tables[tableName].entries()) {
-                const newFilePath = media.getProductionFilePath()
-                try {
-                    fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
-                    fs.accessSync(media.filePath)
-                    fs.renameSync(media.filePath, newFilePath)
-                    media.filePath = newFilePath
-                    await this.cleanStagingDirectory()
-                    count++
-                } catch (error) {
-                    throw new Error(`Something went wrong while trying to move staging file to production: ${media.filePath}.`, { cause: error })
-                }
-            }
-        }
-        GmukkoLogger.success(`${count} staging file${count > 1 ? 's' : ''} moved to production.`)
+    public static async moveStagingFilesToProduction(validationResponse: ValidationResponse): Promise<ValidationResponse> {
+        return await this.moveStagingFilesToPath(validationResponse, LandingPoints.Production)
+    }
+
+    public static async moveStagingFilesToRejects(validationResponse: ValidationResponse): Promise<ValidationResponse> {
+        return await this.moveStagingFilesToPath(validationResponse, LandingPoints.Reject)
     }
 
     public static async indexFilesIntoStagingDatabase(videoType: string | undefined): Promise<void> {
@@ -132,7 +124,7 @@ export class MediaController {
             const files = fs.readdirSync(directoryToCheck)
             var filesMatchingExtension: string[] = []
 
-            for (const [i, filePath] of files.entries()) {
+            for (const [, filePath] of files.entries()) {
                 const fullPath = path.join(directoryToCheck, filePath)
                 const fileExtension = path.extname(filePath)
                 const stats = fs.statSync(fullPath)
@@ -200,9 +192,34 @@ export class MediaController {
         }
     }
 
-    private static async prepStringForFilename(someString: string): Promise<string> {
-        var newString = someString.toLowerCase().replace(/ /g, '-').replace(`:`, ``).replace(`'`, ``).replace(`;`, "").replace(`"`, ``)
-        newString = newString.replace(`?`, ``).replace(`>`, ``).replace(`<`, ``).replace(`\\`, `/`).replace(`|`, ``).replace(`*`, ``)
-        return newString
+    private static async moveStagingFilesToPath(validationResponse: ValidationResponse, landing: LandingPoints): Promise<ValidationResponse> {
+        GmukkoLogger.info(`Attempting to move files from staging to ${landing}...`)
+        var count = 0
+        for (const [, tableName] of Object.keys(validationResponse.tables).entries()) {
+            for (var [, media] of validationResponse.tables[tableName].entries()) {
+                var newFilePath: string
+                // validationResponse.tables[tableName][i] = VideoFactory.createVideoFromTableName(media, tableName as DatabaseTableNames)
+                if (landing === LandingPoints.Production) {
+                    newFilePath = media.getProductionFilePath()
+                } else if (landing === LandingPoints.Reject) {
+                    newFilePath = media.getRejectFilePath()
+                } else {
+                    throw new Error (`Landing point for staging files is not yet configured.`)
+                }
+
+                try {
+                    fs.mkdirSync(path.dirname(newFilePath), { recursive: true })
+                    fs.accessSync(media.filePath)
+                    fs.renameSync(media.filePath, newFilePath)
+                    media.filePath = newFilePath
+                    await this.cleanStagingDirectory()
+                    count++
+                } catch (error) {
+                    throw new Error(`Something went wrong while trying to move staging file to ${landing}: ${media.filePath}.`, { cause: error })
+                }
+            }
+        }
+        GmukkoLogger.success(`${count} staging file${count > 1 ? 's' : ''} moved to production.`)
+        return validationResponse
     }
 }

@@ -21,6 +21,7 @@ export abstract class Media {
     public abstract getModel(): ModelStatic<Model>
     public abstract getAttributes(): any
     public abstract getProductionFilePath(): string
+    public abstract getRejectFilePath(): string
 }
 
 export enum MediaTypes {

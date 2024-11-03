@@ -52,4 +52,11 @@ export class MiscVideo extends Video {
         var title = this.prepStringForFileName(this.title)
         return `${newBasePath}/${title}${currentFileExtension}`
     }
+
+    getRejectFilePath(): string {
+        var newBasePath = `${CoreDirectories.RejectVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        return `${newBasePath}/${title}${currentFileExtension}`
+    }
 }

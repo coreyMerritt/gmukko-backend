@@ -18,7 +18,25 @@ export class FileEngine {
         }
     }
 
-    public async backupValidationFiles(): Promise<void> {
+    public async backupAcceptedValidationFile(): Promise<void> {
+        try {
+            this.backupFile(Paths.PendingValidation, Paths.PendingValidationBackup)
+            this.backupFile(Paths.AcceptedValidation, Paths.AcceptedValidationBackup)
+        } catch {
+            // File does not exist, no need to back up.
+        }
+    }
+
+    public async backupRejectedValidationFile(): Promise<void> {
+        try {
+            this.backupFile(Paths.PendingValidation, Paths.PendingValidationBackup)
+            this.backupFile(Paths.RejectedValidation, Paths.RejectedValidationBackup)
+        } catch {
+            // File does not exist, no need to back up.
+        }
+    }
+
+    public async backupAllValidationFiles(): Promise<void> {
         try {
             this.backupFile(Paths.PendingValidation, Paths.PendingValidationBackup)
             this.backupFile(Paths.AcceptedValidation, Paths.AcceptedValidationBackup)
@@ -28,7 +46,17 @@ export class FileEngine {
         }
     }
 
-    public async truncateValidationFiles(): Promise<void> {
+    public async truncateAcceptedValidationFile(): Promise<void> {
+        fsSync.truncateSync(Paths.PendingValidation)
+        fsSync.truncateSync(Paths.AcceptedValidation)
+    }
+
+    public async truncateRejectedValidationFile(): Promise<void> {
+        fsSync.truncateSync(Paths.PendingValidation)
+        fsSync.truncateSync(Paths.RejectedValidation)
+    }
+
+    public async truncateAllValidationFiles(): Promise<void> {
         fsSync.truncateSync(Paths.PendingValidation)
         fsSync.truncateSync(Paths.AcceptedValidation)
         fsSync.truncateSync(Paths.RejectedValidation)

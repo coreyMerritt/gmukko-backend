@@ -2,6 +2,7 @@ import express from 'express'
 import { MediaController } from '../../../../controllers/index.js'
 import { Database } from '../../../../core/database.js'
 import { Validators } from '../../../../core/validators.js'
+import { VideoFactory } from '../../../../media/video/video_factory.js'
 
 
 const router = express.Router()
@@ -18,11 +19,11 @@ router.get('/pending', async (req, res, next) => {
 
 router.post('/accepted', async (req, res, next) => {
     try {
-        const originalValidationReponse = req.body
-        if (Validators.isValidationResponse(originalValidationReponse)) {
-            const validationReponseWithUpdatedFilePaths = structuredClone(req.body)
-            await MediaController.moveStagingFilesToProduction(validationReponseWithUpdatedFilePaths)
-            await Database.moveStagingDatabaseEntriesToProduction(originalValidationReponse, validationReponseWithUpdatedFilePaths)
+        const originalValidationResponse = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
+        const validationResponseWithUpdatedFilePaths = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
+        if (Validators.isValidationResponse(originalValidationResponse)) {
+            await MediaController.moveStagingFilesToProduction(validationResponseWithUpdatedFilePaths)
+            await Database.moveStagingDatabaseEntriesToProduction(originalValidationResponse, validationResponseWithUpdatedFilePaths)
             res.status(200).send('Successfully processed accepted entries.\n')
         } else {
             res.status(500).send(`Invalid data type.\n`)
@@ -36,7 +37,16 @@ router.post('/accepted', async (req, res, next) => {
 
 router.post('/rejected', async (req, res, next) => {
     try {
-        res.status(200).send('Successfully processed rejected entries.\n')
+        const originalValidationResponse = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
+        const validationResponseWithUpdatedFilePaths = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
+        if (Validators.isValidationResponse(originalValidationResponse)) {
+            await MediaController.moveStagingFilesToRejects(validationResponseWithUpdatedFilePaths)
+            await Database.moveStagingDatabaseEntriesToRejects(originalValidationResponse, validationResponseWithUpdatedFilePaths)
+            res.status(200).send('Successfully processed rejected entries.\n')
+        } else {
+            res.status(500).send(`Invalid data type.\n`)
+            next(`Data sent is not a proper validation request.`)
+        }
     } catch (error) {
         res.sendStatus(500)
         next(error)

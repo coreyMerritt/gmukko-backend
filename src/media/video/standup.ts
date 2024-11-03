@@ -60,4 +60,12 @@ export class Standup extends Video {
         var artist = this.prepStringForFileName(String(this.artist))
         return `${newBasePath}/${artist}/(${this.releaseYear})-${title}${currentFileExtension}`
     }
+
+    getRejectFilePath(): string {
+        var newBasePath = `${CoreDirectories.RejectVideos}/${this.getTableName()}`
+        var currentFileExtension = path.extname(this.filePath)
+        var title = this.prepStringForFileName(this.title)
+        var artist = this.prepStringForFileName(String(this.artist))
+        return `${newBasePath}/${artist}/(${this.releaseYear})-${title}${currentFileExtension}`
+    }
 }

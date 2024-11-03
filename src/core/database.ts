@@ -18,11 +18,13 @@ export class Database {
     private static port = '3306'
     private static stagingDatabase: Sequelize
     private static productionDatabase: Sequelize
+    private static rejectDatabase: Sequelize
 
 
     public static async initialize(): Promise<void> {
         this.stagingDatabase = await this.loadDatabase(DatabaseNames.Staging)
         this.productionDatabase = await this.loadDatabase(DatabaseNames.Production)
+        this.rejectDatabase = await this.loadDatabase(DatabaseNames.Reject)
     }
 
     public static async backupAll(): Promise<void> {
@@ -37,50 +39,23 @@ export class Database {
         }
     }
 
-
     public static async indexFilesIntoStagingDatabase(media: Media[]): Promise<number> {
         try {
             const tableName = media[0].getTableName()
-            const tableExistsInStaging = await this.tableExists(this.stagingDatabase, tableName)
+            const tableExistsInStaging = await this.tableExists(DatabaseNames.Staging, tableName)
             if (!tableExistsInStaging) {
-               await this.initAndSyncModel(this.stagingDatabase, media[0])
+               await this.initAndSyncModel(DatabaseNames.Staging, media[0])
             }
             
             if (media.length > 0) {
                 for (const [, singleMedia] of media.entries()) {
-                    await this.insertMediaIntoTable(this.stagingDatabase, singleMedia)
+                    await this.insertMediaIntoTable(DatabaseNames.Staging, singleMedia)
                 }
             }
 
             return media.length
         } catch (error) {
             throw new Error(`Failed to add indexes to table: ${media[0].getTableName()}`, {cause: error})
-        }
-    }
-
-
-    public static async moveStagingDatabaseEntriesToProduction(originalValidationReponse: ValidationResponse, validationReponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
-        var count = 0
-
-        try {
-            for (const [, tableName] of Object.keys(validationReponseWithUpdatedFilePaths.tables).entries()) {
-                for (const [i, media] of validationReponseWithUpdatedFilePaths.tables[tableName].entries()) {
-                    const stagingFilePath = originalValidationReponse.tables[tableName][i].filePath
-                    if (stagingFilePath !== media.filePath) {
-                        const trueMedia = MediaFactory.createMediaFromTableName(media, tableName as DatabaseTableNames)
-                        await this.initAndSyncModel(this.productionDatabase, trueMedia)
-                        await this.insertMediaIntoTable(this.productionDatabase, trueMedia)
-                        await this.deleteFromTableWhereOneEqualsTwo(this.stagingDatabase, tableName as DatabaseTableNames, `filepath`, stagingFilePath)
-                        count++
-                    } else {
-                        throw new Error(`filePath was not updated for production.\nDatabase indexes were not changed.`)
-                    }
-                }
-            }
-            GmukkoLogger.success(`${count} production index${count > 1 ? 'es' : undefined} created and ${count} staging index${count > 1 ? 'es' : undefined} removed.`)
-
-        } catch (error) {
-            throw new Error(`Error while moving staging database entry into production database. State unclear.`, { cause: error })
         }
     }
 
@@ -93,9 +68,19 @@ export class Database {
         }
     }
 
+    public static async moveStagingDatabaseEntriesToProduction(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
+        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Production)
+    }
+
+    public static async moveStagingDatabaseEntriesToRejects(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
+        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Reject)
+    }
+
+
+
     private static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise <object[]> {
-        const database = databaseName === DatabaseNames.Staging ? this.stagingDatabase : this.productionDatabase
-        if (await this.tableExists(database, tableName)) {
+        const database = this.determineDatabase(databaseName)
+        if (await this.tableExists(databaseName, tableName)) {
             const resultOfQuery = await database.query(
                 `SELECT * FROM ${tableName};`,
                 {   
@@ -110,8 +95,8 @@ export class Database {
     }
 
     private static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<object[]> {
-        const database = databaseName === DatabaseNames.Staging ? this.stagingDatabase : this.productionDatabase
-        if (await this.tableExists(database, tableName)) {
+        const database = this.determineDatabase(databaseName)
+        if (await this.tableExists(databaseName, tableName)) {
             const resultOfQuery = await database.query(
                 `SELECT * 
                 FROM ${tableName}
@@ -131,8 +116,9 @@ export class Database {
     }
 
 
-    private static async deleteFromTableWhereOneEqualsTwo(database: Sequelize, tableName: DatabaseTableNames, column: string, match: string): Promise<void> {
-        if (await this.tableExists(database, tableName)) {
+    private static async deleteFromTableWhereOneEqualsTwo(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<void> {
+        const database = this.determineDatabase(databaseName)
+        if (await this.tableExists(databaseName, tableName)) {
             await database.query(
                 `DELETE FROM ${tableName}
                 WHERE ${column} = :match;`,
@@ -147,7 +133,8 @@ export class Database {
     }
 
 
-    private static async insertMediaIntoTable(database: Sequelize, media: Media, tableName?: DatabaseTableNames): Promise<void> {
+    private static async insertMediaIntoTable(databaseName: DatabaseNames, media: Media, tableName?: DatabaseTableNames): Promise<void> {
+        const database = this.determineDatabase(databaseName)
         try {
             const adjustedTableName = tableName ? tableName : media.getTableName() 
             const columns: string[] = ['createdAt', 'updatedAt']
@@ -182,10 +169,10 @@ export class Database {
 
     public static async removeAlreadyIndexedFilePaths(databaseName: DatabaseNames, filePaths: string[]): Promise<string[]> {
         var filePathsToToss: string[] = []
-        const database = databaseName === DatabaseNames.Staging ? this.stagingDatabase : this.productionDatabase
+
         try {
             for (const [, filePath] of filePaths.entries()) {
-                if (await this.filePathInDatabase(database, filePath)) {
+                if (await this.filePathInDatabase(databaseName, filePath)) {
                     GmukkoLogger.data(`Tossing already indexed file`, filePath)
                     filePathsToToss.push(filePath)
                 }
@@ -220,7 +207,8 @@ export class Database {
         }
     }
 
-    private static async tableExists(database: Sequelize, tableName: DatabaseTableNames): Promise<boolean> {
+    private static async tableExists(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise<boolean> {
+        const database = this.determineDatabase(databaseName)
         try {
             await database.query(
                 `SELECT * FROM ${tableName};`,
@@ -236,10 +224,11 @@ export class Database {
     }
 
 
-    private static async filePathInDatabase(database: Sequelize, filePath: string): Promise<boolean> {
+    private static async filePathInDatabase(databaseName: DatabaseNames, filePath: string): Promise<boolean> {
+        const database = this.determineDatabase(databaseName)
         for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
             try {
-                const tableExistsInStaging = await this.tableExists(database, tableName)
+                const tableExistsInStaging = await this.tableExists(databaseName, tableName)
                 if (tableExistsInStaging) {
                     const resultOfQuery = await database.query(`
                         SELECT *
@@ -264,13 +253,50 @@ export class Database {
     }
     
 
-    private static async initAndSyncModel(database: Sequelize, media: Media): Promise<void> {
+    private static async initAndSyncModel(databaseName: DatabaseNames, media: Media): Promise<void> {
+        const database = this.determineDatabase(databaseName)
         try {
             const model = media.getModel()
             model.init(media.getAttributes(), { sequelize: database, tableName: media.getTableName() })
             await model.sync()
         } catch (error) {
             throw new Error(`Failed to init & sync model to table: ${media.getTableName()}`, { cause: error })
+        }
+    }
+
+    private static determineDatabase(databaseName: DatabaseNames) {
+        switch (databaseName) {
+            case DatabaseNames.Staging:
+                return this.stagingDatabase
+            case DatabaseNames.Production:
+                return this.productionDatabase
+            case DatabaseNames.Reject:
+                return this.rejectDatabase
+        }
+    }
+
+    private static async moveDatabaseOneEntriesToDatabaseTwo(originalValidationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse, databaseOne: DatabaseNames, databaseTwo: DatabaseNames): Promise<void> {
+        var count = 0
+
+        try {
+            for (const [, tableName] of Object.keys(validationResponseWithUpdatedFilePaths.tables).entries()) {
+                for (const [i, media] of validationResponseWithUpdatedFilePaths.tables[tableName].entries()) {
+                    const initialFilePath = originalValidationResponse.tables[tableName][i].filePath
+                    if (initialFilePath !== media.filePath) {
+                        const trueMedia = MediaFactory.createMediaFromTableName(media, tableName as DatabaseTableNames)
+                        await this.initAndSyncModel(databaseTwo, trueMedia)
+                        await this.insertMediaIntoTable(databaseTwo, trueMedia)
+                        await this.deleteFromTableWhereOneEqualsTwo(databaseOne, tableName as DatabaseTableNames, `filepath`, initialFilePath)
+                        count++
+                    } else {
+                        throw new Error(`filePath was not updated for ${databaseTwo}.\nDatabase indexes were not changed.`)
+                    }
+                }
+            }
+            GmukkoLogger.success(`${count} production index${count > 1 ? 'es' : undefined} created and ${count} staging index${count > 1 ? 'es' : undefined} removed.`)
+
+        } catch (error) {
+            throw new Error(`Error while moving staging database entry into production database. State unclear.`, { cause: error })
         }
     }
 }

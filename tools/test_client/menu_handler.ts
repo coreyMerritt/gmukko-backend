@@ -27,6 +27,7 @@ export class MenuHandler {
                 !firstLoop ? console.error(`Invalid input.`) : undefined
                 firstLoop = false
                 userAnswer = (await input.question(question)).trim().toLowerCase()
+                process.stdout.write(`\n`)
             }
             input.close()
             return userAnswer
@@ -60,7 +61,7 @@ export class MenuHandler {
         try {
             const mediaPendingValidation = await axios.getMediaPendingValidation()
             if (mediaPendingValidation) {
-                await fileEngine.backupValidationFiles()
+                await fileEngine.backupAllValidationFiles()
                 await fileEngine.writeObjectAsYaml(mediaPendingValidation)
             } else {
                 console.log(`No pending staging media.`)
@@ -70,12 +71,32 @@ export class MenuHandler {
         }
     }
 
-    public async postValidationResults(axios: AxiosEngine, fileEngine: FileEngine): Promise<void> {
+    public async postAcceptedValidationResults(axios: AxiosEngine, fileEngine: FileEngine): Promise<void> {
         try {
-            await fileEngine.backupValidationFiles()
+            await fileEngine.backupAcceptedValidationFile()
+            await axios.postStagingValidationResults(Paths.AcceptedValidation)
+            await fileEngine.truncateAcceptedValidationFile()
+        } catch (error) {
+            throw new Error(`Failed to post validation results.`, { cause: error })
+        }
+    }
+
+    public async postRejectedValidationResults(axios: AxiosEngine, fileEngine: FileEngine): Promise<void> {
+        try {
+            await fileEngine.backupRejectedValidationFile()
+            await axios.postStagingValidationResults(Paths.RejectedValidation)
+            await fileEngine.truncateRejectedValidationFile()
+        } catch (error) {
+            throw new Error(`Failed to post validation results.`, { cause: error })
+        }
+    }
+
+    public async postAllValidationResults(axios: AxiosEngine, fileEngine: FileEngine): Promise<void> {
+        try {
+            await fileEngine.backupAllValidationFiles()
             await axios.postStagingValidationResults(Paths.AcceptedValidation)
             await axios.postStagingValidationResults(Paths.RejectedValidation)
-            await fileEngine.truncateValidationFiles()
+            await fileEngine.truncateAllValidationFiles()
         } catch (error) {
             throw new Error(`Failed to post validation results.`, { cause: error })
         }

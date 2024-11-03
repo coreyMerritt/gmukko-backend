@@ -20,19 +20,27 @@ export class MediaFactory {
     }
 
     public static createMediaFromTableName(object: any, tableName: DatabaseTableNames) {
-        switch (tableName) {
-            case DatabaseTableNames.Animation:
-                return VideoFactory.createVideoFromVideoType(object, VideoTypes.Animation)
-            case DatabaseTableNames.Anime:
-                return VideoFactory.createVideoFromVideoType(object, VideoTypes.Anime)
-            case DatabaseTableNames.Movies:
-                return VideoFactory.createVideoFromVideoType(object, VideoTypes.Movie)
-            case DatabaseTableNames.Shows:
-                return VideoFactory.createVideoFromVideoType(object, VideoTypes.Show)
-            case DatabaseTableNames.Standup:
-                return VideoFactory.createVideoFromVideoType(object, VideoTypes.Standup)
-            default:
-                return VideoFactory.createVideoFromVideoType(object, VideoTypes.Misc)
+        try {
+            if (Validators.isMedia(object)) {
+                switch (tableName) {
+                    case DatabaseTableNames.Animation:
+                        return VideoFactory.createVideoFromVideoType(object, VideoTypes.Animation)
+                    case DatabaseTableNames.Anime:
+                        return VideoFactory.createVideoFromVideoType(object, VideoTypes.Anime)
+                    case DatabaseTableNames.Movies:
+                        return VideoFactory.createVideoFromVideoType(object, VideoTypes.Movie)
+                    case DatabaseTableNames.Shows:
+                        return VideoFactory.createVideoFromVideoType(object, VideoTypes.Show)
+                    case DatabaseTableNames.Standup:
+                        return VideoFactory.createVideoFromVideoType(object, VideoTypes.Standup)
+                    default:
+                        return VideoFactory.createVideoFromVideoType(object, VideoTypes.Misc)
+                }
+            } else {
+                throw new Error(`Object is not Media: ${JSON.stringify(object)}`)
+            }
+        } catch (error) {
+            throw new Error(`Unable to create media from table ${tableName} with object: ${JSON.stringify(object)}`, { cause: error })
         }
     }
 }

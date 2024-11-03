@@ -1,6 +1,7 @@
 export * from './directories/backup_directories.js'
 export * from './directories/core_directories.js'
 export * from './directories/production_directories.js'
+export * from './directories/reject_directories.js'
 export * from './directories/staging_directories.js'
 export * from './logs.js'
 export * from './db/database_names.js'

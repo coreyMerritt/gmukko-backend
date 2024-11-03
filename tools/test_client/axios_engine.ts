@@ -45,7 +45,7 @@ export class AxiosEngine {
         const validationResults = await fileEngine.readYamlFileToObject(filePath)
         if (validationResults) {
             try {
-                const reply = await this.instance.post(`/db/staging/validation/accepted`, validationResults)
+                const reply = await this.instance.post(`/db/staging/validation/rejected`, validationResults)
                 console.log(`${reply.status}: ${reply.data}`)
             } catch (error) {
                 throw new Error(`Unable to post ${filePath}`, { cause: error })

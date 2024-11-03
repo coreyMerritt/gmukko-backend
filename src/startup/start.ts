@@ -6,11 +6,11 @@ import express from 'express'
 import initialIndexRoutes from '../api/db/staging/index/routes.js'
 import dbBackupRoutes from '../api/db/backup/routes.js'
 import validationRoutes from '../api/db/staging/validation/routes.js'
-import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, StagingDirectories } from '../configuration/index.js'
+import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, RejectDirectories, StagingDirectories } from '../configuration/index.js'
 
 
 class Start {
-    
+
     private port = 3080
 
     public async execute(): Promise<void> {
@@ -29,6 +29,7 @@ class Start {
         directoriesToCreate.push(...(Object.values(LogPaths)))
         directoriesToCreate.push(...(Object.values(StagingDirectories)))
         directoriesToCreate.push(...(Object.values(ProductionDirectories)))
+        directoriesToCreate.push(...(Object.values(RejectDirectories)))
     
         for (const [, path] of directoriesToCreate.entries()) {
             try {

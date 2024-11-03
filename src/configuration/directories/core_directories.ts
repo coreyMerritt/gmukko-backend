@@ -4,5 +4,8 @@ export enum CoreDirectories {
     StagingVideos = `${StagingMedia}/videos`,
     Production = '/mnt/z/gmukko_production',
     ProductionMedia = `${Production}/media`,
-    ProductionVideos = `${ProductionMedia}/videos`
+    ProductionVideos = `${ProductionMedia}/videos`,
+    Reject = `/mnt/z/gmukko_rejects`,
+    RejectMedia = `${Reject}/media`,
+    RejectVideos = `${RejectMedia}/videos`
 }
