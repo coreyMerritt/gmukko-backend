@@ -3,7 +3,6 @@ import { LogFiles } from '../configuration/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
-import { VideoTypes } from '../media/video/video.js'
 import chalk from 'chalk'
 
 const blue = chalk.blue

@@ -1,4 +1,4 @@
-import { DataTypes, Model, ModelStatic, Sequelize } from "sequelize"
+import { DataTypes, Model, ModelStatic } from "sequelize"
 import { CoreDirectories, DatabaseTableNames, Prompt } from "../../configuration/index.js"
 import { StagingDirectories } from "../../configuration/directories/staging_directories.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"

@@ -2,6 +2,7 @@ import { Model, ModelStatic } from "sequelize"
 import { DatabaseTableNames, Prompt } from "../configuration/index.js"
 import { StagingDirectories } from "../configuration/directories/staging_directories.js"
 
+
 export class MediaModel extends Model {
     public mediaType!: string
     public filePath!: string
