@@ -34,7 +34,7 @@ export class GmukkoLogger {
         this.logTimestamp()
         process.stdout.write(`${info}\n`)
 
-        fs.appendFile(`${LogFiles.Default}`, 
+        fs.appendFile(`${LogFiles.General}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -44,7 +44,7 @@ export class GmukkoLogger {
         this.logTimestamp()
         process.stdout.write(`${tag}: ${cyan(data)}\n`)
 
-        fs.appendFile(`${LogFiles.Default}`, 
+        fs.appendFile(`${LogFiles.General}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `${tag}: ${data}\n\n`
         )
@@ -54,7 +54,7 @@ export class GmukkoLogger {
         this.logTimestamp()
         process.stdout.write(`${orange(info)}\n`)
 
-        fs.appendFile(`${LogFiles.Default}`, 
+        fs.appendFile(`${LogFiles.General}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -64,7 +64,7 @@ export class GmukkoLogger {
         this.logTimestamp()
         process.stdout.write(`${green(info)}\n`)
 
-        fs.appendFile(`${LogFiles.Default}`, 
+        fs.appendFile(`${LogFiles.General}`, 
             `[${GmukkoTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -76,7 +76,7 @@ export class GmukkoLogger {
         if (error) {
             process.stderr.write(`${red(info)}\n${red(error)}\n`)
 
-            fs.appendFile(`${LogFiles.Default}`, 
+            fs.appendFile(`${LogFiles.General}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n` +
                 `${error}\n\n`
@@ -90,7 +90,7 @@ export class GmukkoLogger {
         } else {
             process.stderr.write(`${red(info)}\n`)
 
-            fs.appendFile(`${LogFiles.Default}`, 
+            fs.appendFile(`${LogFiles.General}`, 
                 `[${GmukkoTime.getCurrentDateTime()}]\n` +
                 `Error: ${info}\n\n`
             )

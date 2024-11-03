@@ -4,6 +4,6 @@ export enum LogPaths {
 
 export enum LogFiles {
     IncomingRequest = `${LogPaths.Default}/requests`,
-    Default = `${LogPaths.Default}/general`,
+    General = `${LogPaths.Default}/general`,
     Errors = `${LogPaths.Default}/errors`
 }
