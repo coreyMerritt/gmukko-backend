@@ -10,7 +10,7 @@ export class AxiosEngine {
     
     private protocol = `http`
     private host = `localhost`
-    private port = 3080
+    private port = process.env.GMUKKO_BACKEND_PORT
     private url = `${this.protocol}://${this.host}:${this.port}`
     private instance = this.createCustomAxios() 
 

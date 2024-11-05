@@ -10,7 +10,7 @@ import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, Re
 
 class Start {
 
-    private port = 3080
+    private port = process.env.GMUKKO_BACKEND_PORT
 
     public async execute(): Promise<void> {
         this.createDirectories()
