@@ -293,7 +293,7 @@ export class Database {
                     }
                 }
             }
-            GmukkoLogger.success(`${count} production index${count > 1 ? 'es' : undefined} created and ${count} staging index${count > 1 ? 'es' : undefined} removed.`)
+            GmukkoLogger.success(`${count} production index${count > 1 ? 'es' : ''} created and ${count} staging index${count > 1 ? 'es' : ''} removed.`)
 
         } catch (error) {
             throw new Error(`Error while moving staging database entry into production database. State unclear.`, { cause: error })
