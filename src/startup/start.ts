@@ -3,9 +3,8 @@ import cron from 'node-cron'
 import fs from 'fs'
 import http from 'http'
 import express from 'express'
-import initialIndexRoutes from '../api/db/staging/index/routes.js'
-import dbBackupRoutes from '../api/db/backup/routes.js'
-import validationRoutes from '../api/db/staging/validation/routes.js'
+import dbBackupRoutes from '../api/db/routes.js'
+import validationRoutes from '../api/validation/routes.js'
 import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, RejectDirectories, StagingDirectories } from '../configuration/index.js'
 
 
@@ -56,9 +55,8 @@ class Start {
             next()
         })
 
-        app.use(`/db/backup`, dbBackupRoutes)
-        app.use(`/db/staging/index`, initialIndexRoutes)
-        app.use(`/db/staging/validation`, validationRoutes)
+        app.use(`/db`, dbBackupRoutes)
+        app.use(`/validation`, validationRoutes)
         app.use(GmukkoLogger.error)
     }
 

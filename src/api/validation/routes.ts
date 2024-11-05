@@ -1,11 +1,22 @@
 import express from 'express'
-import { MediaController } from '../../../../controllers/index.js'
-import { Database } from '../../../../core/database.js'
-import { Validators } from '../../../../core/validators.js'
-import { VideoFactory } from '../../../../media/video/video_factory.js'
+import { MediaController } from '../../controllers/index.js'
+import { Database } from '../../core/database.js'
+import { Validators } from '../../core/validators.js'
+import { VideoFactory } from '../../media/video/video_factory.js'
 
 
 const router = express.Router()
+
+router.post('/index/:mediaType?', async (req, res, next) => {
+    try {
+        const mediaType = req.params.mediaType
+        MediaController.indexFilesIntoStagingDatabase(mediaType)
+        res.status(200).send('Started indexing staging files.\n')
+    } catch (error) {
+        res.sendStatus(500)
+        next(error)
+    }
+})
 
 router.get('/pending', async (req, res, next) => {
     try {

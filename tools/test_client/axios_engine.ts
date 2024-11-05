@@ -17,7 +17,7 @@ export class AxiosEngine {
 
     public async startIndexing(): Promise<void> {
         try {
-            const reply = await this.instance.post(`/db/staging/index`)
+            const reply = await this.instance.post(`/validation/index`)
             console.log(reply.data)
         } catch (error) {
             throw new Error(`Failed to start indexing.`, { cause: error })
@@ -29,9 +29,9 @@ export class AxiosEngine {
         console.log(reply.data)
     }
 
-    public async getMediaPendingValidation(): Promise<object|undefined> {
+    public async getMediaPendingValidation(): Promise<object> {
         try {
-            const rawGet = await this.instance.get(`/db/staging/validation/pending`)
+            const rawGet = await this.instance.get(`/validation/pending`)
             const getData = rawGet.data
             console.log(`${rawGet.status}`)
             return getData
@@ -45,8 +45,13 @@ export class AxiosEngine {
         const validationResults = await fileEngine.readYamlFileToObject(filePath)
         if (validationResults) {
             try {
-                const reply = await this.instance.post(`/db/staging/validation/rejected`, validationResults)
-                console.log(`${reply.status}: ${reply.data}`)
+                if (filePath === Paths.AcceptedValidation) {
+                    const reply = await this.instance.post(`/validation/accepted`, validationResults)
+                    console.log(`${reply.status}: ${reply.data}`)
+                } else {
+                    const reply = await this.instance.post(`/validation/rejected`, validationResults)
+                    console.log(`${reply.status}: ${reply.data}`)
+                }
             } catch (error) {
                 throw new Error(`Unable to post ${filePath}`, { cause: error })
             }
