@@ -1,5 +1,7 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
-import { CoreDirectories, DatabaseTableNames, Prompt } from "../../configuration/index.js"
+import { DatabaseTableNames } from "../../configuration/db/index.js"
+import { CoreDirectories } from "../../configuration/directories/core_directories.js"
+import { Prompt } from "../../core/prompt.js"
 import { StagingDirectories } from "../../configuration/directories/staging_directories.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"

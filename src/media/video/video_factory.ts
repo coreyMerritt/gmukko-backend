@@ -6,7 +6,7 @@ import { Show } from './show.js'
 import { Standup } from './standup.js'
 import { Video, VideoTypes } from './video.js'
 import { GmukkoLogger, Validators } from '../../core/index.js'
-import { DatabaseTableNames } from '../../configuration/index.js'
+import { DatabaseTableNames } from '../../configuration/db/index.js'
 import { ValidationResponse } from '../../controllers/media_controller.js'
 import { Media } from '../media.js'
 

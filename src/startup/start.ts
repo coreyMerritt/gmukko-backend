@@ -5,7 +5,7 @@ import http from 'http'
 import express from 'express'
 import dbBackupRoutes from '../api/db/routes.js'
 import validationRoutes from '../api/validation/routes.js'
-import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, RejectDirectories, StagingDirectories } from '../configuration/index.js'
+import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, RejectDirectories, StagingDirectories } from '../configuration/directories/index.js'
 
 
 class Start {

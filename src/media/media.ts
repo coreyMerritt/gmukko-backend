@@ -1,5 +1,6 @@
 import { Model, ModelStatic } from "sequelize"
-import { DatabaseTableNames, Prompt } from "../configuration/index.js"
+import { Prompt } from '../core/prompt.js'
+import { DatabaseTableNames } from "../configuration/db/index.js"
 import { StagingDirectories } from "../configuration/directories/staging_directories.js"
 
 

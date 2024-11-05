@@ -1,6 +1,6 @@
 import { MediaTypes } from "../media/media.js"
 import { VideoTypes } from "../media/video/video.js"
-import { Validators } from '../core/index.js'
+import { Validators } from './index.js'
 
 
 export class Prompt {

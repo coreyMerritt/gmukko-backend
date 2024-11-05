@@ -1,8 +1,8 @@
 import { AI, Database, GmukkoLogger, Validators } from '../core/index.js'
-import { Animation, Anime, MiscVideo, Movie, Show, Standup, VideoFactory, VideoTypes } from '../media/video/index.js'
-import { DatabaseNames, DatabaseTableNames, StagingDirectories } from '../configuration/index.js'
+import { VideoFactory, VideoTypes } from '../media/video/index.js'
+import { DatabaseNames, DatabaseTableNames } from '../configuration/db/index.js'
 import { Media } from '../media/media.js'
-import { CoreDirectories } from '../configuration/index.js'
+import { StagingDirectories } from '../configuration/directories/index.js'
 import path from 'path'
 import fs from 'fs'
 

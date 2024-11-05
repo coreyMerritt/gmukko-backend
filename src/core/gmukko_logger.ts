@@ -1,5 +1,5 @@
 import { GmukkoTime } from './gmukko_time.js'
-import { LogFiles } from '../configuration/index.js'
+import { LogFiles } from '../configuration/directories/index.js'
 import fs from 'fs/promises'
 import { Request, ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
