@@ -3,9 +3,10 @@ import cron from 'node-cron'
 import fs from 'fs'
 import http from 'http'
 import express from 'express'
-import dbBackupRoutes from '../api/db/routes.js'
-import validationRoutes from '../api/validation/routes.js'
+import backupRoutes from '../api/routes/backup.js'
+import validationRoutes from '../api/routes/validation.js'
 import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, RejectDirectories, StagingDirectories } from '../configuration/directories/index.js'
+import { ErrorMiddleware, RequestMiddleware } from '../middleware/index.js'
 
 
 class Start {
@@ -33,12 +34,11 @@ class Start {
         for (const [, path] of directoriesToCreate.entries()) {
             try {
                 fs.mkdirSync(path)
-            } catch (error) {
+            } catch {
                 // Not a genuine error, directory exists
             }   
         }
     }
-
 
     private async startApp(): Promise<void> {
         const app = express()
@@ -47,17 +47,11 @@ class Start {
         server.listen(this.port, () => {
             GmukkoLogger.success(`Server is running on http://localhost:${this.port}`)
         })
-
         app.use(express.json({ limit: '1gb' }))
 
-        app.use((req, res, next) => {
-            GmukkoLogger.incomingRequest(req)
-            next()
-        })
-
-        app.use(`/db`, dbBackupRoutes)
-        app.use(`/validation`, validationRoutes)
-        app.use(GmukkoLogger.error)
+        app.use(RequestMiddleware.execute)
+        app.use(`/`, backupRoutes, validationRoutes)
+        app.use(ErrorMiddleware.execute)
     }
 
 

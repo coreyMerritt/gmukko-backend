@@ -3,7 +3,7 @@ import { FileEngine } from "./file_engine.js"
 import axiosRetry from "axios-retry"
 import { Paths } from "./configuration.js"
 import path from 'path'
-import ansiColors from "ansi-colors"
+import chalk from 'chalk'
 
 
 export class AxiosEngine {
@@ -25,7 +25,7 @@ export class AxiosEngine {
     }
 
     public async startDatabaseBackups(): Promise<void> {
-        const reply = await this.instance.post('/db/backup')
+        const reply = await this.instance.post('/backup')
         console.log(reply.data)
     }
 
@@ -43,20 +43,19 @@ export class AxiosEngine {
     public async postStagingValidationResults(filePath: Paths): Promise<void> {
         const fileEngine = new FileEngine()
         const validationResults = await fileEngine.readYamlFileToObject(filePath)
-        if (validationResults) {
-            try {
-                if (filePath === Paths.AcceptedValidation) {
-                    const reply = await this.instance.post(`/validation/accepted`, validationResults)
-                    console.log(`${reply.status}: ${reply.data}`)
-                } else {
-                    const reply = await this.instance.post(`/validation/rejected`, validationResults)
-                    console.log(`${reply.status}: ${reply.data}`)
-                }
-            } catch (error) {
-                throw new Error(`Unable to post ${filePath}`, { cause: error })
+        if (!validationResults) {
+            console.warn(`No staging validation results to post for ${path.basename(filePath)}, trying anyway...`)
+        }
+        try {
+            if (filePath === Paths.AcceptedValidation) {
+                const reply = await this.instance.post(`/validation/accepted`, validationResults)
+                console.log(`${reply.status}: ${reply.data}`)
+            } else {
+                const reply = await this.instance.post(`/validation/rejected`, validationResults)
+                console.log(`${reply.status}: ${reply.data}`)
             }
-        } else {
-            console.log(`No staging validation results to post for ${path.basename(filePath)}.`)
+        } catch (error) {
+            throw new Error(`Unable to post ${filePath}`, { cause: error })
         }
     }
 

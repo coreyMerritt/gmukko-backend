@@ -7,8 +7,8 @@ import { Standup } from './standup.js'
 import { Video, VideoTypes } from './video.js'
 import { GmukkoLogger, Validators } from '../../core/index.js'
 import { DatabaseTableNames } from '../../configuration/db/index.js'
-import { ValidationResponse } from '../../controllers/media_controller.js'
 import { Media } from '../media.js'
+import { ValidationResponse } from '../../core/file_engine.js'
 
 export class VideoFactory {
     public static createVideoFromObject(object: any): Video {
@@ -49,10 +49,7 @@ export class VideoFactory {
                     )
             }
         } else {
-            GmukkoLogger.error(`Object is not a valid Video: ${JSON.stringify(object)}`)
-            return new MiscVideo(object.filePath,
-                'title' in object ? object.title : undefined
-            )
+            throw new Error(`Object is not a valid Video:\n${JSON.stringify(object)}`)
         }
     }
 

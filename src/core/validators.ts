@@ -1,6 +1,6 @@
-import { ValidationRequest, ValidationResponse } from '../controllers/media_controller.js'
 import { Media, MediaTypes } from '../media/media.js'
 import { Anime, Animation, MiscVideo, Movie, Show, Standup, Video, VideoTypes } from '../media/video/index.js'
+import { ValidationRequest, ValidationResponse } from './file_engine.js'
 import { GmukkoLogger } from './gmukko_logger.js'
 
 
@@ -86,7 +86,7 @@ export class Validators {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
                 if (!this.isMediaArray(someArray)) {
-                    GmukkoLogger.error(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
+                    GmukkoLogger.important(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
                     return false
                 }
             }
@@ -100,7 +100,7 @@ export class Validators {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
                 if (!this.isMediaArray(someArray)) {
-                    GmukkoLogger.error(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
+                    GmukkoLogger.important(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
                     return false
                 }
                 for (const [, media] of Object.values(someArray).entries()) {

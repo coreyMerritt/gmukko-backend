@@ -11,11 +11,10 @@ export class MediaFactory {
                 case MediaTypes.Video:
                     return VideoFactory.createVideoFromObject(object)
                 default:
-                    GmukkoLogger.error(`Object is not valid Media: ${JSON.stringify(object)}`)
+                    throw new Error(`Object is not valid Media:\n${JSON.stringify(object)}`)
             }
         } else {
-            GmukkoLogger.error(`Object is not valid Media: ${JSON.stringify(object)}`)
-            return VideoFactory.createVideoFromObject(object)
+           throw new Error(`Object is not valid Media:\n${JSON.stringify(object)}`)
         }
     }
 

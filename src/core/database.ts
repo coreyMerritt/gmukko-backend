@@ -6,9 +6,9 @@ import { Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import { Media } from '../media/media.js'
-import { ValidationResponse } from '../controllers/media_controller.js'
 import { MediaFactory } from '../media/media_factory.js'
 import { Validators } from './validators.js'
+import { ValidationResponse } from './file_engine.js'
 
 
 export class Database {
