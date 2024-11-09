@@ -79,8 +79,8 @@ export class ValidationController {
             const originalValidationResponse = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
             const validationResponseWithUpdatedFilePaths = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
             if (Validators.isValidationResponse(originalValidationResponse)) {
-                await FileEngine.moveStagingFilesToRejects(validationResponseWithUpdatedFilePaths)
-                await Database.moveStagingDatabaseEntriesToRejects(originalValidationResponse, validationResponseWithUpdatedFilePaths)
+                await FileEngine.moveStagingFilesToRejected(validationResponseWithUpdatedFilePaths)
+                await Database.moveStagingDatabaseEntriesToRejected(originalValidationResponse, validationResponseWithUpdatedFilePaths)
                 res.status(200).send('Successfully processed rejected entries.\n')
             } else {
                 res.status(500).send(`Invalid data type.\n`)

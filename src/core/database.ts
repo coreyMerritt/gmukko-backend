@@ -24,7 +24,7 @@ export class Database {
     public static async initialize(): Promise<void> {
         this.stagingDatabase = await this.loadDatabase(DatabaseNames.Staging)
         this.productionDatabase = await this.loadDatabase(DatabaseNames.Production)
-        this.rejectDatabase = await this.loadDatabase(DatabaseNames.Reject)
+        this.rejectDatabase = await this.loadDatabase(DatabaseNames.Rejected)
     }
 
     public static async backupAll(): Promise<void> {
@@ -33,7 +33,7 @@ export class Database {
             for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
                 await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             }
-            GmukkoLogger.success(`Backed up both databases.`)
+            GmukkoLogger.success(`Backed up all databases.`)
         } catch (error) {
             throw new Error(`Failed to back up databases.`, { cause: error })
         }
@@ -72,8 +72,8 @@ export class Database {
         await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Production)
     }
 
-    public static async moveStagingDatabaseEntriesToRejects(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
-        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Reject)
+    public static async moveStagingDatabaseEntriesToRejected(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
+        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Rejected)
     }
 
 
@@ -270,7 +270,7 @@ export class Database {
                 return this.stagingDatabase
             case DatabaseNames.Production:
                 return this.productionDatabase
-            case DatabaseNames.Reject:
+            case DatabaseNames.Rejected:
                 return this.rejectDatabase
         }
     }

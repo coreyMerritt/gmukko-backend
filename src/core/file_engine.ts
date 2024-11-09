@@ -25,7 +25,7 @@ export interface ValidationResponse {
 enum LandingPoints {
     Staging = 'staging',
     Production = 'production',
-    Reject = 'reject'
+    Rejected = 'rejected'
 }
 
 
@@ -35,8 +35,8 @@ export class FileEngine {
         await this.moveStagingFilesToPath(validationResponse, LandingPoints.Production)
     }
 
-    public static async moveStagingFilesToRejects(validationResponse: ValidationResponse): Promise<void> {
-        await this.moveStagingFilesToPath(validationResponse, LandingPoints.Reject)
+    public static async moveStagingFilesToRejected(validationResponse: ValidationResponse): Promise<void> {
+        await this.moveStagingFilesToPath(validationResponse, LandingPoints.Rejected)
     }
 
     public static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
@@ -76,7 +76,7 @@ export class FileEngine {
                 var newFilePath: string
                 if (landing === LandingPoints.Production) {
                     newFilePath = media.getProductionFilePath()
-                } else if (landing === LandingPoints.Reject) {
+                } else if (landing === LandingPoints.Rejected) {
                     newFilePath = media.getRejectFilePath()
                 } else {
                     throw new Error (`Landing point for staging files is not yet configured.`)
