@@ -4,7 +4,7 @@ import { Prompt } from "../../core/prompt.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
 import path from "path"
-import { Config } from "../../configuration/config.js"
+import { Configs } from "../../configuration/configs.js"
 
 
 class AnimeModel extends VideoModel {
@@ -33,7 +33,7 @@ export class Anime extends Video {
     }
 
     getStagingDirectory(): string {
-        return Config.videoTypeDirectories.staging.anime
+        return Configs.videoTypeDirectories.staging.anime
     }
 
     getPrompt(): Prompt {
@@ -56,7 +56,7 @@ export class Anime extends Video {
     }
 
     getProductionFilePath(): string {
-        var newBasePath = `${Config.coreDirectories.productionVideos}/${this.getTableName()}`
+        var newBasePath = `${Configs.coreDirectories.productionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         var seasonNumber = String(this.seasonNumber).padStart(2, '0')
@@ -65,7 +65,7 @@ export class Anime extends Video {
     }
 
     getRejectFilePath(): string {
-        var newBasePath = `${Config.coreDirectories.rejectionVideos}/${this.getTableName()}`
+        var newBasePath = `${Configs.coreDirectories.rejectionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         var seasonNumber = String(this.seasonNumber).padStart(2, '0')

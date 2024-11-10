@@ -4,7 +4,7 @@ import { Prompt } from "../../core/prompt.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
 import path from "path"
-import { Config } from "../../configuration/config.js"
+import { Configs } from "../../configuration/configs.js"
 
 
 class MiscVideoModel extends VideoModel {}
@@ -27,7 +27,7 @@ export class MiscVideo extends Video {
     }
 
     getStagingDirectory(): string {
-        return Config.videoTypeDirectories.staging.misc
+        return Configs.videoTypeDirectories.staging.misc
     }
 
     getPrompt(): Prompt {
@@ -48,14 +48,14 @@ export class MiscVideo extends Video {
     }
 
     getProductionFilePath(): string {
-        var newBasePath = `${Config.coreDirectories.productionVideos}/${this.getTableName()}`
+        var newBasePath = `${Configs.coreDirectories.productionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         return `${newBasePath}/${title}${currentFileExtension}`
     }
 
     getRejectFilePath(): string {
-        var newBasePath = `${Config.coreDirectories.rejectionVideos}/${this.getTableName()}`
+        var newBasePath = `${Configs.coreDirectories.rejectionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         return `${newBasePath}/${title}${currentFileExtension}`

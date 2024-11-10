@@ -4,7 +4,7 @@ import { Prompt } from '../../core/prompt.js'
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
 import path from "path"
-import { Config } from "../../configuration/config.js"
+import { Configs } from "../../configuration/configs.js"
 
 
 class StandupModel extends VideoModel {
@@ -33,7 +33,7 @@ export class Standup extends Video {
     }
 
     getStagingDirectory(): string {
-        return Config.videoTypeDirectories.staging.standup
+        return Configs.videoTypeDirectories.staging.standup
     }
 
     getPrompt(): Prompt {
@@ -56,7 +56,7 @@ export class Standup extends Video {
     }
 
     getProductionFilePath(): string {
-        var newBasePath = `${Config.coreDirectories.productionVideos}/${this.getTableName()}`
+        var newBasePath = `${Configs.coreDirectories.productionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         var artist = this.prepStringForFileName(String(this.artist))
@@ -64,7 +64,7 @@ export class Standup extends Video {
     }
 
     getRejectFilePath(): string {
-        var newBasePath = `${Config.coreDirectories.rejectionVideos}/${this.getTableName()}`
+        var newBasePath = `${Configs.coreDirectories.rejectionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         var artist = this.prepStringForFileName(String(this.artist))

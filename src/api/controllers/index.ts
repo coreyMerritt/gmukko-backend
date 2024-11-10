@@ -3,7 +3,7 @@ import { VideoFactory, VideoTypes } from '../../media/video'
 import { AI, Database, FileEngine, GmukkoLogger, Validators } from '../../core'
 import { DatabaseNames } from '../../configuration/db'
 import { Media } from '../../media/media'
-import { Config } from '../../configuration/config'
+import { Configs } from '../../configuration/configs'
 
 
 export class IndexController {
@@ -61,7 +61,7 @@ export class IndexController {
 
         try {
             const filePaths = await FileEngine.getFilePaths(nullMedia.getStagingDirectory(), nullMedia.getFileExtensions())
-            const filteredFilePaths = await Database.removeAlreadyIndexedFilePaths(Config.databaseNames.staging, filePaths)
+            const filteredFilePaths = await Database.removeAlreadyIndexedFilePaths(Configs.databaseNames.staging, filePaths)
             if (filePaths.length > 0) {
                 const media = await AI.parseAllMediaData(filteredFilePaths, nullMedia.getPrompt())
                 if (media.length > 0) {

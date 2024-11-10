@@ -8,6 +8,8 @@ import validationRoutes from '../api/routes/validation.js'
 import { BackupDirectories, CoreDirectories, VideoTypeDirectories } from '../configuration/directories/index.js'
 import { ErrorMiddleware, RequestMiddleware } from '../middleware/index.js'
 import { RootDirectories } from '../configuration/directories/root_directories.js'
+import { Configs } from '../configuration/configs.js'
+import { constrainedMemory } from 'process'
 
 
 export class Start {
@@ -15,10 +17,13 @@ export class Start {
     private static port = process.env.GMUKKO_BACKEND_PORT
     private static protocol = process.env.GMUKKO_BACKEND_PROTOCOL
     public static url = `${this.protocol}://localhost:${this.port}`
-    public static test: boolean
 
     public static async execute(test?: boolean): Promise<void> {
-        Start.test = test ? true : false 
+        if (test) {
+            Configs.set(true)
+        } else {
+            Configs.set()
+        }
         this.createDirectories()
         this.startApp()
         this.startPassiveJobs()

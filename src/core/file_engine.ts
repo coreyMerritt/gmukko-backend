@@ -2,7 +2,7 @@ import { GmukkoLogger } from '../core/index.js'
 import { Media } from '../media/media.js'
 import path from 'path'
 import fs from 'fs'
-import { Config } from '../configuration/config.js'
+import { Configs } from '../configuration/configs.js'
 
 
 interface TableRequest {
@@ -107,7 +107,7 @@ export class FileEngine {
     }
 
     private static async cleanStagingDirectory(): Promise<void> {
-        for (const [, directory] of Object.values(Config.videoTypeDirectories.staging).entries()) {
+        for (const [, directory] of Object.values(Configs.videoTypeDirectories.staging).entries()) {
             this.deleteEmptyDirectories(directory)
         }
     }

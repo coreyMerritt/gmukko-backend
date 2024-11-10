@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
-import { AI, Database, FileEngine, GmukkoLogger, ValidationRequest, Validators } from '../../core/index.js'
-import { DatabaseNames, DatabaseTableNames } from '../../configuration/db/index.js'
+import { Database, FileEngine, GmukkoLogger, ValidationRequest, Validators } from '../../core/index.js'
+import { DatabaseTableNames } from '../../configuration/db/index.js'
 import { VideoFactory, VideoTypes } from '../../media/video/index.js'
-import { Media } from '../../media/media.js'
-import { Config } from '../../configuration/config.js'
+import { Configs } from '../../configuration/configs.js'
 
 
 export class ValidationController {
@@ -14,7 +13,7 @@ export class ValidationController {
         
            for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
                 validationRequest.tables[tableName] = []
-                const results = await Database.getDatabaseEntriesFromTable(Config.databaseNames.staging, tableName)
+                const results = await Database.getDatabaseEntriesFromTable(Configs.databaseNames.staging, tableName)
                 for (const [, media] of results.entries()) {
                     if (Validators.isMedia(media)) {
                         validationRequest.tables[tableName].push(media)
