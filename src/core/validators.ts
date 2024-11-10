@@ -1,3 +1,5 @@
+import { DatabaseNames } from '../configuration/db/database_names.js'
+import { DatabaseTableNames } from '../configuration/db/database_table_names.js'
 import { Media, MediaTypes } from '../media/media.js'
 import { Anime, Animation, MiscVideo, Movie, Show, Standup, Video, VideoTypes } from '../media/video/index.js'
 import { ValidationRequest, ValidationResponse } from './file_engine.js'
@@ -6,6 +8,24 @@ import { GmukkoLogger } from './gmukko_logger.js'
 
 export class Validators {
    
+    public static isDatabaseTable(someString: string): someString is DatabaseTableNames {
+        for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
+            if (someString === tableName) {
+                return true
+            } 
+        }
+        return false
+    }
+
+    public static isDatabaseName(someString: string): someString is DatabaseNames {
+        for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
+            if (someString === databaseName) {
+                return true
+            } 
+        }
+        return false
+    }
+
     public static isMedia(object: object): object is Media {
         return 'filePath' in object && 'title' in object && 
             object.filePath && object.title ? true : false

@@ -1,3 +1,4 @@
+import { DatabaseTableNames } from "../../configuration/db/database_table_names.js"
 import { Media, MediaModel } from "../media.js"
 
 
@@ -26,5 +27,23 @@ export abstract class Video extends Media {
         var newString = someString.toLowerCase().replace(/ /g, '-').replace(`:`, ``).replace(`'`, ``).replace(`;`, "").replace(`"`, ``)
         newString = newString.replace(`?`, ``).replace(`>`, ``).replace(`<`, ``).replace(`\\`, `/`).replace(`|`, ``).replace(`*`, ``)
         return newString
+    }
+
+    public static getTableNameFromVideoType(videoType: VideoTypes): DatabaseTableNames {
+        switch (videoType) {
+            case VideoTypes.Animation:
+                return DatabaseTableNames.Animation
+            case VideoTypes.Anime:
+                return DatabaseTableNames.Anime
+            case VideoTypes.Movie:
+                return DatabaseTableNames.Movies
+            case VideoTypes.Show:
+                return DatabaseTableNames.Shows
+            case VideoTypes.Standup:
+                return DatabaseTableNames.Standup
+            case VideoTypes.Misc:
+                return DatabaseTableNames.MiscVideo
+            
+        }
     }
 }

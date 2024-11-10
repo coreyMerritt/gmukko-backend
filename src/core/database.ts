@@ -1,6 +1,6 @@
 import { GmukkoLogger } from './gmukko_logger.js'
 import { GmukkoTime } from './gmukko_time.js'
-import { DatabaseNames, DatabaseTableNames } from '../configuration/db/index.js'
+import { DatabaseNames, DatabaseTableNames, TestDatabaseNames } from '../configuration/db/index.js'
 import { BackupDirectories } from '../configuration/directories/index.js'
 import { Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
@@ -21,21 +21,40 @@ export class Database {
     private static rejectDatabase: Sequelize
 
 
-    public static async initialize(): Promise<void> {
-        this.stagingDatabase = await this.loadDatabase(DatabaseNames.Staging)
-        this.productionDatabase = await this.loadDatabase(DatabaseNames.Production)
-        this.rejectDatabase = await this.loadDatabase(DatabaseNames.Rejected)
+    public static async initialize(test: boolean): Promise<void> {
+        if (test) {
+            this.stagingDatabase = await this.loadDatabase(TestDatabaseNames.Staging)
+            this.productionDatabase = await this.loadDatabase(TestDatabaseNames.Production)
+            this.rejectDatabase = await this.loadDatabase(TestDatabaseNames.Rejected)
+        } else {
+            this.stagingDatabase = await this.loadDatabase(DatabaseNames.Staging)
+            this.productionDatabase = await this.loadDatabase(DatabaseNames.Production)
+            this.rejectDatabase = await this.loadDatabase(DatabaseNames.Rejected)
+        }
     }
 
     public static async backupAll(): Promise<void> {
+        for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
+            this.backup(databaseName)
+        }
+    }
+
+    public static async backup(databaseName: DatabaseNames): Promise<void> {
         const execAsync = promisify(exec)
         try {
-            for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
-                await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
-            }
-            GmukkoLogger.success(`Backed up all databases.`)
+            await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
+            GmukkoLogger.success(`Backed up database: ${databaseName}.`)
         } catch (error) {
-            throw new Error(`Failed to back up databases.`, { cause: error })
+            throw new Error(`Failed to back up database: ${databaseName}`, { cause: error })
+        }
+    }
+
+    public static async removeMediaFromTable(databaseName: DatabaseNames, media: Media): Promise<number> {
+        try {
+            const count = await this.deleteFromTableWhereOneEqualsTwo(databaseName, media.getTableName(), `filePath`, media.filePath)
+            return count
+        } catch (error) {
+            throw new Error(`Unable to remove ${media.filePath} from ${media.getTableName()}`, { cause: error })
         }
     }
 
@@ -59,15 +78,6 @@ export class Database {
         }
     }
 
-    public static async getStagingDatabaseEntriesFromTable(tableName: DatabaseTableNames): Promise<Media[]> {
-        const entries = await Database.selectAllFromTable(DatabaseNames.Staging, tableName)
-        if (Validators.isMediaArray(entries)) {
-            return entries
-        } else {
-            throw new Error(`Pulled invalid media from database.`)
-        }
-    }
-
     public static async moveStagingDatabaseEntriesToProduction(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
         await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Production)
     }
@@ -76,7 +86,14 @@ export class Database {
         await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Rejected)
     }
 
-
+    public static async getDatabaseEntriesFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise<Media[]> {
+        const entries = await Database.selectAllFromTable(databaseName, tableName)
+        if (Validators.isMediaArray(entries)) {
+            return entries
+        } else {
+            throw new Error(`Pulled invalid media from database.`)
+        }
+    }
 
     private static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise <object[]> {
         const database = this.determineDatabase(databaseName)
@@ -116,10 +133,10 @@ export class Database {
     }
 
 
-    private static async deleteFromTableWhereOneEqualsTwo(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<void> {
+    private static async deleteFromTableWhereOneEqualsTwo(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<number> {
         const database = this.determineDatabase(databaseName)
-        if (await this.tableExists(databaseName, tableName)) {
-            await database.query(
+         if (await this.tableExists(databaseName, tableName)) {
+            const result = await database.query(
                 `DELETE FROM ${tableName}
                 WHERE ${column} = :match;`,
                 {
@@ -127,8 +144,17 @@ export class Database {
                     replacements: {
                         match: match
                     }
-                }
-            )
+               }
+            ) as unknown as [number, unknown]
+            const count = result[0]
+            try {
+                return count   
+            } catch (error) {
+                throw new Error(`count is not of type number: ${count}`, { cause: error })
+            }
+
+        } else {
+            return 0
         }
     }
 
@@ -188,7 +214,7 @@ export class Database {
     }
 
 
-    private static async loadDatabase(databaseName: DatabaseNames): Promise<Sequelize> {
+    private static async loadDatabase(databaseName: DatabaseNames | TestDatabaseNames): Promise<Sequelize> {
         try {
             if (this.username && this.password) {
                 const sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)

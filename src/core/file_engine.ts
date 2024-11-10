@@ -1,10 +1,11 @@
-import { AI, Database, GmukkoLogger, Validators } from '../core/index.js'
-import { VideoFactory, VideoTypes } from '../media/video/index.js'
-import { DatabaseNames, DatabaseTableNames } from '../configuration/db/index.js'
+import { GmukkoLogger } from '../core/index.js'
 import { Media } from '../media/media.js'
 import { StagingDirectories } from '../configuration/directories/index.js'
 import path from 'path'
 import fs from 'fs'
+import { Start } from '../startup/start.js'
+import { Config } from '../configuration/config.js'
+
 
 interface TableRequest {
     [tableName: string]: Media[]
@@ -30,6 +31,25 @@ enum LandingPoints {
 
 
 export class FileEngine {
+
+    private static stagingDirectory: string
+    private static productionDirectory: string
+    private static rejectionDirectory: string
+
+    public static async initializeDirectories() {
+        if (Start.test) {
+            this.stagingDirectory = Config.stagingDirectory
+        }
+    }
+
+    public static async fileExists(filePath: string): Promise<boolean> {
+        try {
+            fs.accessSync(filePath)
+            return true
+        } catch {
+            return false
+        }
+    }
 
     public static async moveStagingFilesToProduction(validationResponse: ValidationResponse): Promise<void> {
         await this.moveStagingFilesToPath(validationResponse, LandingPoints.Production)

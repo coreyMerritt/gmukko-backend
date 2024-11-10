@@ -5,9 +5,6 @@ import { ValidationController } from '../controllers/validation.js'
 
 const router = express.Router()
 
-router.route('/validation/index/:mediaType?')
-    .post(asyncHandler(ValidationController.indexStaging))
-
 router.route('/validation/pending')
     .get(asyncHandler(ValidationController.getValidationRequest))
 

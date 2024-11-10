@@ -9,20 +9,30 @@ import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, Re
 import { ErrorMiddleware, RequestMiddleware } from '../middleware/index.js'
 
 
-class Start {
+export class Start {
 
-    private port = process.env.GMUKKO_BACKEND_PORT
+    private static port = process.env.GMUKKO_BACKEND_PORT
+    private static protocol = process.env.GMUKKO_BACKEND_PROTOCOL
+    public static url = `${this.protocol}://localhost:${this.port}`
+    public static test: boolean
 
-    public async execute(): Promise<void> {
+    public static async execute(test?: boolean): Promise<void> {
+        Start.test = test ? true : false 
         this.createDirectories()
         this.startApp()
         this.startPassiveJobs()
-        Database.initialize()
+        
+        if (test) {
+            Database.initialize(true)
+        } else {
+            Database.initialize(false)
+        }
+
     }
 
     
 
-    private async createDirectories(): Promise<void> {
+    private static async createDirectories(): Promise<void> {
         var directoriesToCreate: string[] = []
         directoriesToCreate.push(...(Object.values(BackupDirectories)))
         directoriesToCreate.push(...(Object.values(CoreDirectories)))
@@ -40,12 +50,12 @@ class Start {
         }
     }
 
-    private async startApp(): Promise<void> {
+    private static async startApp(): Promise<void> {
         const app = express()
         const server = http.createServer(app)
 
-        server.listen(this.port, () => {
-            GmukkoLogger.success(`Server is running on http://localhost:${this.port}`)
+        server.listen(Start.port, () => {
+            GmukkoLogger.success(`Server is running on ${Start.url}`)
         })
         app.use(express.json({ limit: '1gb' }))
 
@@ -55,7 +65,7 @@ class Start {
     }
 
 
-    private async startPassiveJobs(): Promise<void> {
+    private static async startPassiveJobs(): Promise<void> {
         cron.schedule('0 0 * * *', () => {
             Database.backupAll()
         }, 
@@ -65,4 +75,4 @@ class Start {
     }
 }
 
-new Start().execute()
+Start.execute()
