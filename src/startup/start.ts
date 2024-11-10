@@ -5,8 +5,9 @@ import http from 'http'
 import express from 'express'
 import backupRoutes from '../api/routes/backup.js'
 import validationRoutes from '../api/routes/validation.js'
-import { BackupDirectories, CoreDirectories, LogPaths, ProductionDirectories, RejectDirectories, StagingDirectories } from '../configuration/directories/index.js'
+import { BackupDirectories, CoreDirectories, VideoTypeDirectories } from '../configuration/directories/index.js'
 import { ErrorMiddleware, RequestMiddleware } from '../middleware/index.js'
+import { RootDirectories } from '../configuration/directories/root_directories.js'
 
 
 export class Start {
@@ -21,25 +22,17 @@ export class Start {
         this.createDirectories()
         this.startApp()
         this.startPassiveJobs()
-        
-        if (test) {
-            Database.initialize(true)
-        } else {
-            Database.initialize(false)
-        }
-
+        Database.initialize()
     }
 
     
 
     private static async createDirectories(): Promise<void> {
         var directoriesToCreate: string[] = []
-        directoriesToCreate.push(...(Object.values(BackupDirectories)))
+        directoriesToCreate.push(...(Object.values(RootDirectories)))
         directoriesToCreate.push(...(Object.values(CoreDirectories)))
-        directoriesToCreate.push(...(Object.values(LogPaths)))
-        directoriesToCreate.push(...(Object.values(StagingDirectories)))
-        directoriesToCreate.push(...(Object.values(ProductionDirectories)))
-        directoriesToCreate.push(...(Object.values(RejectDirectories)))
+        directoriesToCreate.push(...(Object.values(BackupDirectories)))
+        directoriesToCreate.push(...(Object.values(VideoTypeDirectories)))
     
         for (const [, path] of directoriesToCreate.entries()) {
             try {

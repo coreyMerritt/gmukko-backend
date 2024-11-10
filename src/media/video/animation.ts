@@ -1,11 +1,10 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 import { Prompt } from '../../core/prompt.js'
 import { DatabaseTableNames } from "../../configuration/db/index.js"
-import { CoreDirectories } from '../../configuration/directories/index.js'
-import { StagingDirectories } from "../../configuration/directories/staging_directories.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
 import path from "path"
+import { Config } from "../../configuration/config.js"
 
 class AnimationModel extends VideoModel {
     public seasonNumber!: number
@@ -32,8 +31,8 @@ export class Animation extends Video {
         return DatabaseTableNames.Animation
     }
 
-    getStagingDirectory(): StagingDirectories {
-        return StagingDirectories.Animation
+    getStagingDirectory(): string {
+        return Config.videoTypeDirectories.staging.animation
     }
 
     getPrompt(): Prompt {
@@ -56,7 +55,7 @@ export class Animation extends Video {
     }
 
     getProductionFilePath(): string {
-        var newBasePath = `${CoreDirectories.ProductionVideos}/${this.getTableName()}`
+        var newBasePath = `${Config.coreDirectories.productionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         var seasonNumber = String(this.seasonNumber).padStart(2, '0')
@@ -65,7 +64,7 @@ export class Animation extends Video {
     }
 
     getRejectFilePath(): string {
-        var newBasePath = `${CoreDirectories.RejectVideos}/${this.getTableName()}`
+        var newBasePath = `${Config.coreDirectories.rejectionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         var seasonNumber = String(this.seasonNumber).padStart(2, '0')

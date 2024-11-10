@@ -1,10 +1,10 @@
 import { DataTypes, Model, ModelStatic } from "sequelize"
 import { DatabaseTableNames } from "../../configuration/db/index.js"
-import { CoreDirectories, StagingDirectories } from "../../configuration/directories/index.js"
 import { Prompt } from "../../core/prompt.js"
 import { Video, VideoModel, VideoTypes } from "./video.js"
 import { MediaTypes } from "../media.js"
 import path from "path"
+import { Config } from "../../configuration/config.js"
 
 
 class MiscVideoModel extends VideoModel {}
@@ -26,8 +26,8 @@ export class MiscVideo extends Video {
         return DatabaseTableNames.MiscVideo
     }
 
-    getStagingDirectory(): StagingDirectories {
-        return StagingDirectories.MiscVideo
+    getStagingDirectory(): string {
+        return Config.videoTypeDirectories.staging.misc
     }
 
     getPrompt(): Prompt {
@@ -48,14 +48,14 @@ export class MiscVideo extends Video {
     }
 
     getProductionFilePath(): string {
-        var newBasePath = `${CoreDirectories.ProductionVideos}/${this.getTableName()}`
+        var newBasePath = `${Config.coreDirectories.productionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         return `${newBasePath}/${title}${currentFileExtension}`
     }
 
     getRejectFilePath(): string {
-        var newBasePath = `${CoreDirectories.RejectVideos}/${this.getTableName()}`
+        var newBasePath = `${Config.coreDirectories.rejectionVideos}/${this.getTableName()}`
         var currentFileExtension = path.extname(this.filePath)
         var title = this.prepStringForFileName(this.title)
         return `${newBasePath}/${title}${currentFileExtension}`

@@ -1,7 +1,6 @@
 import { GmukkoLogger } from './gmukko_logger.js'
 import { GmukkoTime } from './gmukko_time.js'
-import { DatabaseNames, DatabaseTableNames, TestDatabaseNames } from '../configuration/db/index.js'
-import { BackupDirectories } from '../configuration/directories/index.js'
+import { DatabaseNames, DatabaseTableNames } from '../configuration/db/index.js'
 import { Sequelize, QueryTypes } from 'sequelize'
 import { promisify } from 'util'
 import { exec } from 'child_process'
@@ -9,32 +8,24 @@ import { Media } from '../media/media.js'
 import { MediaFactory } from '../media/media_factory.js'
 import { Validators } from './validators.js'
 import { ValidationResponse } from './file_engine.js'
+import { Config } from '../configuration/config.js'
 
 
 export class Database {
-    private static username = process.env.GMUKKO_BACKEND_USERNAME
-    private static password = process.env.GMUKKO_BACKEND_PASSWORD
-    private static host = 'localhost'
-    private static port = '3306'
+    
     private static stagingDatabase: Sequelize
     private static productionDatabase: Sequelize
-    private static rejectDatabase: Sequelize
+    private static rejectionDatabase: Sequelize
 
 
-    public static async initialize(test: boolean): Promise<void> {
-        if (test) {
-            this.stagingDatabase = await this.loadDatabase(TestDatabaseNames.Staging)
-            this.productionDatabase = await this.loadDatabase(TestDatabaseNames.Production)
-            this.rejectDatabase = await this.loadDatabase(TestDatabaseNames.Rejected)
-        } else {
-            this.stagingDatabase = await this.loadDatabase(DatabaseNames.Staging)
-            this.productionDatabase = await this.loadDatabase(DatabaseNames.Production)
-            this.rejectDatabase = await this.loadDatabase(DatabaseNames.Rejected)
-        }
+    public static async initialize(): Promise<void> {
+        this.stagingDatabase = await this.loadDatabase(Config.databaseNames.staging)
+        this.productionDatabase = await this.loadDatabase(Config.databaseNames.production)
+        this.rejectionDatabase = await this.loadDatabase(Config.databaseNames.rejection)
     }
 
     public static async backupAll(): Promise<void> {
-        for (const [, databaseName] of Object.values(DatabaseNames).entries()) {
+        for (const [, databaseName] of Object.values(Config.databaseNames).entries()) {
             this.backup(databaseName)
         }
     }
@@ -42,7 +33,7 @@ export class Database {
     public static async backup(databaseName: DatabaseNames): Promise<void> {
         const execAsync = promisify(exec)
         try {
-            await execAsync(`mysqldump -u ${this.username} -p${this.password} ${databaseName} > "./${BackupDirectories.Output}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
+            await execAsync(`mysqldump -u ${Config.databaseInfo.username} -p${Config.databaseInfo.password} ${databaseName} > "./${Config.backupDirectories.out}/${databaseName}___${GmukkoTime.getCurrentDateTime(true)}".sql`)
             GmukkoLogger.success(`Backed up database: ${databaseName}.`)
         } catch (error) {
             throw new Error(`Failed to back up database: ${databaseName}`, { cause: error })
@@ -61,14 +52,14 @@ export class Database {
     public static async indexFilesIntoStagingDatabase(media: Media[]): Promise<number> {
         try {
             const tableName = media[0].getTableName()
-            const tableExistsInStaging = await this.tableExists(DatabaseNames.Staging, tableName)
+            const tableExistsInStaging = await this.tableExists(Config.databaseNames.staging, tableName)
             if (!tableExistsInStaging) {
-               await this.initAndSyncModel(DatabaseNames.Staging, media[0])
+               await this.initAndSyncModel(Config.databaseNames.staging, media[0])
             }
             
             if (media.length > 0) {
                 for (const [, singleMedia] of media.entries()) {
-                    await this.insertMediaIntoTable(DatabaseNames.Staging, singleMedia)
+                    await this.insertMediaIntoTable(Config.databaseNames.staging, singleMedia)
                 }
             }
 
@@ -79,11 +70,11 @@ export class Database {
     }
 
     public static async moveStagingDatabaseEntriesToProduction(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
-        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Production)
+        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, Config.databaseNames.staging, Config.databaseNames.production)
     }
 
     public static async moveStagingDatabaseEntriesToRejected(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
-        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, DatabaseNames.Staging, DatabaseNames.Rejected)
+        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, Config.databaseNames.staging, Config.databaseNames.rejection)
     }
 
     public static async getDatabaseEntriesFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise<Media[]> {
@@ -214,20 +205,16 @@ export class Database {
     }
 
 
-    private static async loadDatabase(databaseName: DatabaseNames | TestDatabaseNames): Promise<Sequelize> {
+    private static async loadDatabase(databaseName: DatabaseNames): Promise<Sequelize> {
         try {
-            if (this.username && this.password) {
-                const sequelize = new Sequelize(`mysql://${this.username}:${this.password}@${this.host}:${this.port}`)
-                await sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\``, { logging: false })
-                const database = new Sequelize(databaseName, this.username, this.password, {
-                    host: 'localhost',
-                    dialect: 'mysql',
-                    logging: false,
-                })
-                return database
-            } else {
-                throw new Error(`Failed to load database because username and/or password were not defined.`)
-            }
+            const sequelize = new Sequelize(`mysql://${Config.databaseInfo.username}:${Config.databaseInfo.password}@${Config.databaseInfo.host}:${Config.databaseInfo.port}`)
+            await sequelize.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\``, { logging: false })
+            const database = new Sequelize(databaseName, Config.databaseInfo.username, Config.databaseInfo.password, {
+                host: 'localhost',
+                dialect: 'mysql',
+                logging: false,
+            })
+            return database
         } catch (error) {
             throw new Error(`Failed to load database: ${databaseName}`, { cause: error })
         }
@@ -290,14 +277,17 @@ export class Database {
         }
     }
 
-    private static determineDatabase(databaseName: DatabaseNames) {
+    private static determineDatabase(databaseName: DatabaseNames): Sequelize {
         switch (databaseName) {
             case DatabaseNames.Staging:
+            case DatabaseNames.TestStaging:
                 return this.stagingDatabase
             case DatabaseNames.Production:
+            case DatabaseNames.TestProduction:
                 return this.productionDatabase
-            case DatabaseNames.Rejected:
-                return this.rejectDatabase
+            case DatabaseNames.Rejection:
+            case DatabaseNames.TestRejection:
+                return this.rejectionDatabase
         }
     }
 

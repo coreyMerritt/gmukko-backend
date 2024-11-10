@@ -1,6 +1,4 @@
 export * from './backup_directories.js'
 export * from './core_directories.js'
-export * from './production_directories.js'
-export * from './reject_directories.js'
-export * from './staging_directories.js'
+export * from './video_type_directories.js'
 export * from './logs_paths.js'

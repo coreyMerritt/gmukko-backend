@@ -1,9 +1,7 @@
 import { GmukkoLogger } from '../core/index.js'
 import { Media } from '../media/media.js'
-import { StagingDirectories } from '../configuration/directories/index.js'
 import path from 'path'
 import fs from 'fs'
-import { Start } from '../startup/start.js'
 import { Config } from '../configuration/config.js'
 
 
@@ -26,21 +24,11 @@ export interface ValidationResponse {
 enum LandingPoints {
     Staging = 'staging',
     Production = 'production',
-    Rejected = 'rejected'
+    Rejection = 'rejection'
 }
 
 
 export class FileEngine {
-
-    private static stagingDirectory: string
-    private static productionDirectory: string
-    private static rejectionDirectory: string
-
-    public static async initializeDirectories() {
-        if (Start.test) {
-            this.stagingDirectory = Config.stagingDirectory
-        }
-    }
 
     public static async fileExists(filePath: string): Promise<boolean> {
         try {
@@ -56,7 +44,7 @@ export class FileEngine {
     }
 
     public static async moveStagingFilesToRejected(validationResponse: ValidationResponse): Promise<void> {
-        await this.moveStagingFilesToPath(validationResponse, LandingPoints.Rejected)
+        await this.moveStagingFilesToPath(validationResponse, LandingPoints.Rejection)
     }
 
     public static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
@@ -96,7 +84,7 @@ export class FileEngine {
                 var newFilePath: string
                 if (landing === LandingPoints.Production) {
                     newFilePath = media.getProductionFilePath()
-                } else if (landing === LandingPoints.Rejected) {
+                } else if (landing === LandingPoints.Rejection) {
                     newFilePath = media.getRejectFilePath()
                 } else {
                     throw new Error (`Landing point for staging files is not yet configured.`)
@@ -119,7 +107,7 @@ export class FileEngine {
     }
 
     private static async cleanStagingDirectory(): Promise<void> {
-        for (const [, directory] of Object.values(StagingDirectories).entries()) {
+        for (const [, directory] of Object.values(Config.videoTypeDirectories.staging).entries()) {
             this.deleteEmptyDirectories(directory)
         }
     }

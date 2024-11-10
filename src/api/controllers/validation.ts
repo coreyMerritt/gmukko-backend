@@ -3,6 +3,7 @@ import { AI, Database, FileEngine, GmukkoLogger, ValidationRequest, Validators }
 import { DatabaseNames, DatabaseTableNames } from '../../configuration/db/index.js'
 import { VideoFactory, VideoTypes } from '../../media/video/index.js'
 import { Media } from '../../media/media.js'
+import { Config } from '../../configuration/config.js'
 
 
 export class ValidationController {
@@ -13,7 +14,7 @@ export class ValidationController {
         
            for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
                 validationRequest.tables[tableName] = []
-                const results = await Database.getDatabaseEntriesFromTable(DatabaseNames.Staging, tableName)
+                const results = await Database.getDatabaseEntriesFromTable(Config.databaseNames.staging, tableName)
                 for (const [, media] of results.entries()) {
                     if (Validators.isMedia(media)) {
                         validationRequest.tables[tableName].push(media)

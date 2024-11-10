@@ -3,6 +3,7 @@ import { Media, MediaTypes } from '../../media/media'
 import { DatabaseNames, DatabaseTableNames } from '../../configuration/db'
 import { Database, FileEngine, GmukkoLogger, Validators } from '../../core'
 import { Video, VideoFactory, VideoTypes } from '../../media/video'
+import { Config } from '../../configuration/config'
 
 
 export class LintController {
@@ -16,7 +17,7 @@ export class LintController {
         if (databaseName && Validators.isDatabaseName(databaseName)) {
             databaseNamesToLint.push(databaseName)
         } else {
-            databaseNamesToLint = Object.values(DatabaseNames)
+            databaseNamesToLint = Object.values(Config.databaseNames)
         }
 
         for (const [, databaseName] of databaseNamesToLint.entries()) {
