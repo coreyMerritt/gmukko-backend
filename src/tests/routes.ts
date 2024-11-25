@@ -14,7 +14,6 @@ export class TestRoutes {
 
     public static testBackupAll(): boolean {
         const result = axios.post(`${Start.url}/backup`)
-        console.log(result)
         return true
     }
 }

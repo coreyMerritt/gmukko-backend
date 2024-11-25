@@ -296,9 +296,6 @@ export class Database {
                         const trueMedia = MediaFactory.createMediaFromTableName(media, tableName as DatabaseTableNames)
                         await Database.initAndSyncModel(databaseTwo, trueMedia)
                         await Database.insertMediaIntoTable(databaseTwo, trueMedia)
-                        console.log(databaseOne)
-                        console.log(tableName)
-                        console.log(initialFilePath)
                         await Database.deleteFromTableWhereOneEqualsTwo(databaseOne, tableName as DatabaseTableNames, `filepath`, initialFilePath)
                         count++
                     } else {
