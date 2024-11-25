@@ -40,11 +40,11 @@ export class FileEngine {
     }
 
     public static async moveStagingFilesToProduction(validationResponse: ValidationResponse): Promise<void> {
-        await this.moveStagingFilesToPath(validationResponse, LandingPoints.Production)
+        await FileEngine.moveStagingFilesToPath(validationResponse, LandingPoints.Production)
     }
 
     public static async moveStagingFilesToRejected(validationResponse: ValidationResponse): Promise<void> {
-        await this.moveStagingFilesToPath(validationResponse, LandingPoints.Rejection)
+        await FileEngine.moveStagingFilesToPath(validationResponse, LandingPoints.Rejection)
     }
 
     public static async getFilePaths(directoryToCheck: string, extensionsToMatch: string[]): Promise<string[]> {
@@ -58,7 +58,7 @@ export class FileEngine {
                 const stats = fs.statSync(fullPath)
             
                 if (stats.isDirectory()) {
-                    const nestedFiles = await this.getFilePaths(fullPath, extensionsToMatch)
+                    const nestedFiles = await FileEngine.getFilePaths(fullPath, extensionsToMatch)
                     filesMatchingExtension = filesMatchingExtension.concat(nestedFiles)
                 } else {
                     const isProperFileExtension = extensionsToMatch.some(extensionToMatch => extensionToMatch === fileExtension);
@@ -95,7 +95,7 @@ export class FileEngine {
                     fs.accessSync(media.filePath)
                     fs.renameSync(media.filePath, newFilePath)
                     media.filePath = newFilePath
-                    await this.cleanStagingDirectory()
+                    await FileEngine.cleanStagingDirectory()
                     count++
                 } catch (error) {
                     throw new Error(`Something went wrong while trying to move staging file to ${landing}: ${media.filePath}.`, { cause: error })
@@ -108,7 +108,7 @@ export class FileEngine {
 
     private static async cleanStagingDirectory(): Promise<void> {
         for (const [, directory] of Object.values(Configs.videoTypeDirectories.staging).entries()) {
-            this.deleteEmptyDirectories(directory)
+            FileEngine.deleteEmptyDirectories(directory)
         }
     }
 
@@ -132,7 +132,7 @@ export class FileEngine {
             }
     
             if (stats.isDirectory()) {
-                const isDirectoryEmpty = await this.deleteEmptyDirectories(fullPath)
+                const isDirectoryEmpty = await FileEngine.deleteEmptyDirectories(fullPath)
                 if (isDirectoryEmpty) {
                     try {
                         fs.rmdirSync(fullPath)

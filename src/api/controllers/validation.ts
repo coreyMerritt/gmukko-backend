@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { Database, FileEngine, GmukkoLogger, ValidationRequest, Validators } from '../../core/index.js'
 import { DatabaseTableNames } from '../../configuration/db/index.js'
-import { VideoFactory, VideoTypes } from '../../media/video/index.js'
+import { VideoFactory } from '../../media/video/index.js'
 import { Configs } from '../../configuration/configs.js'
 
 

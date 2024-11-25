@@ -1,24 +1,24 @@
 import { NextFunction, Request, Response } from 'express'
-import { VideoFactory, VideoTypes } from '../../media/video'
-import { AI, Database, FileEngine, GmukkoLogger, Validators } from '../../core'
-import { DatabaseNames } from '../../configuration/db'
-import { Media } from '../../media/media'
-import { Configs } from '../../configuration/configs'
+import { VideoFactory, VideoTypes } from '../../media/video/index.js'
+import { AI, Database, FileEngine, GmukkoLogger, Validators } from '../../core/index.js'
+import { Media } from '../../media/media.js'
+import { Configs } from '../../configuration/configs.js'
 
 
 export class IndexController {
 
     public static async indexStagingDatabase(req: Request, res: Response, next: NextFunction) {
+        
         try {
             const videoType = req.params.videoType
             var count: number
 
             if (!videoType) {
-                count = await this.indexAllStagingDirectories()
+                count = await IndexController.indexAllStagingDirectories()
                 res.status(200).send(`Successfully indexed ${count} files.\n`)
             } else if (Validators.isVideoType(videoType)) {
                 const nullVideo = VideoFactory.createNullFromVideoType(videoType)
-                count = await this.indexOneStagingDirectory(nullVideo)
+                count = await IndexController.indexOneStagingDirectory(nullVideo)
                 res.status(200).send(`Successfully indexed ${count} files.\n`)
             } else {
                 res.sendStatus(500)
@@ -30,6 +30,8 @@ export class IndexController {
             next(error)
         }
     }
+
+
 
     private static async indexAllStagingDirectories(): Promise<number> {
         var count = 0
@@ -52,7 +54,7 @@ export class IndexController {
         const nullMiscVideo = VideoFactory.createNullFromVideoType(VideoTypes.Misc)
         count += await this.indexOneStagingDirectory(nullMiscVideo)
         
-        GmukkoLogger.success(`${count} staging file${count > 1 ? 's' : ''} indexed in total.`)
+        GmukkoLogger.success(`${count} staging file${count === 1 ? '' : 's'} indexed in total.`)
         return count
     }
 
@@ -74,7 +76,7 @@ export class IndexController {
             throw new Error(`Unable to index staging directory: ${nullMedia.getStagingDirectory()}`, { cause: error })
         }
 
-        GmukkoLogger.success(`${count} staging file${count > 1 ? 's' : ''} indexed inside ${nullMedia.getStagingDirectory()}.`)
+        GmukkoLogger.success(`${count} staging file${count === 1 ? '' : 's'} indexed inside: ${nullMedia.getStagingDirectory()}`)
         return count
     }
 }

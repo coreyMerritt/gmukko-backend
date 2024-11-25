@@ -76,11 +76,10 @@ export class LintController {
                 mediaToCheck = allMediaInDatabase
             }
 
-            var mediaRemovedCount = 0
             for (const [, media] of mediaToCheck.entries()) {
                 if (!FileEngine.fileExists(media.filePath)) {
                     const trueMedia = VideoFactory.createVideoFromObject(media)
-                    mediaRemovedCount += await Database.removeMediaFromTable(databaseName, trueMedia)
+                    await Database.removeMediaFromTable(databaseName, trueMedia)
                 }
             }
 

@@ -12,7 +12,7 @@ const red = chalk.red
 export class GmukkoLogger {
 
     public static async info(info: string): Promise<void> {
-        this.logTimestamp()
+        GmukkoLogger.logTimestamp()
         process.stdout.write(`${info}\n`)
 
         fs.appendFile(`${LogFiles.General}`, 
@@ -50,7 +50,7 @@ export class GmukkoLogger {
     }
 
     public static async data(tag: string, data: string): Promise<void> {
-        this.logTimestamp()
+        GmukkoLogger.logTimestamp()
         process.stdout.write(`${tag}: ${cyan(data)}\n`)
 
         fs.appendFile(`${LogFiles.General}`, 
@@ -60,7 +60,7 @@ export class GmukkoLogger {
     }
 
     public static async important(info: string): Promise<void> {
-        this.logTimestamp()
+        GmukkoLogger.logTimestamp()
         process.stdout.write(`${orange(info)}\n`)
 
         fs.appendFile(`${LogFiles.General}`, 
@@ -70,7 +70,7 @@ export class GmukkoLogger {
     }
 
     public static async success(info: string): Promise<void> {
-        this.logTimestamp()
+        GmukkoLogger.logTimestamp()
         process.stdout.write(`${green(info)}\n`)
 
         fs.appendFile(`${LogFiles.General}`, 

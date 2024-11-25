@@ -4,12 +4,10 @@ import fs from 'fs'
 import http from 'http'
 import express from 'express'
 import backupRoutes from '../api/routes/backup.js'
+import indexRoutes from '../api/routes/index.js'
 import validationRoutes from '../api/routes/validation.js'
-import { BackupDirectories, CoreDirectories, VideoTypeDirectories } from '../configuration/directories/index.js'
 import { ErrorMiddleware, RequestMiddleware } from '../middleware/index.js'
-import { RootDirectories } from '../configuration/directories/root_directories.js'
 import { Configs } from '../configuration/configs.js'
-import { constrainedMemory } from 'process'
 
 
 export class Start {
@@ -34,14 +32,16 @@ export class Start {
 
     private static async createDirectories(): Promise<void> {
         var directoriesToCreate: string[] = []
-        directoriesToCreate.push(...(Object.values(RootDirectories)))
-        directoriesToCreate.push(...(Object.values(CoreDirectories)))
-        directoriesToCreate.push(...(Object.values(BackupDirectories)))
-        directoriesToCreate.push(...(Object.values(VideoTypeDirectories)))
+        directoriesToCreate.push(Configs.rootDirectory)
+        directoriesToCreate.push(...(Object.values(Configs.coreDirectories)))
+        directoriesToCreate.push(...(Object.values(Configs.backupDirectories)))
+        directoriesToCreate.push(...(Object.values(Configs.videoTypeDirectories.staging)))
+        directoriesToCreate.push(...(Object.values(Configs.videoTypeDirectories.production)))
+        directoriesToCreate.push(...(Object.values(Configs.videoTypeDirectories.rejection)))
     
         for (const [, path] of directoriesToCreate.entries()) {
             try {
-                fs.mkdirSync(path)
+                fs.mkdirSync(path, { recursive: true })
             } catch {
                 // Not a genuine error, directory exists
             }   
@@ -58,7 +58,9 @@ export class Start {
         app.use(express.json({ limit: '1gb' }))
 
         app.use(RequestMiddleware.execute)
-        app.use(`/`, backupRoutes, validationRoutes)
+        app.use(`/`, backupRoutes)
+        app.use(`/`, indexRoutes)
+        app.use(`/`, validationRoutes)
         app.use(ErrorMiddleware.execute)
     }
 

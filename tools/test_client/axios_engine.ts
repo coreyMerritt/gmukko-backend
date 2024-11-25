@@ -17,7 +17,7 @@ export class AxiosEngine {
 
     public async startIndexing(): Promise<void> {
         try {
-            const reply = await this.instance.post(`/validation/index`)
+            const reply = await this.instance.post(`/index/staging`)
             console.log(reply.data)
         } catch (error) {
             throw new Error(`Failed to start indexing.`, { cause: error })

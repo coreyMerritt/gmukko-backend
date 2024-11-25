@@ -105,7 +105,7 @@ export class Validators {
     public static isValidationRequest(object: object): object is ValidationRequest {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
-                if (!this.isMediaArray(someArray)) {
+                if (!Validators.isMediaArray(someArray)) {
                     GmukkoLogger.important(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
                     return false
                 }
@@ -119,7 +119,7 @@ export class Validators {
     public static isValidationResponse(object: object): object is ValidationResponse {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
-                if (!this.isMediaArray(someArray)) {
+                if (!Validators.isMediaArray(someArray)) {
                     GmukkoLogger.important(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
                     return false
                 }

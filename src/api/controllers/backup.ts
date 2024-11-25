@@ -6,7 +6,7 @@ import { Validators } from "../../core/validators.js"
 export class BackupController {
 
     public static async backupDatabase(req: Request, res: Response, next: NextFunction): Promise<void> {
-        
+
         const databaseName = req.params.databaseName
         if (!databaseName) {
             try {

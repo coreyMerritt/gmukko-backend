@@ -9,6 +9,7 @@ import { MediaFactory } from '../media/media_factory.js'
 import { Validators } from './validators.js'
 import { ValidationResponse } from './file_engine.js'
 import { Configs } from '../configuration/configs.js'
+import { table } from 'console'
 
 
 export class Database {
@@ -19,14 +20,14 @@ export class Database {
 
 
     public static async initialize(): Promise<void> {
-        this.stagingDatabase = await this.loadDatabase(Configs.databaseNames.staging)
-        this.productionDatabase = await this.loadDatabase(Configs.databaseNames.production)
-        this.rejectionDatabase = await this.loadDatabase(Configs.databaseNames.rejection)
+        Database.stagingDatabase = await Database.loadDatabase(Configs.databaseNames.staging)
+        Database.productionDatabase = await Database.loadDatabase(Configs.databaseNames.production)
+        Database.rejectionDatabase = await Database.loadDatabase(Configs.databaseNames.rejection)
     }
 
     public static async backupAll(): Promise<void> {
         for (const [, databaseName] of Object.values(Configs.databaseNames).entries()) {
-            this.backup(databaseName)
+            Database.backup(databaseName)
         }
     }
 
@@ -40,10 +41,9 @@ export class Database {
         }
     }
 
-    public static async removeMediaFromTable(databaseName: DatabaseNames, media: Media): Promise<number> {
+    public static async removeMediaFromTable(databaseName: DatabaseNames, media: Media): Promise<void> {
         try {
-            const count = await this.deleteFromTableWhereOneEqualsTwo(databaseName, media.getTableName(), `filePath`, media.filePath)
-            return count
+            await Database.deleteFromTableWhereOneEqualsTwo(databaseName, media.getTableName(), `filePath`, media.filePath)
         } catch (error) {
             throw new Error(`Unable to remove ${media.filePath} from ${media.getTableName()}`, { cause: error })
         }
@@ -52,14 +52,14 @@ export class Database {
     public static async indexFilesIntoStagingDatabase(media: Media[]): Promise<number> {
         try {
             const tableName = media[0].getTableName()
-            const tableExistsInStaging = await this.tableExists(Configs.databaseNames.staging, tableName)
+            const tableExistsInStaging = await Database.tableExists(Configs.databaseNames.staging, tableName)
             if (!tableExistsInStaging) {
-               await this.initAndSyncModel(Configs.databaseNames.staging, media[0])
+               await Database.initAndSyncModel(Configs.databaseNames.staging, media[0])
             }
             
             if (media.length > 0) {
                 for (const [, singleMedia] of media.entries()) {
-                    await this.insertMediaIntoTable(Configs.databaseNames.staging, singleMedia)
+                    await Database.insertMediaIntoTable(Configs.databaseNames.staging, singleMedia)
                 }
             }
 
@@ -70,11 +70,11 @@ export class Database {
     }
 
     public static async moveStagingDatabaseEntriesToProduction(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
-        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, Configs.databaseNames.staging, Configs.databaseNames.production)
+        await Database.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, Configs.databaseNames.staging, Configs.databaseNames.production)
     }
 
     public static async moveStagingDatabaseEntriesToRejected(validationResponse: ValidationResponse, validationResponseWithUpdatedFilePaths: ValidationResponse): Promise<void> {
-        await this.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, Configs.databaseNames.staging, Configs.databaseNames.rejection)
+        await Database.moveDatabaseOneEntriesToDatabaseTwo(validationResponse, validationResponseWithUpdatedFilePaths, Configs.databaseNames.staging, Configs.databaseNames.rejection)
     }
 
     public static async getDatabaseEntriesFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise<Media[]> {
@@ -87,8 +87,8 @@ export class Database {
     }
 
     private static async selectAllFromTable(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise <object[]> {
-        const database = this.determineDatabase(databaseName)
-        if (await this.tableExists(databaseName, tableName)) {
+        const database = Database.determineDatabase(databaseName)
+        if (await Database.tableExists(databaseName, tableName)) {
             const resultOfQuery = await database.query(
                 `SELECT * FROM ${tableName};`,
                 {   
@@ -103,8 +103,8 @@ export class Database {
     }
 
     private static async selectAllFromTableWhereColumnEqualsMatch(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<object[]> {
-        const database = this.determineDatabase(databaseName)
-        if (await this.tableExists(databaseName, tableName)) {
+        const database = Database.determineDatabase(databaseName)
+        if (await Database.tableExists(databaseName, tableName)) {
             const resultOfQuery = await database.query(
                 `SELECT * 
                 FROM ${tableName}
@@ -124,9 +124,9 @@ export class Database {
     }
 
 
-    private static async deleteFromTableWhereOneEqualsTwo(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<number> {
-        const database = this.determineDatabase(databaseName)
-         if (await this.tableExists(databaseName, tableName)) {
+    private static async deleteFromTableWhereOneEqualsTwo(databaseName: DatabaseNames, tableName: DatabaseTableNames, column: string, match: string): Promise<void> {
+        const database = Database.determineDatabase(databaseName)
+         if (await Database.tableExists(databaseName, tableName)) {
             const result = await database.query(
                 `DELETE FROM ${tableName}
                 WHERE ${column} = :match;`,
@@ -137,21 +137,15 @@ export class Database {
                     }
                }
             ) as unknown as [number, unknown]
-            const count = result[0]
-            try {
-                return count   
-            } catch (error) {
-                throw new Error(`count is not of type number: ${count}`, { cause: error })
-            }
 
         } else {
-            return 0
+            throw new Error(`Tried to delete from table that doesn't exist: ${tableName}`)
         }
     }
 
 
     private static async insertMediaIntoTable(databaseName: DatabaseNames, media: Media, tableName?: DatabaseTableNames): Promise<void> {
-        const database = this.determineDatabase(databaseName)
+        const database = Database.determineDatabase(databaseName)
         try {
             const adjustedTableName = tableName ? tableName : media.getTableName() 
             const columns: string[] = ['createdAt', 'updatedAt']
@@ -189,7 +183,7 @@ export class Database {
 
         try {
             for (const [, filePath] of filePaths.entries()) {
-                if (await this.filePathInDatabase(databaseName, filePath)) {
+                if (await Database.filePathInDatabase(databaseName, filePath)) {
                     GmukkoLogger.data(`Tossing already indexed file`, filePath)
                     filePathsToToss.push(filePath)
                 }
@@ -221,7 +215,7 @@ export class Database {
     }
 
     private static async tableExists(databaseName: DatabaseNames, tableName: DatabaseTableNames): Promise<boolean> {
-        const database = this.determineDatabase(databaseName)
+        const database = Database.determineDatabase(databaseName)
         try {
             await database.query(
                 `SELECT * FROM ${tableName};`,
@@ -238,10 +232,10 @@ export class Database {
 
 
     private static async filePathInDatabase(databaseName: DatabaseNames, filePath: string): Promise<boolean> {
-        const database = this.determineDatabase(databaseName)
+        const database = Database.determineDatabase(databaseName)
         for (const [, tableName] of Object.values(DatabaseTableNames).entries()) {
             try {
-                const tableExistsInStaging = await this.tableExists(databaseName, tableName)
+                const tableExistsInStaging = await Database.tableExists(databaseName, tableName)
                 if (tableExistsInStaging) {
                     const resultOfQuery = await database.query(`
                         SELECT *
@@ -267,7 +261,7 @@ export class Database {
     
 
     private static async initAndSyncModel(databaseName: DatabaseNames, media: Media): Promise<void> {
-        const database = this.determineDatabase(databaseName)
+        const database = Database.determineDatabase(databaseName)
         try {
             const model = media.getModel()
             model.init(media.getAttributes(), { sequelize: database, tableName: media.getTableName() })
@@ -281,13 +275,13 @@ export class Database {
         switch (databaseName) {
             case DatabaseNames.Staging:
             case DatabaseNames.TestStaging:
-                return this.stagingDatabase
+                return Database.stagingDatabase
             case DatabaseNames.Production:
             case DatabaseNames.TestProduction:
-                return this.productionDatabase
+                return Database.productionDatabase
             case DatabaseNames.Rejection:
             case DatabaseNames.TestRejection:
-                return this.rejectionDatabase
+                return Database.rejectionDatabase
         }
     }
 
@@ -300,9 +294,12 @@ export class Database {
                     const initialFilePath = originalValidationResponse.tables[tableName][i].filePath
                     if (initialFilePath !== media.filePath) {
                         const trueMedia = MediaFactory.createMediaFromTableName(media, tableName as DatabaseTableNames)
-                        await this.initAndSyncModel(databaseTwo, trueMedia)
-                        await this.insertMediaIntoTable(databaseTwo, trueMedia)
-                        await this.deleteFromTableWhereOneEqualsTwo(databaseOne, tableName as DatabaseTableNames, `filepath`, initialFilePath)
+                        await Database.initAndSyncModel(databaseTwo, trueMedia)
+                        await Database.insertMediaIntoTable(databaseTwo, trueMedia)
+                        console.log(databaseOne)
+                        console.log(tableName)
+                        console.log(initialFilePath)
+                        await Database.deleteFromTableWhereOneEqualsTwo(databaseOne, tableName as DatabaseTableNames, `filepath`, initialFilePath)
                         count++
                     } else {
                         throw new Error(`filePath was not updated for ${databaseTwo}.\nDatabase indexes were not changed.`)
