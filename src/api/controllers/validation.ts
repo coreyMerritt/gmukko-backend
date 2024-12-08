@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { Database, FileEngine, GmukkoLogger, ValidationRequest, Validators } from '../../core/index.js'
+import { Database, FileEngine, LikiLogger, ValidationRequest, Validators } from '../../core/index.js'
 import { DatabaseTableNames } from '../../configuration/db/index.js'
 import { VideoFactory } from '../../media/video/index.js'
 import { Configs } from '../../configuration/configs.js'
@@ -22,7 +22,7 @@ export class ValidationController {
             }
 
             res.status(200).send(validationRequest)
-            GmukkoLogger.success(`Sent validation request.`)
+            LikiLogger.success(`Sent validation request.`)
 
         } catch (error) {
             res.sendStatus(500)

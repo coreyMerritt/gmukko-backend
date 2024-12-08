@@ -93,10 +93,10 @@ export class Configs {
     }
 
     private static setDatabaseInfo(): void {
-        if (process.env.GMUKKO_BACKEND_USERNAME && process.env.GMUKKO_BACKEND_PASSWORD) {
+        if (process.env.LIKI_USERNAME && process.env.LIKI_PASSWORD) {
             this.databaseInfo = {
-                username: process.env.GMUKKO_BACKEND_USERNAME,
-                password: process.env.GMUKKO_BACKEND_PASSWORD,
+                username: process.env.LIKI_USERNAME,
+                password: process.env.LIKI_PASSWORD,
                 host: 'localhost',
                 port: 3306
             }

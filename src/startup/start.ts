@@ -1,4 +1,4 @@
-import { Database, GmukkoLogger } from '../core/index.js'
+import { Database, LikiLogger } from '../core/index.js'
 import cron from 'node-cron'
 import fs from 'fs'
 import http from 'http'
@@ -12,8 +12,8 @@ import { Configs } from '../configuration/configs.js'
 
 export class Start {
 
-    private static port = process.env.GMUKKO_BACKEND_PORT
-    private static protocol = process.env.GMUKKO_BACKEND_PROTOCOL
+    private static port = process.env.LIKI_PORT
+    private static protocol = process.env.LIKI_PROTOCOL
     public static url = `${this.protocol}://localhost:${this.port}`
 
     public static async execute(test?: boolean): Promise<void> {
@@ -53,7 +53,7 @@ export class Start {
         const server = http.createServer(app)
 
         server.listen(Start.port, () => {
-            GmukkoLogger.success(`Server is running on ${Start.url}`)
+            LikiLogger.success(`Server is running on ${Start.url}`)
         })
         app.use(express.json({ limit: '1gb' }))
 

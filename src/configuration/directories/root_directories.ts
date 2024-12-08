@@ -1,4 +1,4 @@
 export enum RootDirectories {
-    Live = `/mnt/z/gmukko/live`,
-    Test = `/mnt/z/gmukko/test`
+    Live = `/mnt/z/liki/live`,
+    Test = `/mnt/z/liki/test`
 }

@@ -1,7 +1,7 @@
-import { GmukkoLogger } from '../core/gmukko_logger.js'
+import { LikiLogger } from '../core/liki_logger.js'
 
 export class ErrorMiddleware {
     public static async execute(error: Error): Promise<void> { 
-        GmukkoLogger.error(error)
+        LikiLogger.error(error)
     }
 }

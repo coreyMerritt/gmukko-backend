@@ -1,5 +1,4 @@
 import { DatabaseTableNames } from "../configuration/db/index.js"
-import { GmukkoLogger } from "../core/gmukko_logger.js"
 import { Validators } from "../core/validators.js"
 import { MediaTypes } from "./media.js"
 import { VideoFactory, VideoTypes } from "./video/index.js"

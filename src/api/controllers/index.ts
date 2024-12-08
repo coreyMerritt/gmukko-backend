@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { VideoFactory, VideoTypes } from '../../media/video/index.js'
-import { AI, Database, FileEngine, GmukkoLogger, Validators } from '../../core/index.js'
+import { AI, Database, FileEngine, LikiLogger, Validators } from '../../core/index.js'
 import { Media } from '../../media/media.js'
 import { Configs } from '../../configuration/configs.js'
 
@@ -54,7 +54,7 @@ export class IndexController {
         const nullMiscVideo = VideoFactory.createNullFromVideoType(VideoTypes.Misc)
         count += await this.indexOneStagingDirectory(nullMiscVideo)
         
-        GmukkoLogger.success(`${count} staging file${count === 1 ? '' : 's'} indexed in total.`)
+        LikiLogger.success(`${count} staging file${count === 1 ? '' : 's'} indexed in total.`)
         return count
     }
 
@@ -76,7 +76,7 @@ export class IndexController {
             throw new Error(`Unable to index staging directory: ${nullMedia.getStagingDirectory()}`, { cause: error })
         }
 
-        GmukkoLogger.success(`${count} staging file${count === 1 ? '' : 's'} indexed inside: ${nullMedia.getStagingDirectory()}`)
+        LikiLogger.success(`${count} staging file${count === 1 ? '' : 's'} indexed inside: ${nullMedia.getStagingDirectory()}`)
         return count
     }
 }

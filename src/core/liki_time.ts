@@ -1,4 +1,4 @@
-export class GmukkoTime {
+export class LikiTime {
 
     public static getCurrentDateTime(fileFormat?: boolean): string {
         const now = new Date()
