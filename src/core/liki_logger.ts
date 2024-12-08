@@ -1,7 +1,7 @@
 import { LikiTime } from './liki_time.js'
-import { LogFiles } from '../configuration/directories/index.js'
 import fs from 'fs/promises'
 import chalk from 'chalk'
+import { Configs } from '../configuration/configs.js'
 
 const blue = chalk.blue
 const cyan = chalk.cyan
@@ -15,7 +15,7 @@ export class LikiLogger {
         LikiLogger.logTimestamp()
         process.stdout.write(`${info}\n`)
 
-        fs.appendFile(`${LogFiles.General}`, 
+        fs.appendFile(`${Configs.logPaths.general}`, 
             `[${LikiTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -27,22 +27,22 @@ export class LikiLogger {
             process.stderr.write(`${red(error.message)}\n`)
             process.stderr.write(`${red(error.stack)}\n`)
 
-            fs.appendFile(`${LogFiles.General}`, 
+            fs.appendFile(`${Configs.logPaths.general}`, 
                 `[${LikiTime.getCurrentDateTime()}]\n` +
                 `${error.message}\n\n`
             )
-            fs.appendFile(`${LogFiles.Errors}`, 
+            fs.appendFile(`${Configs.logPaths.errors}`, 
                 `[${LikiTime.getCurrentDateTime()}]\n` +
                 `${error.message}\n\n`
             )
         } else {
             LikiLogger.logTimestamp()
             process.stderr.write(`${red(`An undefined error has occured.`)}\n`)
-            fs.appendFile(`${LogFiles.General}`, 
+            fs.appendFile(`${Configs.logPaths.general}`, 
                 `[${LikiTime.getCurrentDateTime()}]\n` +
                 `${`An undefined error has occured.`}\n\n`
             )
-            fs.appendFile(`${LogFiles.Errors}`, 
+            fs.appendFile(`${Configs.logPaths.errors}`, 
                 `[${LikiTime.getCurrentDateTime()}]\n` +
                 `${`An undefined error has occured.`}\n\n`
             )
@@ -53,7 +53,7 @@ export class LikiLogger {
         LikiLogger.logTimestamp()
         process.stdout.write(`${tag}: ${cyan(data)}\n`)
 
-        fs.appendFile(`${LogFiles.General}`, 
+        fs.appendFile(`${Configs.logPaths.general}`, 
             `[${LikiTime.getCurrentDateTime()}]\n` +
             `${tag}: ${data}\n\n`
         )
@@ -63,7 +63,7 @@ export class LikiLogger {
         LikiLogger.logTimestamp()
         process.stdout.write(`${orange(info)}\n`)
 
-        fs.appendFile(`${LogFiles.General}`, 
+        fs.appendFile(`${Configs.logPaths.general}`, 
             `[${LikiTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )
@@ -73,7 +73,7 @@ export class LikiLogger {
         LikiLogger.logTimestamp()
         process.stdout.write(`${green(info)}\n`)
 
-        fs.appendFile(`${LogFiles.General}`, 
+        fs.appendFile(`${Configs.logPaths.general}`, 
             `[${LikiTime.getCurrentDateTime()}]\n` +
             `Info: ${info}\n\n`
         )

@@ -4,6 +4,7 @@ import { LogFiles } from '../configuration/directories/index.js'
 import fs from 'fs/promises'
 import chalk from 'chalk'
 import { Request, Response, NextFunction } from "express"
+import { Configs } from "../configuration/configs.js"
 
 const blue = chalk.blue
 
@@ -14,7 +15,7 @@ export class RequestMiddleware {
         LikiLogger.logTimestamp()
         process.stdout.write(blue(`Request Recieved\n\n`))
 
-        fs.appendFile(`${LogFiles.IncomingRequest}`, 
+        fs.appendFile(`${Configs.logPaths.incomingRequest}`, 
             `[${LikiTime.getCurrentDateTime()}]\n` +
             `\tURL: ${req.url}\n` +
             `\tMethod: ${req.method}\n` +
