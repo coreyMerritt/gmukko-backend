@@ -116,7 +116,7 @@ export class Validators {
         }
     }
 
-    public static isValidationResponse(object: object): object is ValidationResponse {
+    public static isAcceptedValidationResponse(object: object): object is ValidationResponse {
         if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
             for (const [, someArray] of Object.values(object.tables).entries()) {
                 if (!Validators.isMediaArray(someArray)) {
@@ -128,6 +128,20 @@ export class Validators {
                     if (value === null || value === undefined || value === `placeholder` || value === -1) {
                         throw new Error(`Rejected media validation request. Media contains a null, undefined, placeholer, or -1 value:\n${JSON.stringify(media)}`)
                     }
+                }
+            }
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public static isValidationResponse(object: object): object is ValidationResponse {
+        if ('tables' in object && typeof object.tables === 'object' && object.tables !== null) {
+            for (const [, someArray] of Object.values(object.tables).entries()) {
+                if (!Validators.isMediaArray(someArray)) {
+                    LikiLogger.important(`Not a validation request... Not valid media: ${JSON.stringify(someArray)}`)
+                    return false
                 }
             }
             return true

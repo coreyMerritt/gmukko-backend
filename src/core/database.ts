@@ -34,7 +34,7 @@ export class Database {
     public static async backup(databaseName: DatabaseNames): Promise<void> {
         const execAsync = promisify(exec)
         try {
-            await execAsync(`mysqldump -u ${Configs.databaseInfo.username} -p${Configs.databaseInfo.password} ${databaseName} > "./${Configs.backupDirectories.out}/${databaseName}___${LikiTime.getCurrentDateTime(true)}".sql`)
+            await execAsync(`mysqldump -u ${Configs.databaseInfo.username} -p${Configs.databaseInfo.password} ${databaseName} > "${Configs.backupDirectories.out}/${databaseName}___${LikiTime.getCurrentDateTime(true)}".sql`)
             LikiLogger.success(`Backed up database: ${databaseName}.`)
         } catch (error) {
             throw new Error(`Failed to back up database: ${databaseName}`, { cause: error })

@@ -35,7 +35,7 @@ export class ValidationController {
 
             const originalValidationResponse = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
             const validationResponseWithUpdatedFilePaths = VideoFactory.buildVideosInValidationResponse(structuredClone(req.body))
-            if (Validators.isValidationResponse(originalValidationResponse)) {
+            if (Validators.isAcceptedValidationResponse(originalValidationResponse)) {
                 await FileEngine.moveStagingFilesToProduction(validationResponseWithUpdatedFilePaths)
                 await Database.moveStagingDatabaseEntriesToProduction(originalValidationResponse, validationResponseWithUpdatedFilePaths)
                 res.status(200).send('Successfully processed accepted entries.\n')

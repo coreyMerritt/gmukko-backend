@@ -3,7 +3,6 @@ import { FileEngine } from "./file_engine.js"
 import axiosRetry from "axios-retry"
 import { Paths } from "./configuration.js"
 import path from 'path'
-import chalk from 'chalk'
 
 
 export class AxiosEngine {
