@@ -25,14 +25,8 @@ interface ActiveBackupDirectories {
 
 interface ActiveCoreDirectories {
     logs: string
-    staging: string
-    stagingMedia: string
     stagingVideos: string
-    production: string
-    productionMedia: string
     productionVideos: string
-    rejection: string
-    rejectionMedia: string
     rejectionVideos: string   
 }
 
@@ -115,14 +109,8 @@ export class Configs {
     private static setCoreDirectories(): void {
         this.coreDirectories = {
             logs: `${this.rootDirectory}/${CoreDirectories.Logs}`,
-            staging: `${this.rootDirectory}/${CoreDirectories.Staging}`,
-            stagingMedia: `${this.rootDirectory}/${CoreDirectories.StagingMedia}`,
             stagingVideos: `${this.rootDirectory}/${CoreDirectories.StagingVideos}`,
-            production: `${this.rootDirectory}/${CoreDirectories.Production}`,
-            productionMedia: `${this.rootDirectory}/${CoreDirectories.ProductionMedia}`,
             productionVideos: `${this.rootDirectory}/${CoreDirectories.ProductionVideos}`,
-            rejection: `${this.rootDirectory}/${CoreDirectories.Rejection}`,
-            rejectionMedia: `${this.rootDirectory}/${CoreDirectories.RejectionMedia}`,
             rejectionVideos: `${this.rootDirectory}/${CoreDirectories.RejectionVideos}`
         }
     }

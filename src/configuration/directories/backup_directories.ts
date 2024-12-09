@@ -1,4 +1,4 @@
 export enum BackupDirectories {
-    Out = `backups/out`,
-    In = `backups/in`
+    Out = `liki/backups/out`,
+    In = `liki/backups/in`
 }
